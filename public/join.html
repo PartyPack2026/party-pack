@@ -5,689 +5,604 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Party Pack — Join</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
+:root{--purple:#6c3fc5;--pink:#e8357a;--yellow:#ffd93d;--teal:#00c9a7;--orange:#ff6b35;--dark:#1a1a2e;--card:#16213e;--text:#eaf4fb}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--dark);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;overflow-x:hidden}
+.screen{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;gap:14px}
+.screen.active{display:flex}
+h1{font-family:'Fredoka One',cursive;font-size:32px;background:linear-gradient(135deg,var(--yellow),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h2{font-family:'Fredoka One',cursive;font-size:24px;color:var(--yellow);text-align:center}
+.label{color:#888;font-size:12px;text-transform:uppercase;letter-spacing:2px;font-weight:700;text-align:center}
+input{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:14px;color:var(--text);font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;padding:14px 18px;width:100%;max-width:320px;outline:none;transition:border-color .2s;text-align:center}
+input:focus{border-color:var(--purple)}
+input.code-input{letter-spacing:6px;text-transform:uppercase;font-size:24px}
+textarea{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:14px;color:var(--text);font-family:'Nunito',sans-serif;font-size:17px;font-weight:700;padding:14px 18px;width:100%;max-width:320px;outline:none;resize:none;height:100px;transition:border-color .2s}
+textarea:focus{border-color:var(--purple)}
+.btn{width:100%;max-width:320px;padding:16px;border-radius:100px;border:none;font-family:'Fredoka One',cursive;font-size:20px;cursor:pointer;transition:all .2s;color:white;display:block}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--pink))}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-teal{background:linear-gradient(135deg,var(--teal),#00a8cc)}
+.btn-teal:active{transform:scale(.97)}
 
-  :root {
-    --purple: #6c3fc5;
-    --pink: #e8357a;
-    --yellow: #ffd93d;
-    --teal: #00c9a7;
-    --orange: #ff6b35;
-    --dark: #1a1a2e;
-    --card: #16213e;
-    --text: #eaf4fb;
-  }
+/* Answer buttons */
+.options-list{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px}
+.opt-btn{background:var(--card);border:2px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;cursor:pointer;transition:all .15s;color:var(--text);width:100%;text-align:left;display:flex;align-items:center;gap:10px}
+.opt-btn:active{transform:scale(.97)}
+.opt-btn.selected{border-color:var(--teal);background:rgba(0,201,167,.15)}
+.opt-btn.disabled{opacity:.4;pointer-events:none}
+.opt-letter{width:30px;height:30px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:15px;flex-shrink:0}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* Drawing */
+#draw-canvas{border-radius:14px;background:white;touch-action:none;width:100%;max-width:340px;height:260px;cursor:crosshair;display:block}
+.draw-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:340px;width:100%}
+.color-btn{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:border-color .15s;flex-shrink:0}
+.color-btn.active{border-color:white}
+.tool-btn{background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.15);border-radius:100px;padding:5px 11px;cursor:pointer;color:white;font-weight:800;font-size:12px;transition:all .15s}
+.tool-btn.active{background:var(--purple);border-color:var(--purple)}
+.eraser-btn-draw.active{background:var(--orange);border-color:var(--orange)}
 
-  body {
-    background: var(--dark);
-    color: var(--text);
-    font-family: 'Nunito', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* Lobby */
+.avatar-big{font-size:64px;text-align:center}
+.name-big{font-family:'Fredoka One',cursive;font-size:26px;text-align:center}
+.room-pill{background:rgba(255,255,255,.08);border-radius:100px;padding:5px 14px;font-size:13px;color:#888;font-weight:700;letter-spacing:2px}
 
-  .screen {
-    min-height: 100vh;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 24px; gap: 20px;
-    display: none;
-  }
+/* Waiting */
+.waiting-anim{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:4px}
+.wd{width:10px;height:10px;border-radius:50%;background:var(--purple);animation:bounce 1s infinite}
+.wd:nth-child(2){animation-delay:.2s;background:var(--pink)}
+.wd:nth-child(3){animation-delay:.4s;background:var(--yellow)}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
-  .screen.active { display: flex; }
+/* Timer bar */
+.timer-bar{width:100%;max-width:320px;height:5px;background:rgba(255,255,255,.1);border-radius:100px;overflow:hidden}
+.timer-fill{height:100%;background:var(--teal);border-radius:100px;transition:width 1s linear}
 
-  h1 { font-family: 'Fredoka One', cursive; font-size: 36px;
-    background: linear-gradient(135deg, var(--yellow), var(--pink));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+/* Rank drag */
+.rank-list{display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px}
+.rank-item{background:var(--card);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:grab;border:2px solid rgba(255,255,255,.08);font-weight:800;font-size:14px;user-select:none;transition:background .15s}
+.rank-item:active{cursor:grabbing;background:rgba(108,63,197,.3)}
+.rank-num{width:26px;height:26px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:13px;flex-shrink:0}
+.drag-handle{color:#555;font-size:16px;margin-left:auto}
 
-  h2 { font-family: 'Fredoka One', cursive; font-size: 28px; color: var(--yellow); text-align: center; }
-
-  .subtitle { color: #888; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
-
-  input {
-    background: rgba(255,255,255,0.08);
-    border: 2px solid rgba(255,255,255,0.15);
-    border-radius: 16px; color: var(--text);
-    font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800;
-    padding: 16px 20px; width: 100%; max-width: 340px;
-    outline: none; transition: border-color 0.2s;
-    text-align: center; letter-spacing: 4px; text-transform: uppercase;
-  }
-
-  input:focus { border-color: var(--purple); }
-  input.name-input { letter-spacing: normal; text-transform: none; }
-
-  .btn {
-    width: 100%; max-width: 340px; padding: 18px;
-    border-radius: 100px; border: none;
-    font-family: 'Fredoka One', cursive; font-size: 22px;
-    cursor: pointer; transition: all 0.2s; color: white;
-  }
-
-  .btn-primary { background: linear-gradient(135deg, var(--purple), var(--pink)); }
-  .btn-primary:hover { transform: scale(1.03); }
-  .btn-primary:active { transform: scale(0.97); }
-
-  .btn-secondary {
-    background: rgba(255,255,255,0.1); font-size: 16px;
-    font-family: 'Nunito', sans-serif; font-weight: 800;
-  }
-
-  .btn-answer {
-    background: var(--card); border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 16px; padding: 16px 20px;
-    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px;
-    cursor: pointer; transition: all 0.15s; color: var(--text);
-    width: 100%; text-align: left;
-    display: flex; align-items: center; gap: 12px;
-  }
-
-  .btn-answer:active { transform: scale(0.97); }
-
-  .btn-answer.selected {
-    border-color: var(--teal);
-    background: rgba(0,201,167,0.15);
-  }
-
-  .btn-answer .opt-letter {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--purple); display: flex; align-items: center; justify-content: center;
-    font-family: 'Fredoka One', cursive; font-size: 16px; flex-shrink: 0;
-  }
-
-  /* Text area */
-  textarea {
-    background: rgba(255,255,255,0.08);
-    border: 2px solid rgba(255,255,255,0.15);
-    border-radius: 16px; color: var(--text);
-    font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 700;
-    padding: 16px 20px; width: 100%; max-width: 340px;
-    outline: none; resize: none; height: 120px;
-    transition: border-color 0.2s;
-  }
-
-  textarea:focus { border-color: var(--purple); }
-
-  /* Drawing canvas */
-  #draw-canvas {
-    border-radius: 16px;
-    background: white;
-    touch-action: none;
-    width: 100%;
-    max-width: 360px;
-    height: 280px;
-    cursor: crosshair;
-  }
-
-  .draw-tools {
-    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-    justify-content: center; max-width: 360px; width: 100%;
-  }
-
-  .color-btn {
-    width: 36px; height: 36px; border-radius: 50%; border: 3px solid transparent;
-    cursor: pointer; transition: border-color 0.15s;
-  }
-
-  .color-btn.active { border-color: white; }
-
-  .size-btn {
-    background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.15);
-    border-radius: 100px; padding: 6px 14px; cursor: pointer;
-    color: white; font-weight: 800; font-size: 13px; transition: all 0.15s;
-  }
-  .size-btn.active { background: var(--purple); border-color: var(--purple); }
-
-  .eraser-btn {
-    background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.15);
-    border-radius: 100px; padding: 6px 14px; cursor: pointer;
-    color: white; font-weight: 800; font-size: 13px;
-  }
-  .eraser-btn.active { background: var(--orange); border-color: var(--orange); }
-
-  /* Avatar + lobby */
-  .avatar-big { font-size: 72px; text-align: center; }
-  .player-name-big { font-family: 'Fredoka One', cursive; font-size: 28px; text-align: center; }
-
-  .room-code-small {
-    background: rgba(255,255,255,0.08); border-radius: 100px;
-    padding: 6px 16px; font-size: 14px; color: #888; font-weight: 700;
-    letter-spacing: 2px;
-  }
-
-  .waiting-anim {
-    display: flex; gap: 8px; justify-content: center; align-items: center;
-    margin-top: 8px;
-  }
-
-  .waiting-dot {
-    width: 10px; height: 10px; border-radius: 50%; background: var(--purple);
-    animation: bounce 1s infinite;
-  }
-  .waiting-dot:nth-child(2) { animation-delay: 0.2s; background: var(--pink); }
-  .waiting-dot:nth-child(3) { animation-delay: 0.4s; background: var(--yellow); }
-
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-
-  .prompt-card {
-    background: var(--card); border-radius: 20px; padding: 20px;
-    font-size: 16px; font-weight: 800; text-align: center;
-    line-height: 1.4; max-width: 340px; width: 100%;
-    color: var(--yellow);
-  }
-
-  .status-msg { color: #888; font-size: 14px; font-weight: 700; text-align: center; }
-
-  .error-msg { color: var(--pink); font-size: 14px; font-weight: 800; text-align: center; }
-
-  /* Ranking drag UI */
-  .rank-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 340px; }
-  .rank-item {
-    background: var(--card); border-radius: 14px; padding: 14px 16px;
-    display: flex; align-items: center; gap: 12px; cursor: grab;
-    border: 2px solid rgba(255,255,255,0.1);
-    font-weight: 800; font-size: 15px;
-    user-select: none; transition: background 0.15s;
-  }
-  .rank-item:active { cursor: grabbing; background: rgba(108,63,197,0.3); }
-  .rank-num {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: var(--purple); display: flex; align-items: center; justify-content: center;
-    font-family: 'Fredoka One', cursive; font-size: 14px; flex-shrink: 0;
-  }
-  .drag-handle { color: #555; font-size: 18px; margin-left: auto; }
-
-  /* Eliminated screen */
-  .elim-icon { font-size: 80px; text-align: center; }
-
-  /* Char counter */
-  .char-count { font-size: 12px; color: #666; font-weight: 700; }
-
-  .btn-done {
-    background: linear-gradient(135deg, var(--teal), #00a8cc);
-    border: none; color: white; padding: 14px 32px; border-radius: 100px;
-    font-family: 'Fredoka One', cursive; font-size: 20px;
-    cursor: pointer; width: 100%; max-width: 340px;
-  }
+.status-msg{color:#888;font-size:14px;font-weight:700;text-align:center}
+.error-msg{color:var(--pink);font-size:13px;font-weight:800;text-align:center}
+.prompt-card{background:var(--card);border-radius:16px;padding:16px 18px;font-size:15px;font-weight:800;text-align:center;line-height:1.4;max-width:320px;width:100%;color:var(--yellow)}
+.char-count{font-size:11px;color:#666;font-weight:700}
+.result-big{font-size:60px;text-align:center}
+.score-gained{font-family:'Fredoka One',cursive;font-size:28px;text-align:center}
 </style>
 </head>
 <body>
 
-<!-- JOIN SCREEN -->
-<div id="screen-join" class="screen active">
+<!-- JOIN -->
+<div id="s-join" class="screen active">
   <h1>🎉 Party Pack</h1>
-  <div class="subtitle">Enter room code</div>
-  <input type="text" id="room-code-input" placeholder="XXXX" maxlength="4"/>
-  <input type="text" class="name-input" id="nickname-input" placeholder="Your name" maxlength="14" style="letter-spacing:normal; text-transform:none;"/>
-  <button class="btn btn-primary" onclick="joinRoom()">Join Game</button>
-  <div class="error-msg" id="join-error"></div>
+  <div class="label">Enter room code</div>
+  <input class="code-input" id="inp-code" placeholder="XXXX" maxlength="4" oninput="this.value=this.value.toUpperCase()"/>
+  <input id="inp-name" placeholder="Your name" maxlength="14" style="text-align:center"/>
+  <button class="btn btn-primary" onclick="joinRoom()">Join!</button>
+  <div class="error-msg" id="join-err"></div>
 </div>
 
-<!-- LOBBY WAITING -->
-<div id="screen-lobby" class="screen">
+<!-- LOBBY WAIT -->
+<div id="s-lobby" class="screen">
   <div class="avatar-big" id="my-avatar">🦊</div>
-  <div class="player-name-big" id="my-name">Player</div>
-  <div class="room-code-small" id="my-room-code">Room: ----</div>
+  <div class="name-big" id="my-name">Player</div>
+  <div class="room-pill" id="my-room">Room: ----</div>
   <div class="status-msg">Waiting for host to start...</div>
-  <div class="waiting-anim">
-    <div class="waiting-dot"></div>
-    <div class="waiting-dot"></div>
-    <div class="waiting-dot"></div>
-  </div>
+  <div class="waiting-anim"><div class="wd"></div><div class="wd"></div><div class="wd"></div></div>
 </div>
 
-<!-- ANSWER TEXT -->
-<div id="screen-answer" class="screen">
-  <div class="prompt-card" id="answer-prompt">...</div>
-  <textarea id="answer-text" placeholder="Type your answer..." maxlength="80"></textarea>
-  <div class="char-count"><span id="char-left">80</span> characters left</div>
-  <button class="btn-done" onclick="submitAnswer()">Submit!</button>
-  <div class="status-msg" id="answer-status"></div>
+<!-- TEXT ANSWER -->
+<div id="s-answer" class="screen">
+  <div class="prompt-card" id="ans-prompt">...</div>
+  <div class="label" id="ans-hint" style="display:none"></div>
+  <textarea id="ans-text" placeholder="Type here..." maxlength="80"></textarea>
+  <div class="char-count"><span id="ans-chars">80</span> chars left</div>
+  <div class="timer-bar"><div class="timer-fill" id="ans-timer" style="width:100%"></div></div>
+  <button class="btn btn-primary" id="ans-btn" onclick="submitTextAnswer()">Submit!</button>
+  <div class="status-msg" id="ans-status"></div>
 </div>
 
-<!-- VOTE CHOICE -->
-<div id="screen-vote" class="screen">
+<!-- VOTE / PICK -->
+<div id="s-vote" class="screen">
   <h2 id="vote-heading">Vote!</h2>
-  <div id="vote-options" style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:340px;"></div>
+  <div class="prompt-card" id="vote-prompt" style="display:none"></div>
+  <div class="timer-bar"><div class="timer-fill" id="vote-timer" style="width:100%"></div></div>
+  <div class="options-list" id="vote-options"></div>
   <div class="status-msg" id="vote-status"></div>
 </div>
 
 <!-- DRAW -->
-<div id="screen-draw" class="screen">
-  <div class="prompt-card" id="draw-prompt">...</div>
-  <canvas id="draw-canvas" width="360" height="280"></canvas>
+<div id="s-draw" class="screen">
+  <div class="prompt-card" id="draw-prompt">Draw this!</div>
+  <canvas id="draw-canvas" width="340" height="260"></canvas>
   <div class="draw-tools">
-    <div class="color-btn active" style="background:#222;" onclick="setColor('#222', this)"></div>
-    <div class="color-btn" style="background:#e8357a;" onclick="setColor('#e8357a', this)"></div>
-    <div class="color-btn" style="background:#6c3fc5;" onclick="setColor('#6c3fc5', this)"></div>
-    <div class="color-btn" style="background:#00c9a7;" onclick="setColor('#00c9a7', this)"></div>
-    <div class="color-btn" style="background:#ffd93d;" onclick="setColor('#ffd93d', this)"></div>
-    <div class="color-btn" style="background:#ff6b35;" onclick="setColor('#ff6b35', this)"></div>
-    <button class="size-btn active" onclick="setSize(4, this)">S</button>
-    <button class="size-btn" onclick="setSize(10, this)">M</button>
-    <button class="size-btn" onclick="setSize(22, this)">L</button>
-    <button class="eraser-btn" onclick="toggleEraser(this)">⬜ Erase</button>
+    <div class="color-btn active" style="background:#222" onclick="setCol('#222',this)"></div>
+    <div class="color-btn" style="background:#e8357a" onclick="setCol('#e8357a',this)"></div>
+    <div class="color-btn" style="background:#6c3fc5" onclick="setCol('#6c3fc5',this)"></div>
+    <div class="color-btn" style="background:#00c9a7" onclick="setCol('#00c9a7',this)"></div>
+    <div class="color-btn" style="background:#ffd93d" onclick="setCol('#ffd93d',this)"></div>
+    <div class="color-btn" style="background:#ff6b35" onclick="setCol('#ff6b35',this)"></div>
+    <button class="tool-btn active" onclick="setSz(4,this)">S</button>
+    <button class="tool-btn" onclick="setSz(12,this)">M</button>
+    <button class="tool-btn" onclick="setSz(26,this)">L</button>
+    <button class="tool-btn eraser-btn-draw" id="erase-btn" onclick="toggleErase(this)">⬜</button>
+    <button class="tool-btn" onclick="clearDraw()">🗑️</button>
   </div>
-  <button class="btn-done" onclick="doneDrawing()">Done Drawing!</button>
+  <div class="timer-bar"><div class="timer-fill" id="draw-timer" style="width:100%"></div></div>
+  <button class="btn btn-teal" onclick="doneDraw()">Done Drawing!</button>
 </div>
 
-<!-- WAIT (spectate) -->
-<div id="screen-wait" class="screen">
-  <div class="avatar-big" id="wait-avatar">⏳</div>
-  <h2 id="wait-heading">Hang tight!</h2>
-  <div class="status-msg" id="wait-msg">Others are still going...</div>
-  <div class="waiting-anim">
-    <div class="waiting-dot"></div>
-    <div class="waiting-dot"></div>
-    <div class="waiting-dot"></div>
-  </div>
+<!-- WAIT / SPECTATE -->
+<div id="s-wait" class="screen">
+  <div class="result-big" id="wait-icon">⏳</div>
+  <h2 id="wait-heading">Hang on...</h2>
+  <div class="status-msg" id="wait-msg"></div>
+  <div class="waiting-anim"><div class="wd"></div><div class="wd"></div><div class="wd"></div></div>
 </div>
 
 <!-- ELIMINATED -->
-<div id="screen-eliminated" class="screen">
-  <div class="elim-icon">💀</div>
+<div id="s-elim" class="screen">
+  <div class="result-big">💀</div>
   <h2>You're Out!</h2>
-  <div class="status-msg">Stick around and watch the others...</div>
+  <div class="status-msg">Watch the survivors duke it out...</div>
+  <div class="waiting-anim"><div class="wd"></div><div class="wd"></div><div class="wd"></div></div>
 </div>
 
-<!-- RANKING -->
-<div id="screen-rank" class="screen">
-  <h2 id="rank-heading">Rank these!</h2>
-  <div class="status-msg">Drag to reorder — most popular first</div>
+<!-- RANK -->
+<div id="s-rank" class="screen">
+  <h2 id="rank-heading">Rank them!</h2>
+  <div class="label">Most popular → least popular</div>
+  <div class="label" id="rank-q" style="color:var(--yellow);font-size:13px;normal-case"></div>
   <div class="rank-list" id="rank-list"></div>
-  <button class="btn-done" onclick="submitRanking()">Submit Ranking!</button>
+  <div class="timer-bar"><div class="timer-fill" id="rank-timer" style="width:100%"></div></div>
+  <button class="btn btn-primary" onclick="submitRank()">Submit!</button>
+  <div class="status-msg" id="rank-status"></div>
+</div>
+
+<!-- ROUND RESULT -->
+<div id="s-result" class="screen">
+  <div class="result-big" id="res-icon">🏆</div>
+  <h2 id="res-heading">Result!</h2>
+  <div class="score-gained" id="res-score" style="color:var(--yellow)"></div>
+  <div class="status-msg" id="res-msg"></div>
+  <div class="waiting-anim"><div class="wd"></div><div class="wd"></div><div class="wd"></div></div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
-let myPlayer = null;
-let myCode = null;
-let currentVoteOptions = [];
-let selectedVote = null;
-let currentRankItems = [];
+let myId = null, myCode = null, myPlayer = null;
 let drawCanvas, drawCtx, isDrawing = false;
-let currentColor = '#222', currentSize = 4, isEraser = false;
-let currentStroke = [];
+let curColor = '#222', curSize = 4, isEraser = false, curStroke = [];
+let selectedVote = null, rankItems = [];
+let timerIntervals = {};
 
-// ─── ROUTING ───────────────────────────────────────────
-function showScreen(id) {
+// Pre-fill code from URL
+const urlP = new URLSearchParams(window.location.search);
+if (urlP.get('room')) document.getElementById('inp-code').value = urlP.get('room').toUpperCase();
+
+// ─── SCREENS ───
+function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
+  document.getElementById('s-' + id).classList.add('active');
 }
 
-// ─── JOIN ───────────────────────────────────────────
-// Pre-fill room code from URL
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('room')) {
-  document.getElementById('room-code-input').value = urlParams.get('room').toUpperCase();
+// ─── TIMER BARS ───
+function startTimer(fillId, seconds) {
+  clearInterval(timerIntervals[fillId]);
+  const el = document.getElementById(fillId);
+  if (!el) return;
+  let elapsed = 0;
+  el.style.width = '100%';
+  el.style.background = 'var(--teal)';
+  timerIntervals[fillId] = setInterval(() => {
+    elapsed++;
+    const pct = Math.max(0, 100 - (elapsed / seconds * 100));
+    el.style.width = pct + '%';
+    if (pct < 25) el.style.background = 'var(--pink)';
+    else if (pct < 50) el.style.background = 'var(--yellow)';
+    if (pct <= 0) clearInterval(timerIntervals[fillId]);
+  }, 1000);
 }
 
+// ─── JOIN ───
 function joinRoom() {
-  const code = document.getElementById('room-code-input').value.trim().toUpperCase();
-  const nickname = document.getElementById('nickname-input').value.trim();
-  if (!code || code.length < 4) {
-    document.getElementById('join-error').textContent = 'Enter a 4-letter room code!';
-    return;
-  }
-  if (!nickname) {
-    document.getElementById('join-error').textContent = 'Enter your name!';
-    return;
-  }
+  const code = document.getElementById('inp-code').value.trim().toUpperCase();
+  const nickname = document.getElementById('inp-name').value.trim();
+  if (code.length < 4) { showErr('Enter a 4-letter code!'); return; }
+  if (!nickname) { showErr('Enter your name!'); return; }
   socket.emit('join_room', { code, nickname });
 }
 
+function showErr(msg) { document.getElementById('join-err').textContent = msg; }
+
 socket.on('room_joined', ({ code, player }) => {
-  myCode = code;
-  myPlayer = player;
+  myCode = code; myPlayer = player; myId = socket.id;
   document.getElementById('my-avatar').textContent = player.avatar;
   document.getElementById('my-name').textContent = player.nickname;
-  document.getElementById('my-room-code').textContent = `Room: ${code}`;
-  showScreen('lobby');
+  document.getElementById('my-room').textContent = 'Room: ' + code;
+  show('lobby');
 });
 
-socket.on('error', ({ message }) => {
-  document.getElementById('join-error').textContent = message;
-});
+socket.on('join_error', ({ message }) => showErr(message));
 
 socket.on('room_update', ({ phase }) => {
-  if (phase === 'lobby') {
-    showScreen('lobby');
-  }
+  if (phase === 'lobby') show('lobby');
 });
 
-// ─── QUIPLASH ───────────────────────────────────────────
-socket.on('your_prompt', ({ prompt }) => {
-  document.getElementById('answer-prompt').textContent = prompt;
-  document.getElementById('answer-text').value = '';
-  document.getElementById('char-left').textContent = '80';
-  document.getElementById('answer-status').textContent = '';
-  showScreen('answer');
+// ─── QUIPLASH ───
+socket.on('your_prompt', ({ prompt, timeLimit }) => {
+  document.getElementById('ans-prompt').textContent = prompt;
+  document.getElementById('ans-hint').style.display = 'none';
+  document.getElementById('ans-text').value = '';
+  document.getElementById('ans-text').disabled = false;
+  document.getElementById('ans-btn').disabled = false;
+  document.getElementById('ans-chars').textContent = '80';
+  document.getElementById('ans-status').textContent = '';
+  startTimer('ans-timer', timeLimit);
+  show('answer');
 });
 
-document.getElementById('answer-text').addEventListener('input', function() {
-  document.getElementById('char-left').textContent = 80 - this.value.length;
+document.getElementById('ans-text').addEventListener('input', function() {
+  document.getElementById('ans-chars').textContent = 80 - this.value.length;
 });
 
-function submitAnswer() {
-  const answer = document.getElementById('answer-text').value.trim();
-  if (!answer) return;
-  socket.emit('game_input', { type: 'answer', answer });
-  document.getElementById('answer-status').textContent = '✅ Submitted! Waiting for others...';
-  document.getElementById('answer-text').disabled = true;
-  document.querySelector('#screen-answer .btn-done').disabled = true;
+function submitTextAnswer() {
+  const val = document.getElementById('ans-text').value.trim();
+  if (!val) return;
+  socket.emit('game_input', { type: 'answer', answer: val });
+  socket.emit('game_input', { type: 'lie', lie: val }); // covers fibbage too
+  socket.emit('game_input', { type: 'guess', guess: val }); // covers drawful too
+  document.getElementById('ans-text').disabled = true;
+  document.getElementById('ans-btn').disabled = true;
+  document.getElementById('ans-status').textContent = '✅ Submitted! Waiting...';
 }
 
-// ─── VOTING (shared) ───────────────────────────────────────────
-socket.on('vote_now', ({ options }) => {
-  currentVoteOptions = options;
+socket.on('vote_now', ({ options, prompt, timeLimit }) => {
   selectedVote = null;
   document.getElementById('vote-heading').textContent = 'Which is funnier?';
+  const vp = document.getElementById('vote-prompt');
+  if (prompt) { vp.textContent = prompt; vp.style.display = 'block'; } else vp.style.display = 'none';
   document.getElementById('vote-status').textContent = '';
-  const letters = ['A', 'B', 'C', 'D', 'E'];
-  document.getElementById('vote-options').innerHTML = options.map((o, i) => `
-    <button class="btn-answer" onclick="castVote('${o.playerId || o.id}', this)">
-      <div class="opt-letter">${letters[i]}</div>
-      ${o.answer || o.text}
+  document.getElementById('vote-options').innerHTML = options.map(o => `
+    <button class="opt-btn" id="vb-${o.playerId}" onclick="doVote('${o.playerId}','vb-${o.playerId}','quiplash')">
+      ${o.answer}
     </button>
   `).join('');
-  showScreen('vote');
+  startTimer('vote-timer', timeLimit || 25);
+  show('vote');
 });
 
-socket.on('pick_answer', ({ answers }) => {
-  currentVoteOptions = answers;
-  selectedVote = null;
-  document.getElementById('vote-heading').textContent = 'Pick the real answer!';
-  document.getElementById('vote-status').textContent = '';
-  const letters = ['A','B','C','D','E'];
-  document.getElementById('vote-options').innerHTML = answers.map((a, i) => `
-    <button class="btn-answer" onclick="castVote('${a.id}', this)">
-      <div class="opt-letter">${letters[i]}</div>
-      ${a.text}
-    </button>
-  `).join('');
-  showScreen('vote');
-});
-
-function castVote(id, btn) {
+function doVote(id, btnId, type) {
   if (selectedVote) return;
   selectedVote = id;
-  btn.classList.add('selected');
+  document.getElementById(btnId)?.classList.add('selected');
+  document.querySelectorAll('.opt-btn').forEach(b => { if (b.id !== btnId) b.classList.add('disabled'); });
   socket.emit('game_input', { type: 'vote', vote: id, answerId: id });
-  document.getElementById('vote-status').textContent = '✅ Voted! Waiting...';
-  document.querySelectorAll('.btn-answer').forEach(b => {
-    if (b !== btn) b.style.opacity = '0.4';
-  });
+  document.getElementById('vote-status').textContent = '✅ Voted!';
 }
 
-// Wait screens
-socket.on('wait_for_vote', () => {
-  document.getElementById('wait-avatar').textContent = '👀';
-  document.getElementById('wait-heading').textContent = 'You\'re up!';
-  document.getElementById('wait-msg').textContent = 'Others are voting on your answer...';
-  showScreen('wait');
+socket.on('wait_for_votes', ({ message }) => {
+  document.getElementById('wait-icon').textContent = '😬';
+  document.getElementById('wait-heading').textContent = 'Waiting...';
+  document.getElementById('wait-msg').textContent = message || 'Others are still going...';
+  show('wait');
 });
 
-socket.on('wait_for_guesses', () => {
-  document.getElementById('wait-avatar').textContent = '🎨';
-  document.getElementById('wait-heading').textContent = 'Nice drawing!';
-  document.getElementById('wait-msg').textContent = 'Others are guessing what it is...';
-  showScreen('wait');
+socket.on('vote_results_player', ({ tally, players, myId: mid }) => {
+  // show brief result
+  show('wait');
+  document.getElementById('wait-icon').textContent = '📊';
+  document.getElementById('wait-heading').textContent = 'Round done!';
+  document.getElementById('wait-msg').textContent = 'Next matchup coming...';
 });
 
-socket.on('spectating', ({ question, options }) => {
-  // Eliminated players see the question but can't answer
-  document.getElementById('wait-avatar').textContent = '💀';
-  document.getElementById('wait-heading').textContent = 'Spectating...';
-  document.getElementById('wait-msg').textContent = question;
-  showScreen('wait');
+// ─── FIBBAGE ───
+socket.on('enter_lie', ({ prompt, timeLimit, hint }) => {
+  document.getElementById('ans-prompt').textContent = prompt;
+  if (hint) {
+    document.getElementById('ans-hint').textContent = hint;
+    document.getElementById('ans-hint').style.display = 'block';
+  }
+  document.getElementById('ans-text').value = '';
+  document.getElementById('ans-text').disabled = false;
+  document.getElementById('ans-btn').disabled = false;
+  document.getElementById('ans-chars').textContent = '80';
+  document.getElementById('ans-status').textContent = '';
+  startTimer('ans-timer', timeLimit);
+  show('answer');
 });
 
-// ─── FIBBAGE ───────────────────────────────────────────
-socket.on('enter_lie', ({ prompt }) => {
-  document.getElementById('answer-prompt').textContent = prompt;
-  document.getElementById('answer-text').value = '';
-  document.getElementById('answer-text').disabled = false;
-  document.querySelector('#screen-answer .btn-done').disabled = false;
-  document.getElementById('char-left').textContent = '80';
-  document.getElementById('answer-status').textContent = '';
-  showScreen('answer');
+socket.on('pick_answer', ({ answers, prompt, timeLimit }) => {
+  selectedVote = null;
+  document.getElementById('vote-heading').textContent = '🔍 Find the Truth!';
+  const vp = document.getElementById('vote-prompt');
+  if (prompt) { vp.textContent = prompt; vp.style.display = 'block'; } else vp.style.display = 'none';
+  document.getElementById('vote-status').textContent = '';
+  const letters = ['A','B','C','D','E'];
+  document.getElementById('vote-options').innerHTML = answers.map((a,i) => `
+    <button class="opt-btn" id="pb-${a.id}" onclick="doPickVote('${a.id}','pb-${a.id}')">
+      <div class="opt-letter">${letters[i]}</div>${a.text}
+    </button>
+  `).join('');
+  startTimer('vote-timer', timeLimit || 25);
+  show('vote');
 });
 
-// Override submit for fibbage
-const origSubmit = submitAnswer;
-function submitAnswer() {
-  const answer = document.getElementById('answer-text').value.trim();
-  if (!answer) return;
-  socket.emit('game_input', { type: 'answer', answer });
-  socket.emit('game_input', { type: 'lie', lie: answer });
-  document.getElementById('answer-status').textContent = '✅ Submitted! Waiting for others...';
-  document.getElementById('answer-text').disabled = true;
-  document.querySelector('#screen-answer .btn-done').disabled = true;
+function doPickVote(id, btnId) {
+  if (selectedVote) return;
+  selectedVote = id;
+  document.getElementById(btnId)?.classList.add('selected');
+  document.querySelectorAll('.opt-btn').forEach(b => { if (b.id !== btnId) b.classList.add('disabled'); });
+  socket.emit('game_input', { type: 'vote', answerId: id });
+  document.getElementById('vote-status').textContent = '✅ Locked in!';
 }
 
-// ─── DRAWFUL ───────────────────────────────────────────
-socket.on('your_drawing_prompt', ({ prompt }) => {
+socket.on('fibbage_results_player', ({ truth, answers, myId: mid, players }) => {
+  const myVote = null; // show result screen
+  document.getElementById('wait-icon').textContent = '📖';
+  document.getElementById('wait-heading').textContent = `The truth was...`;
+  document.getElementById('wait-msg').textContent = truth;
+  show('wait');
+});
+
+// ─── DRAWFUL ───
+socket.on('your_drawing_prompt', ({ prompt, timeLimit }) => {
   document.getElementById('draw-prompt').textContent = prompt;
-  initCanvas();
-  showScreen('draw');
+  initDrawCanvas();
+  startTimer('draw-timer', timeLimit);
+  show('draw');
 });
 
-socket.on('enter_guess', () => {
-  document.getElementById('answer-prompt').textContent = 'What is this drawing?';
-  document.getElementById('answer-text').value = '';
-  document.getElementById('answer-text').disabled = false;
-  document.querySelector('#screen-answer .btn-done').disabled = false;
-  document.getElementById('char-left').textContent = '80';
-  document.getElementById('answer-status').textContent = '';
-  showScreen('answer');
+socket.on('watch_drawing', ({ drawerName }) => {
+  document.getElementById('wait-icon').textContent = '👀';
+  document.getElementById('wait-heading').textContent = `${drawerName} is drawing!`;
+  document.getElementById('wait-msg').textContent = 'Watch the big screen...';
+  show('wait');
 });
 
-// Override submit for drawful guess
-document.querySelector('#screen-answer .btn-done').addEventListener('click', function() {
-  const answer = document.getElementById('answer-text').value.trim();
-  if (!answer) return;
-  socket.emit('game_input', { type: 'answer', answer });
-  socket.emit('game_input', { type: 'guess', guess: answer });
-  document.getElementById('answer-status').textContent = '✅ Submitted!';
-  document.getElementById('answer-text').disabled = true;
-  this.disabled = true;
-}, { once: false });
+socket.on('drawful_guess_phase', () => {
+  document.getElementById('ans-prompt').textContent = 'What is this drawing?!';
+  document.getElementById('ans-hint').style.display = 'none';
+  document.getElementById('ans-text').value = '';
+  document.getElementById('ans-text').disabled = false;
+  document.getElementById('ans-btn').disabled = false;
+  document.getElementById('ans-chars').textContent = '80';
+  document.getElementById('ans-status').textContent = '';
+  startTimer('ans-timer', 30);
+  show('answer');
+});
 
-function initCanvas() {
+socket.on('enter_guess', ({ timeLimit }) => {
+  document.getElementById('ans-prompt').textContent = 'What is this drawing?!';
+  document.getElementById('ans-hint').style.display = 'none';
+  document.getElementById('ans-text').value = '';
+  document.getElementById('ans-text').disabled = false;
+  document.getElementById('ans-btn').disabled = false;
+  document.getElementById('ans-chars').textContent = '80';
+  document.getElementById('ans-status').textContent = '';
+  startTimer('ans-timer', timeLimit);
+  show('answer');
+});
+
+socket.on('drawful_results_player', ({ correctAnswer, answers, myId: mid }) => {
+  const myVote = null;
+  document.getElementById('wait-icon').textContent = '🎨';
+  document.getElementById('wait-heading').textContent = `It was...`;
+  document.getElementById('wait-msg').textContent = correctAnswer;
+  show('wait');
+});
+
+// Drawing canvas
+function initDrawCanvas() {
   drawCanvas = document.getElementById('draw-canvas');
   drawCtx = drawCanvas.getContext('2d');
   drawCtx.fillStyle = 'white';
   drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
-
-  drawCanvas.addEventListener('pointerdown', startDraw);
-  drawCanvas.addEventListener('pointermove', draw);
-  drawCanvas.addEventListener('pointerup', endDraw);
-  drawCanvas.addEventListener('pointerleave', endDraw);
+  drawCanvas.onpointerdown = dStart;
+  drawCanvas.onpointermove = dMove;
+  drawCanvas.onpointerup = dEnd;
+  drawCanvas.onpointerleave = dEnd;
 }
 
-function getPos(e) {
-  const rect = drawCanvas.getBoundingClientRect();
-  const scaleX = drawCanvas.width / rect.width;
-  const scaleY = drawCanvas.height / rect.height;
+function gPos(e) {
+  const r = drawCanvas.getBoundingClientRect();
   return {
-    x: (e.clientX - rect.left) * scaleX,
-    y: (e.clientY - rect.top) * scaleY,
-    nx: (e.clientX - rect.left) / rect.width,
-    ny: (e.clientY - rect.top) / rect.height
+    x: (e.clientX - r.left) * (drawCanvas.width / r.width),
+    y: (e.clientY - r.top) * (drawCanvas.height / r.height),
+    nx: (e.clientX - r.left) / r.width,
+    ny: (e.clientY - r.top) / r.height
   };
 }
 
-function startDraw(e) {
-  e.preventDefault();
-  isDrawing = true;
-  const pos = getPos(e);
-  currentStroke = [{ x: pos.nx, y: pos.ny, color: isEraser ? 'white' : currentColor, size: isEraser ? 30 : currentSize }];
+function dStart(e) {
+  e.preventDefault(); isDrawing = true;
+  const p = gPos(e);
+  curStroke = [{ x: p.nx, y: p.ny, color: isEraser?'white':curColor, size: isEraser?30:curSize }];
   drawCtx.beginPath();
-  drawCtx.strokeStyle = isEraser ? 'white' : currentColor;
-  drawCtx.lineWidth = isEraser ? 30 : currentSize;
-  drawCtx.lineCap = 'round';
-  drawCtx.moveTo(pos.x, pos.y);
+  drawCtx.strokeStyle = isEraser?'white':curColor;
+  drawCtx.lineWidth = isEraser?30:curSize;
+  drawCtx.lineCap = 'round'; drawCtx.lineJoin = 'round';
+  drawCtx.moveTo(p.x, p.y);
 }
 
-function draw(e) {
-  if (!isDrawing) return;
-  e.preventDefault();
-  const pos = getPos(e);
-  currentStroke.push({ x: pos.nx, y: pos.ny, color: isEraser ? 'white' : currentColor, size: isEraser ? 30 : currentSize });
-  drawCtx.lineTo(pos.x, pos.y);
-  drawCtx.stroke();
+function dMove(e) {
+  if (!isDrawing) return; e.preventDefault();
+  const p = gPos(e);
+  curStroke.push({ x: p.nx, y: p.ny, color: isEraser?'white':curColor, size: isEraser?30:curSize });
+  drawCtx.lineTo(p.x, p.y); drawCtx.stroke();
 }
 
-function endDraw(e) {
-  if (!isDrawing) return;
-  isDrawing = false;
-  if (currentStroke.length > 1) {
-    socket.emit('game_input', { type: 'stroke', stroke: currentStroke });
-  }
-  currentStroke = [];
+function dEnd(e) {
+  if (!isDrawing) return; isDrawing = false;
+  if (curStroke.length > 1) socket.emit('game_input', { type: 'stroke', stroke: curStroke });
+  curStroke = [];
 }
 
-function setColor(color, btn) {
-  currentColor = color;
-  isEraser = false;
+function setCol(c, btn) {
+  curColor = c; isEraser = false;
   document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector('.eraser-btn').classList.remove('active');
+  document.getElementById('erase-btn').classList.remove('active');
   btn.classList.add('active');
 }
-
-function setSize(size, btn) {
-  currentSize = size;
-  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+function setSz(s, btn) {
+  curSize = s;
+  document.querySelectorAll('.tool-btn:not(.eraser-btn-draw)').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
-
-function toggleEraser(btn) {
-  isEraser = !isEraser;
-  btn.classList.toggle('active');
+function toggleErase(btn) {
+  isEraser = !isEraser; btn.classList.toggle('active');
   document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
 }
-
-function doneDrawing() {
+function clearDraw() {
+  if (drawCtx) { drawCtx.fillStyle = 'white'; drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height); }
+  socket.emit('game_input', { type: 'clear' });
+}
+function doneDraw() {
   socket.emit('game_input', { type: 'done_drawing' });
-  document.getElementById('wait-avatar').textContent = '✅';
+  document.getElementById('wait-icon').textContent = '✅';
   document.getElementById('wait-heading').textContent = 'Done!';
   document.getElementById('wait-msg').textContent = 'Others are guessing your masterpiece...';
-  showScreen('wait');
+  show('wait');
 }
 
-// ─── TRIVIA ───────────────────────────────────────────
-socket.on('answer_question', ({ question, options }) => {
-  currentVoteOptions = options.map((o, i) => ({ id: o, text: o }));
+// ─── TRIVIA ───
+socket.on('answer_question', ({ question, options, timeLimit }) => {
   selectedVote = null;
   document.getElementById('vote-heading').textContent = question;
+  document.getElementById('vote-prompt').style.display = 'none';
   document.getElementById('vote-status').textContent = '';
   const letters = ['A','B','C','D'];
-  document.getElementById('vote-options').innerHTML = options.map((o, i) => `
-    <button class="btn-answer" onclick="answerTrivia('${o.replace(/'/g, "\\'")}', this)">
-      <div class="opt-letter">${letters[i]}</div>
+  document.getElementById('vote-options').innerHTML = options.map((o,i) => `
+    <button class="opt-btn" id="tb-${i}" onclick="doTriviaAnswer('${o.replace(/'/g,"\\'")}','tb-${i}')">
+      <div class="opt-letter">${letters[i]}</div>${o}
+    </button>
+  `).join('');
+  startTimer('vote-timer', timeLimit);
+  show('vote');
+});
+
+function doTriviaAnswer(answer, btnId) {
+  if (selectedVote) return;
+  selectedVote = answer;
+  document.getElementById(btnId)?.classList.add('selected');
+  document.querySelectorAll('.opt-btn').forEach(b => { if (b.id !== btnId) b.classList.add('disabled'); });
+  socket.emit('game_input', { type: 'answer', answer });
+  document.getElementById('vote-status').textContent = '✅ Locked in!';
+}
+
+socket.on('trivia_reveal_player', ({ correctAnswer, myAnswer, correct, streak }) => {
+  document.getElementById('res-icon').textContent = correct ? '✅' : '❌';
+  document.getElementById('res-heading').textContent = correct ? 'Correct!' : 'Wrong!';
+  if (correct) {
+    const bonus = streak > 1 ? (streak - 1) * 100 : 0;
+    document.getElementById('res-score').textContent = `+${300 + bonus} pts${streak > 1 ? ` 🔥 ${streak} streak!` : ''}`;
+  } else {
+    document.getElementById('res-score').textContent = `The answer was: ${correctAnswer}`;
+    document.getElementById('res-score').style.color = 'var(--pink)';
+  }
+  document.getElementById('res-msg').textContent = 'Next question coming...';
+  show('result');
+});
+
+socket.on('you_are_eliminated', () => { show('elim'); });
+socket.on('spectating', () => {
+  document.getElementById('wait-icon').textContent = '💀';
+  document.getElementById('wait-heading').textContent = 'Spectating';
+  document.getElementById('wait-msg').textContent = 'You\'re eliminated. Watch the survivors!';
+  show('wait');
+});
+
+// ─── POLL MINE ───
+socket.on('cast_vote', ({ question, options, timeLimit }) => {
+  selectedVote = null;
+  document.getElementById('vote-heading').textContent = question;
+  document.getElementById('vote-prompt').style.display = 'none';
+  document.getElementById('vote-status').textContent = '';
+  document.getElementById('vote-options').innerHTML = options.map(o => `
+    <button class="opt-btn" id="cv-${o.replace(/\s/g,'_')}" onclick="doPollVote('${o.replace(/'/g,"\\'")}','cv-${o.replace(/\s/g,'_')}')">
       ${o}
     </button>
   `).join('');
-  showScreen('vote');
+  startTimer('vote-timer', timeLimit);
+  show('vote');
 });
 
-function answerTrivia(answer, btn) {
-  if (selectedVote) return;
-  selectedVote = answer;
-  btn.classList.add('selected');
-  socket.emit('game_input', { type: 'answer', answer });
-  document.getElementById('vote-status').textContent = '✅ Locked in!';
-  document.querySelectorAll('.btn-answer').forEach(b => {
-    if (b !== btn) b.style.opacity = '0.4';
-  });
-}
-
-socket.on('you_are_eliminated', () => {
-  showScreen('eliminated');
-});
-
-// ─── POLL MINE ───────────────────────────────────────────
-socket.on('cast_vote', ({ question, options }) => {
-  currentVoteOptions = options.map(o => ({ id: o, text: o }));
-  selectedVote = null;
-  document.getElementById('vote-heading').textContent = question;
-  document.getElementById('vote-status').textContent = '';
-  document.getElementById('vote-options').innerHTML = options.map((o, i) => `
-    <button class="btn-answer" onclick="castPollVote('${o.replace(/'/g, "\\'")}', this)">
-      <span>${o}</span>
-    </button>
-  `).join('');
-  showScreen('vote');
-});
-
-function castPollVote(option, btn) {
+function doPollVote(option, btnId) {
   if (selectedVote) return;
   selectedVote = option;
-  btn.classList.add('selected');
+  document.getElementById(btnId)?.classList.add('selected');
+  document.querySelectorAll('.opt-btn').forEach(b => { if (b.id !== btnId) b.classList.add('disabled'); });
   socket.emit('game_input', { type: 'vote', option });
   document.getElementById('vote-status').textContent = '✅ Voted!';
-  document.querySelectorAll('.btn-answer').forEach(b => {
-    if (b !== btn) b.style.opacity = '0.4';
-  });
 }
 
-socket.on('rank_options', ({ question, options }) => {
-  currentRankItems = [...options];
-  document.getElementById('rank-heading').textContent = question;
-  renderRankList();
-  showScreen('rank');
+socket.on('rank_options', ({ question, options, timeLimit }) => {
+  rankItems = [...options];
+  document.getElementById('rank-heading').textContent = 'Rank them!';
+  document.getElementById('rank-q').textContent = question;
+  document.getElementById('rank-status').textContent = '';
+  renderRank();
+  startTimer('rank-timer', timeLimit);
+  show('rank');
 });
 
-function renderRankList() {
-  const list = document.getElementById('rank-list');
-  list.innerHTML = currentRankItems.map((item, i) => `
-    <div class="rank-item" draggable="true" data-index="${i}"
-      ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="drop(event)">
-      <div class="rank-num">${i + 1}</div>
-      <span>${item}</span>
-      <span class="drag-handle">⠿</span>
+function renderRank() {
+  document.getElementById('rank-list').innerHTML = rankItems.map((item, i) => `
+    <div class="rank-item" draggable="true" data-i="${i}" ondragstart="rs(event)" ondragover="ro(event)" ondrop="rd(event)">
+      <div class="rank-num">${i+1}</div><span>${item}</span><span class="drag-handle">⠿</span>
     </div>
   `).join('');
 }
 
-let dragSrc = null;
-function dragStart(e) { dragSrc = parseInt(e.currentTarget.dataset.index); }
-function dragOver(e) { e.preventDefault(); }
-function drop(e) {
+let rSrc = null;
+function rs(e) { rSrc = parseInt(e.currentTarget.dataset.i); }
+function ro(e) { e.preventDefault(); }
+function rd(e) {
   e.preventDefault();
-  const target = parseInt(e.currentTarget.dataset.index);
-  if (dragSrc === null || dragSrc === target) return;
-  const item = currentRankItems.splice(dragSrc, 1)[0];
-  currentRankItems.splice(target, 0, item);
-  dragSrc = null;
-  renderRankList();
+  const t = parseInt(e.currentTarget.dataset.i);
+  if (rSrc === null || rSrc === t) return;
+  const item = rankItems.splice(rSrc, 1)[0];
+  rankItems.splice(t, 0, item);
+  rSrc = null; renderRank();
 }
 
-function submitRanking() {
-  socket.emit('game_input', { type: 'prediction', ranking: currentRankItems });
-  document.getElementById('wait-avatar').textContent = '📊';
-  document.getElementById('wait-heading').textContent = 'Ranking submitted!';
-  document.getElementById('wait-msg').textContent = 'Waiting for results...';
-  showScreen('wait');
+function submitRank() {
+  socket.emit('game_input', { type: 'prediction', ranking: rankItems });
+  document.getElementById('rank-status').textContent = '✅ Submitted!';
+  document.getElementById('rank-list').style.opacity = '0.4';
+  document.querySelector('#s-rank .btn').disabled = true;
 }
 
-// ─── GAME OVER ───────────────────────────────────────────
-socket.on('game_over', () => {
-  document.getElementById('wait-avatar').textContent = '🏆';
-  document.getElementById('wait-heading').textContent = 'Game over!';
-  document.getElementById('wait-msg').textContent = 'Check the big screen for final results!';
-  showScreen('wait');
+socket.on('pollmine_results_player', ({ actualRanking, myPrediction, myVote, players }) => {
+  let correct = 0;
+  if (myPrediction) myPrediction.forEach((o,i) => { if (actualRanking[i] === o) correct++; });
+  document.getElementById('res-icon').textContent = correct >= 3 ? '🎯' : correct >= 2 ? '👍' : '🤷';
+  document.getElementById('res-heading').textContent = `${correct}/${actualRanking.length} correct!`;
+  document.getElementById('res-score').textContent = `You voted: ${myVote || '(nothing)'}`;
+  document.getElementById('res-score').style.color = 'var(--yellow)';
+  document.getElementById('res-msg').textContent = 'Next round coming up...';
+  show('result');
 });
 
-socket.on('game_ended', ({ returnToLobby }) => {
-  if (returnToLobby) showScreen('lobby');
+// ─── GAME OVER ───
+socket.on('game_over', ({ scores }) => {
+  const me = scores.find(s => s.id === myId);
+  const rank = scores.findIndex(s => s.id === myId) + 1;
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('res-icon').textContent = medals[rank-1] || '🎮';
+  document.getElementById('res-heading').textContent = rank === 1 ? 'You won!!' : `You came ${rank}${rank===2?'nd':rank===3?'rd':'th'}!`;
+  document.getElementById('res-score').textContent = `${me?.score || 0} points`;
+  document.getElementById('res-score').style.color = 'var(--yellow)';
+  document.getElementById('res-msg').textContent = 'Waiting for host to start next game...';
+  show('result');
 });
+
+socket.on('game_ended', ({ returnToLobby }) => { if (returnToLobby) show('lobby'); });
 </script>
 </body>
 </html>
