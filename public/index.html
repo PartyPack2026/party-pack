@@ -5,415 +5,236 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Party Pack — Host</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
+:root{--purple:#6c3fc5;--pink:#e8357a;--yellow:#ffd93d;--teal:#00c9a7;--orange:#ff6b35;--dark:#1a1a2e;--card:#16213e;--text:#eaf4fb}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--dark);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh}
+.screen{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:20px}
+.screen.active{display:flex}
+h1{font-family:'Fredoka One',cursive;font-size:clamp(32px,6vw,72px);background:linear-gradient(135deg,var(--yellow),var(--pink),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h2{font-family:'Fredoka One',cursive;font-size:clamp(20px,4vw,36px);color:var(--yellow);text-align:center}
+.subtitle{color:#888;font-size:14px;text-transform:uppercase;letter-spacing:2px;font-weight:700}
+input,textarea{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:16px;color:var(--text);font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;padding:16px 20px;width:100%;max-width:400px;outline:none;transition:border-color .2s}
+input:focus,textarea:focus{border-color:var(--purple)}
+textarea{resize:none;height:110px}
+.btn{width:100%;max-width:400px;padding:18px;border-radius:100px;border:none;font-family:'Fredoka One',cursive;font-size:22px;cursor:pointer;transition:all .2s;color:white}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--pink))}
+.btn-primary:hover{transform:scale(1.03)}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-teal{background:linear-gradient(135deg,var(--teal),#00a8cc)}
+.btn-secondary{background:rgba(255,255,255,.1);font-size:16px;font-family:'Nunito',sans-serif;font-weight:800}
+.btn-answer{background:var(--card);border:2px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 20px;font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;cursor:pointer;transition:all .15s;color:var(--text);width:100%;max-width:400px;text-align:left;display:flex;align-items:center;gap:12px}
+.btn-answer:active{transform:scale(.97)}
+.btn-answer.selected{border-color:var(--teal);background:rgba(0,201,167,.15)}
+.btn-answer.disabled-opt{opacity:.4;pointer-events:none}
+.opt-letter{width:32px;height:32px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:16px;flex-shrink:0}
 
-  :root {
-    --purple: #6c3fc5;
-    --pink: #e8357a;
-    --yellow: #ffd93d;
-    --teal: #00c9a7;
-    --orange: #ff6b35;
-    --dark: #1a1a2e;
-    --card: #16213e;
-    --text: #eaf4fb;
-  }
+/* Lobby */
+.lobby-layout{display:grid;grid-template-columns:auto 1fr;gap:32px;width:100%;max-width:900px}
+.join-box{background:var(--card);border-radius:24px;padding:28px;display:flex;flex-direction:column;align-items:center;gap:12px;min-width:220px}
+.room-code{font-family:'Fredoka One',cursive;font-size:52px;color:var(--yellow);letter-spacing:6px}
+#qr-img{width:130px;height:130px;border-radius:12px;background:white}
+.join-url{font-size:11px;color:#666;text-align:center;word-break:break-all;max-width:180px}
+.right-panel{display:flex;flex-direction:column;gap:16px}
+.player-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;min-height:80px}
+.player-chip{background:rgba(255,255,255,.05);border-radius:14px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:4px;animation:popIn .3s ease}
+@keyframes popIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.player-avatar{font-size:28px}
+.player-name{font-size:12px;font-weight:800;text-align:center}
+.game-btns{display:flex;flex-wrap:wrap;gap:10px}
+.game-btn{background:var(--card);border:2px solid rgba(255,255,255,.1);color:white;padding:12px 16px;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;flex:1;min-width:100px}
+.game-btn:hover{border-color:var(--purple)}
+.game-btn.active{border-color:var(--pink);background:rgba(232,53,122,.15)}
+.game-emoji{font-size:22px}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+/* Game header */
+.game-header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:rgba(0,0,0,.3);width:100%;position:sticky;top:0;z-index:10}
+.game-name-label{font-family:'Fredoka One',cursive;font-size:20px;color:var(--yellow)}
+.scoreboard{display:flex;gap:8px;overflow-x:auto;flex:1;margin:0 16px}
+.score-chip{background:rgba(255,255,255,.1);border-radius:100px;padding:6px 14px;display:flex;align-items:center;gap:6px;font-weight:800;font-size:13px;white-space:nowrap}
+.score-chip .pts{color:var(--yellow);font-size:11px}
+.skip-btn{background:rgba(255,255,255,.1);border:none;color:#aaa;padding:8px 14px;border-radius:100px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:12px;transition:all .2s;white-space:nowrap}
+.skip-btn:hover{background:rgba(255,255,255,.2);color:white}
 
-  body {
-    background: var(--dark);
-    color: var(--text);
-    font-family: 'Nunito', sans-serif;
-    min-height: 100vh;
-    overflow: hidden;
-  }
+/* TV display (big screen view) */
+.tv-area{width:100%;max-width:900px;flex:1;display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px 0}
+.big-prompt{font-family:'Fredoka One',cursive;font-size:clamp(20px,4vw,42px);text-align:center;color:var(--yellow);max-width:800px;line-height:1.2}
+.phase-label{font-size:13px;text-transform:uppercase;letter-spacing:3px;color:var(--teal);font-weight:800}
+.answers-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:800px}
+.answer-card{background:var(--card);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:6px;border:2px solid transparent;transition:all .3s}
+.answer-card.reveal-correct{border-color:var(--teal);background:rgba(0,201,167,.1)}
+.answer-card.reveal-wrong{opacity:.5}
+.answer-author{font-size:12px;color:#888;font-weight:700}
+.answer-text{font-size:clamp(14px,2.5vw,20px);font-weight:800}
+.vote-bar{height:5px;background:rgba(255,255,255,.1);border-radius:100px;overflow:hidden;margin-top:4px}
+.vote-fill{height:100%;background:var(--yellow);border-radius:100px;transition:width 1s ease}
+.vote-count{font-size:18px;font-weight:900;color:var(--yellow)}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:800px}
+.option-tv{background:var(--card);border-radius:14px;padding:16px 20px;font-size:clamp(13px,2vw,17px);font-weight:800;border:2px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px;transition:all .3s}
+.option-tv.correct{border-color:var(--teal);background:rgba(0,201,167,.1)}
+.option-tv.wrong{opacity:.4}
+#tv-canvas{border-radius:16px;background:white;width:100%;max-width:500px;height:360px}
+.poll-bar-list{display:flex;flex-direction:column;gap:10px;width:100%;max-width:700px}
+.poll-bar-row{display:flex;flex-direction:column;gap:3px}
+.poll-bar-label{font-weight:800;font-size:14px;display:flex;justify-content:space-between}
+.poll-bar-track{height:18px;background:rgba(255,255,255,.1);border-radius:100px;overflow:hidden}
+.poll-bar-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--pink));border-radius:100px;transition:width 1s ease}
+.answered-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.answered-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .3s}
+.answered-dot.done{background:var(--teal)}
+.results-list{display:flex;flex-direction:column;gap:10px;width:100%;max-width:600px}
+.result-row{background:var(--card);border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:14px;animation:slideIn .4s ease both}
+@keyframes slideIn{from{transform:translateX(-30px);opacity:0}to{transform:translateX(0);opacity:1}}
+.result-rank{font-family:'Fredoka One',cursive;font-size:28px;color:#444;width:44px}
+.result-rank.gold{color:var(--yellow)}.result-rank.silver{color:#aaa}.result-rank.bronze{color:#cd7f32}
+.result-avatar{font-size:30px}.result-name{font-weight:800;font-size:16px;flex:1}
+.result-score{font-family:'Fredoka One',cursive;font-size:24px;color:var(--yellow)}
+.status-msg{color:#888;font-size:15px;font-weight:700;text-align:center}
 
-  #app { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+/* Host input area at bottom */
+.host-input-area{width:100%;max-width:900px;background:var(--card);border-radius:20px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px;border:2px solid rgba(108,63,197,.4)}
+.host-input-label{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--purple);font-weight:800}
 
-  /* ===== LOBBY ===== */
-  #lobby {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100vh; gap: 32px;
-  }
+/* Drawing */
+#host-canvas{border-radius:16px;background:white;touch-action:none;width:100%;max-width:400px;height:280px;cursor:crosshair}
+.draw-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:400px}
+.color-btn{width:32px;height:32px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:border-color .15s;flex-shrink:0}
+.color-btn.active{border-color:white}
+.size-btn,.eraser-btn{background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.15);border-radius:100px;padding:5px 12px;cursor:pointer;color:white;font-weight:800;font-size:12px;transition:all .15s}
+.size-btn.active{background:var(--purple);border-color:var(--purple)}
+.eraser-btn.active{background:var(--orange);border-color:var(--orange)}
 
-  .game-title {
-    font-family: 'Fredoka One', cursive;
-    font-size: 72px;
-    background: linear-gradient(135deg, var(--yellow), var(--pink), var(--purple));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    text-shadow: none;
-    line-height: 1;
-  }
+/* Rank */
+.rank-list{display:flex;flex-direction:column;gap:8px;width:100%;max-width:400px}
+.rank-item{background:rgba(255,255,255,.06);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:grab;border:2px solid rgba(255,255,255,.08);font-weight:800;font-size:14px;user-select:none;transition:background .15s}
+.rank-item:active{cursor:grabbing;background:rgba(108,63,197,.3)}
+.rank-num{width:26px;height:26px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:13px;flex-shrink:0}
+.drag-handle{color:#555;font-size:16px;margin-left:auto}
+.char-count{font-size:11px;color:#666;font-weight:700}
 
-  .subtitle { font-size: 20px; color: #aaa; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+/* Timer bar */
+.timer-bar-wrap{width:100%;max-width:800px;height:6px;background:rgba(255,255,255,.1);border-radius:100px;overflow:hidden}
+.timer-bar-fill{height:100%;background:var(--teal);border-radius:100px;transition:width 1s linear}
 
-  .lobby-grid {
-    display: grid; grid-template-columns: 1fr 2fr; gap: 40px; width: 90%; max-width: 1000px;
-  }
+.waiting-anim{display:flex;gap:8px;justify-content:center;align-items:center}
+.waiting-dot{width:10px;height:10px;border-radius:50%;background:var(--purple);animation:bounce 1s infinite}
+.waiting-dot:nth-child(2){animation-delay:.2s;background:var(--pink)}
+.waiting-dot:nth-child(3){animation-delay:.4s;background:var(--yellow)}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
-  .join-panel {
-    background: var(--card); border-radius: 24px; padding: 32px;
-    display: flex; flex-direction: column; align-items: center; gap: 16px;
-  }
-
-  .room-code {
-    font-family: 'Fredoka One', cursive;
-    font-size: 64px;
-    color: var(--yellow);
-    letter-spacing: 8px;
-    text-align: center;
-  }
-
-  .code-label { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #888; }
-
-  #qr-img { width: 140px; height: 140px; border-radius: 12px; background: white; }
-
-  .join-url { font-size: 13px; color: #888; text-align: center; word-break: break-all; }
-
-  .players-panel { background: var(--card); border-radius: 24px; padding: 32px; }
-
-  .players-panel h3 { font-size: 16px; text-transform: uppercase; letter-spacing: 2px; color: #888; margin-bottom: 16px; }
-
-  .player-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-
-  .player-chip {
-    background: rgba(255,255,255,0.05); border-radius: 16px; padding: 12px;
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    transition: all 0.3s ease;
-    animation: popIn 0.3s ease;
-  }
-
-  @keyframes popIn {
-    from { transform: scale(0.5); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-
-  .player-avatar { font-size: 36px; }
-  .player-name { font-size: 13px; font-weight: 800; text-align: center; }
-
-  .game-select { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
-
-  .game-btn {
-    background: linear-gradient(135deg, var(--purple), #9b59b6);
-    border: none; color: white; padding: 14px 20px; border-radius: 16px;
-    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px;
-    cursor: pointer; transition: all 0.2s;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    flex: 1; min-width: 120px;
-  }
-
-  .game-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(108,63,197,0.5); }
-  .game-btn.active { background: linear-gradient(135deg, var(--pink), var(--orange)); }
-  .game-emoji { font-size: 28px; }
-
-  .start-btn {
-    background: linear-gradient(135deg, var(--teal), #00a8cc);
-    border: none; color: white; padding: 18px 48px; border-radius: 100px;
-    font-family: 'Fredoka One', cursive; font-size: 28px;
-    cursor: pointer; transition: all 0.2s; width: 100%;
-    margin-top: 8px;
-  }
-
-  .start-btn:hover { transform: scale(1.05); box-shadow: 0 8px 30px rgba(0,201,167,0.4); }
-  .start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-  /* ===== GAME SCREEN ===== */
-  #game-screen { display: none; flex-direction: column; height: 100vh; }
-
-  .game-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 32px;
-    background: rgba(0,0,0,0.3);
-  }
-
-  .game-name { font-family: 'Fredoka One', cursive; font-size: 24px; color: var(--yellow); }
-
-  .scoreboard {
-    display: flex; gap: 12px; overflow-x: auto;
-  }
-
-  .score-chip {
-    background: rgba(255,255,255,0.1); border-radius: 100px;
-    padding: 8px 16px; display: flex; align-items: center; gap: 8px;
-    font-weight: 800; font-size: 14px; white-space: nowrap;
-  }
-
-  .score-chip .pts { color: var(--yellow); font-size: 12px; }
-
-  .skip-btn {
-    background: rgba(255,255,255,0.1); border: none; color: #aaa;
-    padding: 8px 16px; border-radius: 100px; cursor: pointer;
-    font-family: 'Nunito', sans-serif; font-size: 13px;
-    transition: all 0.2s;
-  }
-  .skip-btn:hover { background: rgba(255,255,255,0.2); color: white; }
-
-  .game-content {
-    flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 32px; gap: 32px;
-    overflow: hidden;
-  }
-
-  /* ===== SHARED COMPONENTS ===== */
-  .big-prompt {
-    font-family: 'Fredoka One', cursive;
-    font-size: clamp(24px, 4vw, 48px);
-    text-align: center;
-    color: var(--yellow);
-    max-width: 900px;
-    line-height: 1.2;
-  }
-
-  .phase-label {
-    font-size: 13px; text-transform: uppercase; letter-spacing: 3px;
-    color: var(--teal); font-weight: 800;
-  }
-
-  .answers-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 20px; width: 100%; max-width: 900px;
-  }
-
-  .answer-card {
-    background: var(--card); border-radius: 20px; padding: 24px;
-    display: flex; flex-direction: column; gap: 8px;
-    border: 2px solid transparent; transition: all 0.3s;
-    position: relative; overflow: hidden;
-  }
-
-  .answer-card.reveal-correct { border-color: var(--teal); background: rgba(0,201,167,0.1); }
-  .answer-card.reveal-wrong { border-color: var(--pink); opacity: 0.6; }
-
-  .answer-author { font-size: 13px; color: #888; font-weight: 700; }
-  .answer-text { font-size: clamp(16px, 2.5vw, 22px); font-weight: 800; }
-
-  .vote-bar {
-    height: 6px; background: rgba(255,255,255,0.1); border-radius: 100px;
-    overflow: hidden; margin-top: 4px;
-  }
-
-  .vote-fill { height: 100%; background: var(--yellow); border-radius: 100px; transition: width 1s ease; }
-
-  .vote-count { font-size: 20px; font-weight: 900; color: var(--yellow); }
-
-  /* Timer */
-  .timer-ring { position: relative; width: 80px; height: 80px; }
-  .timer-text {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    font-family: 'Fredoka One', cursive; font-size: 28px; color: var(--yellow);
-  }
-
-  /* Players answered indicator */
-  .answered-indicator {
-    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
-  }
-  .answered-dot {
-    width: 12px; height: 12px; border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    transition: background 0.3s;
-  }
-  .answered-dot.done { background: var(--teal); }
-
-  /* Results */
-  .results-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 700px; }
-
-  .result-row {
-    background: var(--card); border-radius: 16px; padding: 16px 24px;
-    display: flex; align-items: center; gap: 16px;
-    animation: slideIn 0.4s ease both;
-  }
-
-  @keyframes slideIn {
-    from { transform: translateX(-30px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-
-  .result-rank { font-family: 'Fredoka One', cursive; font-size: 32px; color: #444; width: 48px; }
-  .result-rank.gold { color: var(--yellow); }
-  .result-rank.silver { color: #aaa; }
-  .result-rank.bronze { color: #cd7f32; }
-  .result-avatar { font-size: 36px; }
-  .result-name { font-weight: 800; font-size: 18px; flex: 1; }
-  .result-score { font-family: 'Fredoka One', cursive; font-size: 28px; color: var(--yellow); }
-
-  /* Drawing canvas TV view */
-  #tv-canvas { border-radius: 20px; background: white; max-width: 500px; max-height: 400px; }
-
-  /* Options list (trivia, fibbage) */
-  .options-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 16px; width: 100%; max-width: 900px;
-  }
-
-  .option-card {
-    background: var(--card); border-radius: 16px; padding: 20px 24px;
-    font-size: clamp(14px, 2vw, 18px); font-weight: 800;
-    border: 2px solid rgba(255,255,255,0.1);
-    transition: all 0.3s;
-    display: flex; align-items: center; gap: 12px;
-  }
-
-  .option-letter {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--purple); display: flex; align-items: center; justify-content: center;
-    font-family: 'Fredoka One', cursive; font-size: 16px; flex-shrink: 0;
-  }
-
-  .option-card.correct { border-color: var(--teal); background: rgba(0,201,167,0.1); }
-  .option-card.wrong { border-color: var(--pink); opacity: 0.5; }
-
-  /* Poll bars */
-  .poll-bar-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 700px; }
-  .poll-bar-row { display: flex; flex-direction: column; gap: 4px; }
-  .poll-bar-label { font-weight: 800; font-size: 14px; display: flex; justify-content: space-between; }
-  .poll-bar-track { height: 20px; background: rgba(255,255,255,0.1); border-radius: 100px; overflow: hidden; }
-  .poll-bar-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--pink)); border-radius: 100px; transition: width 1s ease; }
-
-  /* Status messages */
-  .status-msg { color: #888; font-size: 16px; font-weight: 700; }
-
-  /* Waiting state */
-  .waiting-anim {
-    display: flex; gap: 8px; justify-content: center; align-items: center;
-  }
-  .waiting-dot {
-    width: 12px; height: 12px; border-radius: 50%; background: var(--purple);
-    animation: bounce 1s infinite;
-  }
-  .waiting-dot:nth-child(2) { animation-delay: 0.2s; background: var(--pink); }
-  .waiting-dot:nth-child(3) { animation-delay: 0.4s; background: var(--yellow); }
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
-  }
-
-  .hidden { display: none !important; }
-  .flex { display: flex; }
-  .flex-col { flex-direction: column; }
-  .items-center { align-items: center; }
-  .justify-center { justify-content: center; }
-  .gap-4 { gap: 16px; }
-  .text-center { text-align: center; }
-  .mt-4 { margin-top: 16px; }
-
-  /* Eliminated player badge */
-  .elim-badge {
-    background: rgba(232,53,122,0.2); border: 1px solid var(--pink);
-    border-radius: 100px; padding: 4px 12px; font-size: 12px; color: var(--pink);
-    font-weight: 800;
-  }
+.hidden{display:none!important}
+.full-game{width:100%;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.elim-badge{background:rgba(232,53,122,.2);border:1px solid var(--pink);border-radius:100px;padding:3px 10px;font-size:11px;color:var(--pink);font-weight:800}
 </style>
 </head>
 <body>
-<div id="app">
 
-  <!-- LOBBY -->
-  <div id="lobby">
-    <div class="game-title">🎉 Party Pack</div>
-    <div class="subtitle">The Ultimate Party Game Collection</div>
+<!-- LOBBY -->
+<div id="screen-lobby" class="screen active">
+  <h1>🎉 Party Pack</h1>
+  <div class="subtitle">The Ultimate Party Game</div>
 
-    <div class="lobby-grid">
-      <div class="join-panel">
-        <div class="code-label">Room Code</div>
+  <div id="name-setup" style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%">
+    <input id="host-name" placeholder="Your name (you're playing too!)" maxlength="14" style="max-width:340px;text-align:center"/>
+    <button class="btn btn-primary" style="max-width:340px" onclick="createRoom()">Create Room</button>
+  </div>
+
+  <div id="lobby-main" class="hidden" style="width:100%;max-width:900px">
+    <div class="lobby-layout">
+      <div class="join-box">
+        <div class="subtitle">Room Code</div>
         <div class="room-code" id="room-code">----</div>
-        <img id="qr-img" src="" alt="QR Code" style="display:none"/>
+        <img id="qr-img" style="display:none" src="" alt="QR"/>
         <div class="join-url" id="join-url"></div>
-        <div class="code-label" style="margin-top:8px">scan to join on phone</div>
+        <div class="subtitle" style="margin-top:4px">scan to join</div>
       </div>
-
-      <div class="players-panel">
-        <h3>Players (<span id="player-count">0</span>/8)</h3>
-        <div class="player-grid" id="player-grid"></div>
-
-        <div style="margin-top: 24px;">
-          <div class="code-label" style="margin-bottom: 12px;">Choose a Game</div>
-          <div class="game-select">
-            <button class="game-btn active" onclick="selectGame('Quiplash')" id="btn-Quiplash">
-              <span class="game-emoji">😂</span>Quiplash
-            </button>
-            <button class="game-btn" onclick="selectGame('Fibbage')" id="btn-Fibbage">
-              <span class="game-emoji">🤥</span>Fibbage
-            </button>
-            <button class="game-btn" onclick="selectGame('Drawful')" id="btn-Drawful">
-              <span class="game-emoji">🎨</span>Drawful
-            </button>
-            <button class="game-btn" onclick="selectGame('TriviaKnockout')" id="btn-TriviaKnockout">
-              <span class="game-emoji">🧠</span>Trivia
-            </button>
-            <button class="game-btn" onclick="selectGame('PollMine')" id="btn-PollMine">
-              <span class="game-emoji">📊</span>Poll Mine
-            </button>
+      <div class="right-panel">
+        <div>
+          <div class="subtitle" style="margin-bottom:10px">Players (<span id="player-count">0</span>/8)</div>
+          <div class="player-grid" id="player-grid"></div>
+        </div>
+        <div>
+          <div class="subtitle" style="margin-bottom:10px">Pick a Game</div>
+          <div class="game-btns">
+            <button class="game-btn active" onclick="selectGame('Quiplash','btn-q')" id="btn-q"><span class="game-emoji">😂</span>Quiplash</button>
+            <button class="game-btn" onclick="selectGame('Fibbage','btn-f')" id="btn-f"><span class="game-emoji">🤥</span>Fibbage</button>
+            <button class="game-btn" onclick="selectGame('Drawful','btn-d')" id="btn-d"><span class="game-emoji">🎨</span>Drawful</button>
+            <button class="game-btn" onclick="selectGame('TriviaKnockout','btn-t')" id="btn-t"><span class="game-emoji">🧠</span>Trivia</button>
+            <button class="game-btn" onclick="selectGame('PollMine','btn-p')" id="btn-p"><span class="game-emoji">📊</span>Poll Mine</button>
           </div>
         </div>
-
-        <button class="start-btn" id="start-btn" disabled onclick="startGame()">
-          Start Game!
-        </button>
+        <button class="btn btn-teal" id="start-btn" disabled onclick="startGame()">Start Game!</button>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- GAME SCREEN -->
-  <div id="game-screen">
+<!-- GAME SCREEN -->
+<div id="screen-game" class="screen" style="padding:0;justify-content:flex-start">
+  <div class="full-game">
     <div class="game-header">
-      <div class="game-name" id="game-name">Game</div>
+      <div class="game-name-label" id="game-name-label">Game</div>
       <div class="scoreboard" id="scoreboard"></div>
-      <button class="skip-btn" onclick="skipPhase()">⏭ Skip</button>
+      <button class="skip-btn" onclick="socket.emit('next_phase')">⏭ Skip</button>
     </div>
-    <div class="game-content" id="game-content">
-      <div class="waiting-anim">
-        <div class="waiting-dot"></div>
-        <div class="waiting-dot"></div>
-        <div class="waiting-dot"></div>
-      </div>
+
+    <!-- TV area: what everyone sees -->
+    <div class="tv-area" id="tv-area">
+      <div class="waiting-anim"><div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div></div>
+    </div>
+
+    <!-- Host interactive input area -->
+    <div class="host-input-area" id="host-input-area" style="display:none">
+      <div class="host-input-label" id="host-input-label">Your turn</div>
+      <div id="host-input-content"></div>
     </div>
   </div>
-
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
-let myCode = null;
-let myPlayer = null;
+let myId = null, myCode = null, myPlayer = null;
 let selectedGame = 'Quiplash';
 let players = {};
-let canvasCtx = null;
+let hostCanvas, hostCtx, isDrawing = false;
+let currentColor = '#222', currentSize = 4, isEraser = false;
+let currentStroke = [];
+let selectedVote = null;
+let rankItems = [];
+let timerInterval = null;
 
-// ─── HOST SETUP ───────────────────────────────────────────
-const nickname = 'Host';
-socket.emit('create_room', { nickname });
+// ─── LOBBY ───
+function createRoom() {
+  const nickname = document.getElementById('host-name').value.trim();
+  if (!nickname) { document.getElementById('host-name').style.borderColor = 'var(--pink)'; return; }
+  socket.emit('create_room', { nickname });
+}
 
 socket.on('room_created', ({ code, player }) => {
-  myCode = code;
-  myPlayer = player;
+  myCode = code; myPlayer = player; myId = socket.id;
+  document.getElementById('name-setup').classList.add('hidden');
+  document.getElementById('lobby-main').classList.remove('hidden');
   document.getElementById('room-code').textContent = code;
   fetchQR(code);
 });
 
-socket.on('room_update', ({ players: ps, phase, game }) => {
+socket.on('room_update', ({ players: ps, phase, hostId }) => {
   players = {};
   ps.forEach(p => players[p.id] = p);
   renderLobbyPlayers(ps);
   updateScoreboard(ps);
-
-  if (phase === 'lobby') {
-    showLobby();
-  }
   document.getElementById('start-btn').disabled = ps.length < 2;
+  if (phase === 'lobby') showScreen('lobby');
 });
 
-socket.on('player_left', ({ id }) => {});
-
 function fetchQR(code) {
-  fetch(`/qr/${code}`)
-    .then(r => r.json())
-    .then(data => {
-      const img = document.getElementById('qr-img');
-      img.src = data.qr;
-      img.style.display = 'block';
-      document.getElementById('join-url').textContent = data.url;
-    });
+  fetch(`/qr/${code}`).then(r => r.json()).then(data => {
+    const img = document.getElementById('qr-img');
+    img.src = data.qr; img.style.display = 'block';
+    document.getElementById('join-url').textContent = data.url;
+  });
 }
 
 function renderLobbyPlayers(ps) {
@@ -421,341 +242,672 @@ function renderLobbyPlayers(ps) {
   document.getElementById('player-grid').innerHTML = ps.map(p => `
     <div class="player-chip">
       <div class="player-avatar">${p.avatar}</div>
-      <div class="player-name">${p.nickname}</div>
+      <div class="player-name">${p.nickname}${p.isHost ? ' 👑' : ''}</div>
     </div>
   `).join('');
+}
+
+function selectGame(name, btnId) {
+  selectedGame = name;
+  document.querySelectorAll('.game-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(btnId).classList.add('active');
+}
+
+function startGame() { socket.emit('start_game', { gameName: selectedGame }); }
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
 }
 
 function updateScoreboard(ps) {
   const sorted = [...ps].sort((a,b) => b.score - a.score);
   document.getElementById('scoreboard').innerHTML = sorted.map(p => `
-    <div class="score-chip">
-      ${p.avatar} ${p.nickname}
-      <span class="pts">${p.score}pts</span>
-    </div>
+    <div class="score-chip">${p.avatar} ${p.nickname}<span class="pts">${p.score}pts</span></div>
   `).join('');
 }
 
-function selectGame(name) {
-  selectedGame = name;
-  document.querySelectorAll('.game-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + name).classList.add('active');
+// ─── TV AREA HELPERS ───
+function setTV(html) { document.getElementById('tv-area').innerHTML = html; }
+function setHostInput(label, html, visible = true) {
+  const area = document.getElementById('host-input-area');
+  area.style.display = visible ? 'flex' : 'none';
+  document.getElementById('host-input-label').textContent = label;
+  document.getElementById('host-input-content').innerHTML = html;
 }
-
-function startGame() {
-  socket.emit('start_game', { gameName: selectedGame });
-  document.getElementById('game-name').textContent = {
-    Quiplash: '😂 Quiplash',
-    Fibbage: '🤥 Fibbage',
-    Drawful: '🎨 Drawful',
-    TriviaKnockout: '🧠 Trivia Knockout',
-    PollMine: '📊 Poll Mine'
-  }[selectedGame] || selectedGame;
-  showGameScreen();
-}
-
-function skipPhase() { socket.emit('next_phase'); }
-
-function showLobby() {
-  document.getElementById('lobby').style.display = 'flex';
-  document.getElementById('game-screen').style.display = 'none';
-}
-
-function showGameScreen() {
-  document.getElementById('lobby').style.display = 'none';
-  document.getElementById('game-screen').style.display = 'flex';
-}
-
-// ─── GAME EVENTS ──────────────────────────────────────────
-
-function setContent(html) {
-  document.getElementById('game-content').innerHTML = html;
-}
+function hideHostInput() { document.getElementById('host-input-area').style.display = 'none'; }
 
 function answeredDots(count, total) {
-  return `<div class="answered-indicator">${Array(total).fill(0).map((_,i) =>
-    `<div class="answered-dot ${i < count ? 'done' : ''}"></div>`
+  return `<div class="answered-row">${Array(total).fill(0).map((_,i) =>
+    `<div class="answered-dot${i < count ? ' done' : ''}"></div>`
   ).join('')}</div>`;
 }
 
-// Shared
-socket.on('player_answered', ({ count }) => {
-  const dots = document.querySelector('.answered-indicator');
-  if (dots) {
-    const all = dots.querySelectorAll('.answered-dot');
-    all.forEach((d, i) => { if (i < count) d.classList.add('done'); });
-  }
+function startTimerBar(seconds) {
+  clearInterval(timerInterval);
+  const fill = document.getElementById('timer-fill');
+  if (!fill) return;
+  let elapsed = 0;
+  fill.style.width = '100%';
+  timerInterval = setInterval(() => {
+    elapsed++;
+    const pct = Math.max(0, 100 - (elapsed / seconds * 100));
+    fill.style.width = pct + '%';
+    if (pct <= 0) clearInterval(timerInterval);
+  }, 1000);
+}
+
+socket.on('player_answered', ({ count, total }) => {
+  const dots = document.querySelector('.answered-row');
+  if (dots) dots.innerHTML = Array(total).fill(0).map((_,i) =>
+    `<div class="answered-dot${i < count ? ' done' : ''}"></div>`
+  ).join('');
 });
 
-socket.on('vote_received', ({ count }) => {
-  const dots = document.querySelector('.answered-indicator');
-  if (dots) {
-    const all = dots.querySelectorAll('.answered-dot');
-    all.forEach((d, i) => { if (i < count) d.classList.add('done'); });
-  }
+socket.on('vote_received', ({ count, total }) => {
+  const dots = document.querySelector('.answered-row');
+  if (dots) dots.innerHTML = Array(total).fill(0).map((_,i) =>
+    `<div class="answered-dot${i < count ? ' done' : ''}"></div>`
+  ).join('');
 });
 
-// ─── QUIPLASH ───────────────────────────────────────────
-socket.on('quiplash_round', ({ round, totalRounds, phase }) => {
+// ─── QUIPLASH ───
+socket.on('quiplash_round', ({ round, totalRounds }) => {
+  showScreen('game');
+  document.getElementById('game-name-label').textContent = '😂 Quiplash';
   const total = Object.keys(players).length;
-  setContent(`
-    <div class="phase-label">Round ${round} of ${totalRounds} · Quiplash</div>
-    <div class="big-prompt">Players are writing their funniest answers...</div>
-    <div class="status-msg">Waiting for everyone to answer</div>
+  setTV(`
+    <div class="phase-label">Round ${round} of ${totalRounds}</div>
+    <div class="big-prompt">Everyone write your funniest answer!</div>
+    <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
     ${answeredDots(0, total)}
-    <div class="waiting-anim">
-      <div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div>
-    </div>
   `);
+  startTimerBar(60);
+  hideHostInput();
 });
+
+socket.on('your_prompt', ({ prompt, timeLimit }) => {
+  setHostInput('✏️ Your Prompt', `
+    <div style="color:var(--yellow);font-weight:800;font-size:15px;text-align:center;margin-bottom:8px">${prompt}</div>
+    <textarea id="host-answer" placeholder="Type something funny..." maxlength="80"></textarea>
+    <div class="char-count"><span id="hc-left">80</span> chars left</div>
+    <button class="btn btn-primary" style="max-width:200px;font-size:18px;padding:12px" onclick="submitHostAnswer()">Submit!</button>
+  `);
+  document.getElementById('host-answer').addEventListener('input', function() {
+    document.getElementById('hc-left').textContent = 80 - this.value.length;
+  });
+  startTimerBar(timeLimit);
+});
+
+function submitHostAnswer() {
+  const answer = document.getElementById('host-answer').value.trim();
+  if (!answer) return;
+  socket.emit('game_input', { type: 'answer', answer });
+  setHostInput('✅ Submitted!', `<div class="status-msg">Waiting for others to answer...</div>`, true);
+}
 
 socket.on('quiplash_vote', ({ prompt, options }) => {
   const total = Object.keys(players).length;
-  const eligible = total - 2;
-  setContent(`
-    <div class="phase-label">Vote!</div>
+  setTV(`
+    <div class="phase-label">Vote for the funniest!</div>
     <div class="big-prompt">${prompt}</div>
     <div class="answers-grid">
       ${options.map(o => `
-        <div class="answer-card" id="ans-${o.playerId}">
+        <div class="answer-card" id="tv-ans-${o.playerId}">
           <div class="answer-author">${o.avatar} ${o.nickname}</div>
           <div class="answer-text">${o.answer}</div>
-          <div class="vote-bar"><div class="vote-fill" style="width:0%" id="bar-${o.playerId}"></div></div>
+          <div class="vote-bar"><div class="vote-fill" style="width:0" id="bar-${o.playerId}"></div></div>
         </div>
       `).join('')}
     </div>
-    ${eligible > 0 ? answeredDots(0, eligible) : ''}
+    <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
+    ${answeredDots(0, total - 2)}
   `);
+  startTimerBar(25);
+  hideHostInput();
+});
+
+socket.on('vote_now', ({ options, prompt, timeLimit }) => {
+  selectedVote = null;
+  setHostInput('🗳️ Vote!', `
+    <div style="color:var(--yellow);font-weight:800;font-size:13px;text-align:center;margin-bottom:8px">${prompt}</div>
+    ${options.map(o => `
+      <button class="btn-answer" id="vbtn-${o.playerId}" onclick="castQuiplashVote('${o.playerId}')">
+        ${o.answer}
+      </button>
+    `).join('')}
+    <div class="status-msg" id="vote-status-host"></div>
+  `);
+  startTimerBar(timeLimit);
+});
+
+function castQuiplashVote(playerId) {
+  if (selectedVote) return;
+  selectedVote = playerId;
+  socket.emit('game_input', { type: 'vote', vote: playerId });
+  document.querySelectorAll('[id^="vbtn-"]').forEach(b => {
+    if (b.id === 'vbtn-' + playerId) b.classList.add('selected');
+    else b.classList.add('disabled-opt');
+  });
+  document.getElementById('vote-status-host').textContent = '✅ Voted!';
+}
+
+socket.on('wait_for_votes', ({ message }) => {
+  setHostInput('⏳ Hang on...', `<div class="status-msg">${message}</div>`, true);
 });
 
 socket.on('vote_results', ({ tally, players: ps }) => {
-  const total = Object.values(tally).reduce((a, b) => a + b, 0);
+  const total = Object.values(tally).reduce((a,b) => a+b, 0);
   Object.entries(tally).forEach(([pid, count]) => {
     const bar = document.getElementById('bar-' + pid);
-    if (bar && total > 0) bar.style.width = (count / total * 100) + '%';
-    const card = document.getElementById('ans-' + pid);
-    if (card) {
-      card.querySelector('.vote-bar').insertAdjacentHTML('afterend',
-        `<div class="vote-count">${count} vote${count !== 1 ? 's' : ''}</div>`);
-    }
+    if (bar && total > 0) bar.style.width = (count/total*100) + '%';
+    const card = document.getElementById('tv-ans-' + pid);
+    if (card) card.insertAdjacentHTML('beforeend', `<div class="vote-count">${count} vote${count!==1?'s':''}</div>`);
   });
   updateScoreboard(Object.values(ps));
+  hideHostInput();
 });
 
-// ─── FIBBAGE ───────────────────────────────────────────
+// ─── FIBBAGE ───
 socket.on('fibbage_round', ({ round, totalRounds, category, prompt }) => {
+  showScreen('game');
+  document.getElementById('game-name-label').textContent = '🤥 Fibbage';
   const total = Object.keys(players).length;
-  setContent(`
+  setTV(`
     <div class="phase-label">Round ${round} of ${totalRounds} · ${category}</div>
     <div class="big-prompt">${prompt}</div>
-    <div class="status-msg">Players are writing their sneaky lies...</div>
+    <div class="status-msg">Write a convincing lie!</div>
+    <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
     ${answeredDots(0, total)}
   `);
+  hideHostInput();
+  startTimerBar(40);
 });
 
-socket.on('fibbage_vote', ({ answers }) => {
-  const letters = ['A','B','C','D','E'];
+socket.on('enter_lie', ({ prompt, timeLimit, hint }) => {
+  setHostInput('🤥 Write a Lie!', `
+    <div style="color:var(--yellow);font-weight:800;font-size:14px;text-align:center;margin-bottom:4px">${prompt}</div>
+    <div style="color:#888;font-size:12px;margin-bottom:8px;text-align:center">Hint: ${hint}</div>
+    <input id="host-lie" placeholder="Your convincing lie..." maxlength="60" style="text-align:center"/>
+    <button class="btn btn-primary" style="max-width:200px;font-size:18px;padding:12px" onclick="submitHostLie()">Submit!</button>
+  `);
+  startTimerBar(timeLimit);
+});
+
+function submitHostLie() {
+  const lie = document.getElementById('host-lie').value.trim();
+  if (!lie) return;
+  socket.emit('game_input', { type: 'lie', lie });
+  setHostInput('✅ Lie submitted!', `<div class="status-msg">Waiting for others...</div>`, true);
+}
+
+socket.on('fibbage_vote', ({ prompt, answers }) => {
   const total = Object.keys(players).length;
-  setContent(`
+  const letters = ['A','B','C','D','E'];
+  setTV(`
     <div class="phase-label">Which is the TRUTH?</div>
+    <div class="big-prompt">${prompt}</div>
     <div class="options-grid">
-      ${answers.map((a, i) => `
-        <div class="option-card" id="fibopt-${a.id}">
-          <div class="option-letter">${letters[i]}</div>
-          ${a.text}
-        </div>
-      `).join('')}
+      ${answers.map((a,i) => `<div class="option-tv" id="fibopt-${a.id}"><span style="background:var(--purple);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:14px;flex-shrink:0">${letters[i]}</span>${a.text}</div>`).join('')}
     </div>
+    <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
     ${answeredDots(0, total)}
   `);
+  startTimerBar(25);
+  hideHostInput();
 });
+
+socket.on('pick_answer', ({ answers, prompt, timeLimit }) => {
+  selectedVote = null;
+  const letters = ['A','B','C','D','E'];
+  setHostInput('🔍 Find the Truth!', `
+    ${prompt ? `<div style="color:var(--yellow);font-weight:800;font-size:13px;text-align:center;margin-bottom:8px">${prompt}</div>` : ''}
+    ${answers.map((a,i) => `
+      <button class="btn-answer" id="pabtn-${a.id}" onclick="submitPickAnswer('${a.id}')">
+        <div class="opt-letter">${letters[i]}</div>${a.text}
+      </button>
+    `).join('')}
+    <div class="status-msg" id="pick-status"></div>
+  `);
+  if (timeLimit) startTimerBar(timeLimit);
+});
+
+function submitPickAnswer(id) {
+  if (selectedVote) return;
+  selectedVote = id;
+  socket.emit('game_input', { type: 'vote', answerId: id });
+  document.querySelectorAll('[id^="pabtn-"]').forEach(b => {
+    if (b.id === 'pabtn-' + id) b.classList.add('selected');
+    else b.classList.add('disabled-opt');
+  });
+  const s = document.getElementById('pick-status');
+  if (s) s.textContent = '✅ Locked in!';
+}
 
 socket.on('fibbage_results', ({ truth, answers, votes, players: ps }) => {
   answers.forEach(a => {
     const el = document.getElementById('fibopt-' + a.id);
     if (!el) return;
-    if (!a.isLie) el.classList.add('correct');
-    else el.classList.add('wrong');
+    if (!a.isLie) el.classList.add('correct'); else el.classList.add('wrong');
   });
-  setTimeout(() => updateScoreboard(Object.values(ps)), 500);
+  updateScoreboard(Object.values(ps));
+  hideHostInput();
 });
 
-// ─── DRAWFUL ───────────────────────────────────────────
+socket.on('fibbage_results_player', ({ truth, answers, myId: mid, players: ps }) => {
+  const myVote = Object.entries({}).find(x => false); // handled via fibbage_results
+  updateScoreboard(Object.values(ps));
+  setHostInput('📊 Results', `<div style="color:var(--teal);font-weight:800;font-size:16px;text-align:center">The truth was: <span style="color:var(--yellow)">${truth}</span></div>`, true);
+});
+
+// ─── DRAWFUL ───
 let tvCanvas, tvCtx;
 
-socket.on('drawful_drawing', ({ drawerName, drawerAvatar, round, totalRounds }) => {
-  setContent(`
-    <div class="phase-label">Round ${round} of ${totalRounds} · Drawing</div>
+socket.on('drawful_drawing', ({ drawerId, drawerName, drawerAvatar, round, totalRounds }) => {
+  showScreen('game');
+  document.getElementById('game-name-label').textContent = '🎨 Drawful';
+  const isMe = drawerId === myId;
+  setTV(`
+    <div class="phase-label">Round ${round} of ${totalRounds}</div>
     <div class="big-prompt">${drawerAvatar} ${drawerName} is drawing...</div>
-    <canvas id="tv-canvas" width="500" height="380"></canvas>
-    <div class="status-msg">Watch carefully!</div>
+    <canvas id="tv-canvas" width="500" height="360"></canvas>
+    <div class="status-msg">${isMe ? 'Draw on your screen below!' : 'Watch carefully!'}</div>
   `);
   tvCanvas = document.getElementById('tv-canvas');
   tvCtx = tvCanvas.getContext('2d');
   tvCtx.fillStyle = 'white';
-  tvCtx.fillRect(0, 0, 500, 380);
+  tvCtx.fillRect(0, 0, 500, 360);
+  hideHostInput();
 });
+
+socket.on('your_drawing_prompt', ({ prompt, timeLimit }) => {
+  setHostInput('🎨 Draw This!', `
+    <div style="color:var(--yellow);font-weight:800;font-size:16px;text-align:center;margin-bottom:8px">${prompt}</div>
+    <canvas id="host-canvas" width="400" height="280"></canvas>
+    <div class="draw-tools">
+      <div class="color-btn active" style="background:#222" onclick="setDrawColor('#222',this)"></div>
+      <div class="color-btn" style="background:#e8357a" onclick="setDrawColor('#e8357a',this)"></div>
+      <div class="color-btn" style="background:#6c3fc5" onclick="setDrawColor('#6c3fc5',this)"></div>
+      <div class="color-btn" style="background:#00c9a7" onclick="setDrawColor('#00c9a7',this)"></div>
+      <div class="color-btn" style="background:#ffd93d" onclick="setDrawColor('#ffd93d',this)"></div>
+      <div class="color-btn" style="background:#ff6b35" onclick="setDrawColor('#ff6b35',this)"></div>
+      <button class="size-btn active" onclick="setDrawSize(4,this)">S</button>
+      <button class="size-btn" onclick="setDrawSize(12,this)">M</button>
+      <button class="size-btn" onclick="setDrawSize(26,this)">L</button>
+      <button class="eraser-btn" id="eraser-btn" onclick="toggleEraser(this)">⬜ Erase</button>
+      <button class="eraser-btn" onclick="clearCanvas()">🗑️ Clear</button>
+    </div>
+    <button class="btn btn-teal" style="max-width:200px;font-size:18px;padding:12px;margin-top:4px" onclick="doneDraw()">Done!</button>
+  `);
+  initHostCanvas();
+  startTimerBar(timeLimit);
+});
+
+function initHostCanvas() {
+  hostCanvas = document.getElementById('host-canvas');
+  if (!hostCanvas) return;
+  hostCtx = hostCanvas.getContext('2d');
+  hostCtx.fillStyle = 'white';
+  hostCtx.fillRect(0, 0, hostCanvas.width, hostCanvas.height);
+  hostCanvas.addEventListener('pointerdown', hdStart);
+  hostCanvas.addEventListener('pointermove', hdMove);
+  hostCanvas.addEventListener('pointerup', hdEnd);
+  hostCanvas.addEventListener('pointerleave', hdEnd);
+}
+
+function getCanvasPos(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+    y: (e.clientY - rect.top) * (canvas.height / rect.height),
+    nx: (e.clientX - rect.left) / rect.width,
+    ny: (e.clientY - rect.top) / rect.height
+  };
+}
+
+function hdStart(e) {
+  e.preventDefault(); isDrawing = true;
+  const pos = getCanvasPos(e, hostCanvas);
+  currentStroke = [{ x: pos.nx, y: pos.ny, color: isEraser ? 'white' : currentColor, size: isEraser ? 30 : currentSize }];
+  hostCtx.beginPath();
+  hostCtx.strokeStyle = isEraser ? 'white' : currentColor;
+  hostCtx.lineWidth = isEraser ? 30 : currentSize;
+  hostCtx.lineCap = 'round'; hostCtx.lineJoin = 'round';
+  hostCtx.moveTo(pos.x, pos.y);
+}
+
+function hdMove(e) {
+  if (!isDrawing) return; e.preventDefault();
+  const pos = getCanvasPos(e, hostCanvas);
+  currentStroke.push({ x: pos.nx, y: pos.ny, color: isEraser ? 'white' : currentColor, size: isEraser ? 30 : currentSize });
+  hostCtx.lineTo(pos.x, pos.y); hostCtx.stroke();
+}
+
+function hdEnd(e) {
+  if (!isDrawing) return; isDrawing = false;
+  if (currentStroke.length > 1) socket.emit('game_input', { type: 'stroke', stroke: currentStroke });
+  currentStroke = [];
+}
+
+function setDrawColor(c, btn) {
+  currentColor = c; isEraser = false;
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+  const eb = document.getElementById('eraser-btn');
+  if (eb) eb.classList.remove('active');
+  btn.classList.add('active');
+}
+function setDrawSize(s, btn) {
+  currentSize = s;
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function toggleEraser(btn) {
+  isEraser = !isEraser; btn.classList.toggle('active');
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+}
+function clearCanvas() {
+  if (hostCtx && hostCanvas) { hostCtx.fillStyle = 'white'; hostCtx.fillRect(0, 0, hostCanvas.width, hostCanvas.height); }
+  socket.emit('game_input', { type: 'clear' });
+}
+function doneDraw() { socket.emit('game_input', { type: 'done_drawing' }); }
 
 socket.on('new_stroke', ({ stroke }) => {
   if (!tvCtx || !stroke || stroke.length < 2) return;
   tvCtx.beginPath();
   tvCtx.strokeStyle = stroke[0].color || '#000';
   tvCtx.lineWidth = stroke[0].size || 4;
-  tvCtx.lineCap = 'round';
-  tvCtx.lineJoin = 'round';
-  tvCtx.moveTo(stroke[0].x * 500, stroke[0].y * 380);
-  stroke.forEach(pt => tvCtx.lineTo(pt.x * 500, pt.y * 380));
+  tvCtx.lineCap = 'round'; tvCtx.lineJoin = 'round';
+  tvCtx.moveTo(stroke[0].x * 500, stroke[0].y * 360);
+  stroke.forEach(pt => tvCtx.lineTo(pt.x * 500, pt.y * 360));
   tvCtx.stroke();
 });
 
-socket.on('drawful_guess_phase', () => {
-  const existing = document.querySelector('.big-prompt');
-  if (existing) existing.textContent = 'What is this??';
-  const total = Object.keys(players).length - 1;
-  const statusEl = document.querySelector('.status-msg');
-  if (statusEl) statusEl.textContent = 'Players are guessing...';
-  const content = document.getElementById('game-content');
-  const dots = document.createElement('div');
-  dots.innerHTML = answeredDots(0, total);
-  content.appendChild(dots.firstChild);
+socket.on('canvas_cleared', () => {
+  if (tvCtx && tvCanvas) { tvCtx.fillStyle = 'white'; tvCtx.fillRect(0, 0, tvCanvas.width, tvCanvas.height); }
+});
+
+socket.on('watch_drawing', ({ drawerName }) => {
+  hideHostInput();
+});
+
+socket.on('drawful_guess_phase', ({ total }) => {
+  const tvMsg = document.querySelector('.tv-area .status-msg');
+  if (tvMsg) tvMsg.textContent = "What is this?!";
+  const tvBig = document.querySelector('.tv-area .big-prompt');
+  if (tvBig) tvBig.textContent = "Guess the drawing!";
+  const tvArea = document.getElementById('tv-area');
+  const existing = tvArea.querySelector('.answered-row');
+  if (!existing) tvArea.insertAdjacentHTML('beforeend', answeredDots(0, total));
+  startTimerBar(30);
+});
+
+socket.on('enter_guess', ({ timeLimit }) => {
+  setHostInput('🤔 What is this?!', `
+    <input id="host-guess" placeholder="Your guess..." maxlength="60" style="text-align:center"/>
+    <button class="btn btn-primary" style="max-width:200px;font-size:18px;padding:12px" onclick="submitHostGuess()">Submit!</button>
+    <div class="status-msg" id="guess-status"></div>
+  `);
+  startTimerBar(timeLimit);
+});
+
+function submitHostGuess() {
+  const guess = document.getElementById('host-guess').value.trim();
+  if (!guess) return;
+  socket.emit('game_input', { type: 'guess', guess });
+  setHostInput('✅ Guess submitted!', `<div class="status-msg">Waiting...</div>`, true);
+}
+
+socket.on('wait_for_votes', ({ message }) => {
+  setHostInput('⏳', `<div class="status-msg">${message}</div>`, true);
 });
 
 socket.on('drawful_vote', ({ answers }) => {
   const letters = ['A','B','C','D','E','F'];
   const total = Object.keys(players).length - 1;
-  const canvas = document.getElementById('tv-canvas');
-  const canvasClone = canvas ? canvas.outerHTML : '';
-  setContent(`
+  const tvCanvas2 = document.getElementById('tv-canvas');
+  setTV(`
     <div class="phase-label">Vote for the real answer!</div>
-    ${canvasClone}
+    ${tvCanvas2 ? tvCanvas2.outerHTML : ''}
     <div class="options-grid">
-      ${answers.map((a,i) => `
-        <div class="option-card" id="drawopt-${a.id}">
-          <div class="option-letter">${letters[i]}</div>
-          ${a.text}
-        </div>
-      `).join('')}
+      ${answers.map((a,i) => `<div class="option-tv" id="drawopt-${a.id}"><span style="background:var(--purple);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:14px;flex-shrink:0">${letters[i]}</span>${a.text}</div>`).join('')}
     </div>
     ${answeredDots(0, total)}
+    <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
   `);
+  tvCanvas = document.getElementById('tv-canvas');
+  if (tvCanvas) tvCtx = tvCanvas.getContext('2d');
+  startTimerBar(20);
+  hideHostInput();
 });
 
-socket.on('drawful_results', ({ correctAnswer, answers, players: ps }) => {
+socket.on('drawful_results', ({ correctAnswer, answers, votes, players: ps }) => {
   answers.forEach(a => {
     const el = document.getElementById('drawopt-' + a.id);
     if (!el) return;
-    if (a.isCorrect) el.classList.add('correct');
-    else el.classList.add('wrong');
+    if (a.isCorrect) el.classList.add('correct'); else el.classList.add('wrong');
   });
-  const label = document.querySelector('.phase-label');
+  const label = document.querySelector('#tv-area .phase-label');
   if (label) label.textContent = `The answer was: "${correctAnswer}"`;
-  setTimeout(() => updateScoreboard(Object.values(ps)), 500);
+  updateScoreboard(Object.values(ps));
+  hideHostInput();
 });
 
-// ─── TRIVIA ───────────────────────────────────────────
+socket.on('drawful_results_player', ({ correctAnswer, myId: mid, players: ps }) => {
+  setHostInput('🎨 Result', `<div style="color:var(--yellow);font-weight:800;font-size:15px;text-align:center">It was: "${correctAnswer}"</div>`, true);
+  updateScoreboard(Object.values(ps));
+});
+
+// ─── TRIVIA ───
 socket.on('trivia_start', () => {
-  setContent(`
-    <div class="big-prompt">🧠 Trivia Knockout</div>
-    <div class="status-msg">Get ready! Wrong answers get eliminated...</div>
-    <div class="waiting-anim">
-      <div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div>
-    </div>
-  `);
+  showScreen('game');
+  document.getElementById('game-name-label').textContent = '🧠 Trivia Knockout';
+  setTV(`<div class="big-prompt">🧠 Trivia Knockout</div><div class="status-msg">Wrong answers = eliminated!</div><div class="waiting-anim"><div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div></div>`);
+  hideHostInput();
 });
 
-socket.on('trivia_question', ({ question, options, questionNum, activePlayers, eliminatedPlayers }) => {
+socket.on('trivia_question', ({ question, options, questionNum, activePlayers, total, timeLimit }) => {
   const letters = ['A','B','C','D'];
-  const total = activePlayers.length;
-  setContent(`
-    <div class="phase-label">Question ${questionNum} · ${total} active players</div>
+  setTV(`
+    <div class="phase-label">Question ${questionNum} · ${activePlayers.length} active</div>
     <div class="big-prompt">${question}</div>
     <div class="options-grid">
-      ${options.map((o,i) => `
-        <div class="option-card" id="trivopt-${i}">
-          <div class="option-letter">${letters[i]}</div>
-          ${o}
-        </div>
-      `).join('')}
+      ${options.map((o,i) => `<div class="option-tv" id="trivopt-${i}"><span style="background:var(--purple);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:14px;flex-shrink:0">${letters[i]}</span>${o}</div>`).join('')}
     </div>
-    ${answeredDots(0, total)}
+    <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
+    ${answeredDots(0, activePlayers.length)}
   `);
+  startTimerBar(timeLimit);
+  hideHostInput();
 });
+
+socket.on('answer_question', ({ question, options, timeLimit }) => {
+  selectedVote = null;
+  const letters = ['A','B','C','D'];
+  setHostInput('🧠 Answer!', `
+    ${options.map((o,i) => `
+      <button class="btn-answer" id="trivbtn-${i}" onclick="submitTriviaAnswer('${o.replace(/'/g,"\\'")}',this)">
+        <div class="opt-letter">${letters[i]}</div>${o}
+      </button>
+    `).join('')}
+    <div class="status-msg" id="trivia-status"></div>
+  `);
+  startTimerBar(timeLimit);
+});
+
+function submitTriviaAnswer(answer, btn) {
+  if (selectedVote) return;
+  selectedVote = answer;
+  socket.emit('game_input', { type: 'answer', answer });
+  btn.classList.add('selected');
+  document.querySelectorAll('[id^="trivbtn-"]').forEach(b => { if (b !== btn) b.classList.add('disabled-opt'); });
+  const s = document.getElementById('trivia-status');
+  if (s) s.textContent = '✅ Locked in!';
+}
 
 socket.on('trivia_reveal', ({ correctAnswer, results, eliminated, players: ps }) => {
-  const options = document.querySelectorAll('.option-card');
-  options.forEach(el => {
-    const text = el.textContent.trim().replace(/^[A-D]\s*/, '');
-    if (text === correctAnswer) el.classList.add('correct');
-    else el.classList.add('wrong');
+  document.querySelectorAll('[id^="trivopt-"]').forEach(el => {
+    const text = el.textContent.trim().replace(/^[A-D]\s*/,'');
+    if (text === correctAnswer) el.classList.add('correct'); else el.classList.add('wrong');
   });
-
-  if (eliminated.length > 0) {
-    const label = document.querySelector('.phase-label');
+  if (eliminated.length) {
+    const label = document.querySelector('#tv-area .phase-label');
     if (label) label.innerHTML += ` · <span style="color:var(--pink)">❌ ${eliminated.length} eliminated!</span>`;
   }
-
-  setTimeout(() => updateScoreboard(Object.values(ps)), 500);
+  updateScoreboard(Object.values(ps));
 });
 
-// ─── POLL MINE ───────────────────────────────────────────
+socket.on('trivia_reveal_player', ({ correctAnswer, myAnswer, correct, streak }) => {
+  const emoji = correct ? '✅' : '❌';
+  setHostInput(`${emoji} ${correct ? 'Correct!' : 'Wrong!'}`, `
+    <div style="font-weight:800;font-size:15px;text-align:center;color:${correct?'var(--teal)':'var(--pink)'}">
+      ${correct ? `+${300 + (streak > 1 ? (streak-1)*100 : 0)} points${streak > 1 ? ` 🔥 ${streak} streak!` : ''}` : `The answer was: ${correctAnswer}`}
+    </div>
+  `, true);
+});
+
+socket.on('you_are_eliminated', () => {
+  setHostInput('💀 Eliminated!', `<div class="status-msg">You're out! Watch the others...</div>`, true);
+});
+
+socket.on('spectating', () => { hideHostInput(); });
+
+// ─── POLL MINE ───
 socket.on('pollmine_round', ({ round, totalRounds, question, options }) => {
+  showScreen('game');
+  document.getElementById('game-name-label').textContent = '📊 Poll Mine';
   const total = Object.keys(players).length;
-  setContent(`
+  setTV(`
     <div class="phase-label">Round ${round} of ${totalRounds} · Poll Mine</div>
     <div class="big-prompt">${question}</div>
-    <div class="status-msg">Everyone is voting...</div>
+    <div class="status-msg">Everyone voting...</div>
+    <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
     ${answeredDots(0, total)}
   `);
+  startTimerBar(25);
+  hideHostInput();
 });
 
-socket.on('pollmine_predict', ({ question }) => {
+socket.on('cast_vote', ({ question, options, timeLimit }) => {
+  selectedVote = null;
+  setHostInput('🗳️ Vote!', `
+    <div style="color:var(--yellow);font-weight:800;font-size:14px;text-align:center;margin-bottom:8px">${question}</div>
+    ${options.map(o => `
+      <button class="btn-answer" id="pvbtn-${o.replace(/\s/g,'_')}" onclick="castPollVote('${o.replace(/'/g,"\\'")}',this)">
+        ${o}
+      </button>
+    `).join('')}
+    <div class="status-msg" id="poll-vote-status"></div>
+  `);
+  startTimerBar(timeLimit);
+});
+
+function castPollVote(option, btn) {
+  if (selectedVote) return;
+  selectedVote = option;
+  socket.emit('game_input', { type: 'vote', option });
+  btn.classList.add('selected');
+  document.querySelectorAll('[id^="pvbtn-"]').forEach(b => { if (b !== btn) b.classList.add('disabled-opt'); });
+  const s = document.getElementById('poll-vote-status');
+  if (s) s.textContent = '✅ Voted!';
+}
+
+socket.on('pollmine_predict', ({ question, options }) => {
   const total = Object.keys(players).length;
-  setContent(`
+  setTV(`
     <div class="phase-label">Now predict the ranking!</div>
     <div class="big-prompt">${question}</div>
-    <div class="status-msg">Players are ranking what they think the group answered...</div>
+    <div class="status-msg">Rank what you think the group answered (most → least popular)</div>
+    <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
     ${answeredDots(0, total)}
   `);
+  startTimerBar(35);
+  hideHostInput();
 });
+
+socket.on('rank_options', ({ question, options, timeLimit }) => {
+  rankItems = [...options];
+  setHostInput('📊 Rank them!', `
+    <div style="color:var(--yellow);font-weight:800;font-size:13px;text-align:center;margin-bottom:8px">Most popular → least popular</div>
+    <div class="rank-list" id="rank-list-host"></div>
+    <button class="btn btn-primary" style="max-width:200px;font-size:18px;padding:12px" onclick="submitRanking()">Submit!</button>
+  `);
+  renderRankList();
+  startTimerBar(timeLimit);
+});
+
+function renderRankList() {
+  const list = document.getElementById('rank-list-host');
+  if (!list) return;
+  list.innerHTML = rankItems.map((item, i) => `
+    <div class="rank-item" draggable="true" data-index="${i}" ondragstart="rdStart(event)" ondragover="rdOver(event)" ondrop="rdDrop(event)">
+      <div class="rank-num">${i+1}</div><span>${item}</span><span class="drag-handle">⠿</span>
+    </div>
+  `).join('');
+}
+
+let rdSrc = null;
+function rdStart(e) { rdSrc = parseInt(e.currentTarget.dataset.index); }
+function rdOver(e) { e.preventDefault(); }
+function rdDrop(e) {
+  e.preventDefault();
+  const target = parseInt(e.currentTarget.dataset.index);
+  if (rdSrc === null || rdSrc === target) return;
+  const item = rankItems.splice(rdSrc, 1)[0];
+  rankItems.splice(target, 0, item);
+  rdSrc = null; renderRankList();
+}
+
+function submitRanking() {
+  socket.emit('game_input', { type: 'prediction', ranking: rankItems });
+  setHostInput('✅ Ranking submitted!', `<div class="status-msg">Waiting for results...</div>`, true);
+}
 
 socket.on('pollmine_results', ({ question, tally, actualRanking, players: ps }) => {
   const total = Object.values(tally).reduce((a,b) => a+b, 0);
-  setContent(`
+  setTV(`
     <div class="phase-label">Results!</div>
     <div class="big-prompt">${question}</div>
     <div class="poll-bar-list">
       ${actualRanking.map((option, rank) => {
         const count = tally[option] || 0;
-        const pct = total > 0 ? (count / total * 100) : 0;
+        const pct = total > 0 ? (count/total*100) : 0;
         const medals = ['🥇','🥈','🥉'];
-        return `
-          <div class="poll-bar-row">
-            <div class="poll-bar-label">
-              <span>${medals[rank] || ''} ${option}</span>
-              <span>${count} vote${count !== 1 ? 's' : ''}</span>
-            </div>
-            <div class="poll-bar-track">
-              <div class="poll-bar-fill" style="width:${pct}%"></div>
-            </div>
-          </div>
-        `;
+        return `<div class="poll-bar-row">
+          <div class="poll-bar-label"><span>${medals[rank]||''} ${option}</span><span>${count} vote${count!==1?'s':''}</span></div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
       }).join('')}
     </div>
   `);
-  setTimeout(() => updateScoreboard(Object.values(ps)), 1000);
+  updateScoreboard(Object.values(ps));
+  hideHostInput();
 });
 
-// ─── FINAL RESULTS ───────────────────────────────────────
+socket.on('pollmine_results_player', ({ actualRanking, myPrediction, myVote, players: ps }) => {
+  let correct = 0;
+  if (myPrediction) {
+    myPrediction.forEach((opt, i) => { if (actualRanking[i] === opt) correct++; });
+  }
+  setHostInput('📊 How did you do?', `
+    <div style="font-weight:800;font-size:15px;text-align:center;color:var(--teal)">
+      You got ${correct} out of ${actualRanking.length} positions right!
+    </div>
+    <div style="color:#888;font-size:13px;text-align:center">You voted: ${myVote || '(nothing)'}</div>
+  `, true);
+  updateScoreboard(Object.values(ps));
+});
+
+// ─── RESULTS ───
 socket.on('round_scores', ({ scores, gameName }) => {
+  const medals = ['🥇','🥈','🥉'];
   setTimeout(() => {
-    const medals = ['🥇','🥈','🥉'];
-    setContent(`
+    setTV(`
       <div class="phase-label">Game Over · ${gameName}</div>
       <div class="big-prompt" style="color:var(--yellow)">Final Scores!</div>
       <div class="results-list">
-        ${scores.map((p, i) => `
-          <div class="result-row" style="animation-delay: ${i * 0.1}s">
-            <div class="result-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${medals[i] || (i+1)}</div>
+        ${scores.map((p,i) => `
+          <div class="result-row" style="animation-delay:${i*.1}s">
+            <div class="result-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${medals[i]||(i+1)}</div>
             <div class="result-avatar">${p.avatar}</div>
             <div class="result-name">${p.nickname}</div>
             <div class="result-score">${p.score}</div>
@@ -763,21 +915,21 @@ socket.on('round_scores', ({ scores, gameName }) => {
         `).join('')}
       </div>
     `);
+    hideHostInput();
   }, 1000);
-});
-
-socket.on('game_ended', ({ returnToLobby }) => {
-  if (returnToLobby) showLobby();
 });
 
 socket.on('game_over', ({ scores }) => {
   setTimeout(() => {
-    const content = document.getElementById('game-content');
-    content.insertAdjacentHTML('beforeend', `
-      <button class="start-btn" style="max-width:300px; margin-top: 16px;"
-        onclick="socket.emit('return_to_lobby')">Back to Lobby</button>
+    const tvArea = document.getElementById('tv-area');
+    tvArea.insertAdjacentHTML('beforeend', `
+      <button class="btn btn-teal" style="max-width:260px;margin-top:8px" onclick="socket.emit('return_to_lobby')">Back to Lobby</button>
     `);
   }, 3000);
+});
+
+socket.on('game_ended', ({ returnToLobby }) => {
+  if (returnToLobby) showScreen('lobby');
 });
 </script>
 </body>
