@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Party Pack</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Bebas+Neue&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0d0d0d;
+  --surface: #1a1a1a;
+  --border: #2a2a2a;
+  --text: #f0f0f0;
+  --muted: #666;
+  --red: #ff3b3b;
+  --green: #00e87a;
+  --blue: #3b8bff;
+  --yellow: #ffe93b;
+  --purple: #b43bff;
+  --orange: #ff8c3b;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.screen { display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px; gap: 16px; }
+.screen.active { display: flex; }
+
+/* Typography */
+.big-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 72px;
+  line-height: 0.9;
+  letter-spacing: 2px;
+  text-align: center;
+}
+.big-title span { display: block; }
+.big-title .line1 { color: var(--yellow); }
+.big-title .line2 { color: var(--text); font-size: 32px; letter-spacing: 6px; }
+
+.section-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: var(--yellow);
+  text-align: center;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Inputs */
+input, textarea {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 14px 18px;
+  width: 100%;
+  max-width: 320px;
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+input:focus, textarea:focus { border-color: var(--yellow); }
+textarea { resize: none; height: 90px; font-size: 15px; }
+
+.code-input {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 40px;
+  letter-spacing: 12px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  max-width: 320px;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 24px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.1s;
+  -webkit-appearance: none;
+}
+.btn:active { transform: scale(0.97); }
+.btn-yellow { background: var(--yellow); color: #000; }
+.btn-red { background: var(--red); color: #fff; }
+.btn-green { background: var(--green); color: #000; }
+.btn-ghost { background: transparent; border: 2px solid var(--border); color: var(--text); font-size: 16px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+/* Option buttons (voting, trivia etc) */
+.opt-list { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+.opt-btn {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--text);
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.1s;
+  -webkit-appearance: none;
+}
+.opt-btn:active { transform: scale(0.98); }
+.opt-btn.picked { border-color: var(--green); background: rgba(0,232,122,0.1); }
+.opt-btn.dim { opacity: 0.3; pointer-events: none; }
+.opt-letter {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--border); display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', cursive; font-size: 18px; flex-shrink: 0;
+  color: var(--yellow);
+}
+
+/* Avatar picker */
+.avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 320px; width: 100%; }
+.av-btn {
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 26px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s;
+}
+.av-btn:active { transform: scale(0.93); }
+.av-btn.chosen { border-color: var(--yellow); background: rgba(255,233,59,0.1); }
+.av-custom {
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 320px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  transition: all 0.15s;
+  overflow: hidden;
+}
+.av-custom:hover { border-color: var(--yellow); color: var(--yellow); }
+.av-custom img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+#avatar-upload { display: none; }
+
+/* Profile pill in lobby */
+.profile-pill {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 100px;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 16px;
+}
+.profile-pill .av { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; }
+.profile-pill .av img { width: 100%; height: 100%; object-fit: cover; }
+.room-pill {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 22px;
+  letter-spacing: 4px;
+  color: var(--yellow);
+}
+
+/* Timer */
+.timer-wrap { width: 100%; max-width: 320px; height: 4px; background: var(--border); border-radius: 100px; overflow: hidden; }
+.timer-bar { height: 100%; width: 100%; background: var(--yellow); border-radius: 100px; transition: width 1s linear, background 0.5s; }
+
+/* Canvas */
+#draw-canvas {
+  width: 100%;
+  max-width: 340px;
+  height: 260px;
+  border-radius: 12px;
+  background: white;
+  touch-action: none;
+  display: block;
+  cursor: crosshair;
+}
+.draw-tools { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 340px; }
+.col-dot { width: 28px; height: 28px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; flex-shrink: 0; transition: border-color 0.1s; }
+.col-dot.on { border-color: white; }
+.tool-pill { background: var(--surface); border: 2px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; color: var(--text); font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 12px; }
+.tool-pill.on { background: var(--yellow); border-color: var(--yellow); color: #000; }
+
+/* Canvas viewer (watch other player draw) */
+#watch-canvas {
+  width: 100%;
+  max-width: 340px;
+  height: 260px;
+  border-radius: 12px;
+  background: white;
+  display: block;
+}
+
+/* Rank drag */
+.rank-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
+.rank-row {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: grab;
+  font-weight: 700;
+  font-size: 14px;
+  user-select: none;
+}
+.rank-row:active { cursor: grabbing; border-color: var(--yellow); }
+.rank-num { width: 26px; height: 26px; border-radius: 6px; background: var(--border); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 16px; color: var(--yellow); flex-shrink: 0; }
+.rank-handle { color: var(--muted); margin-left: auto; font-size: 18px; }
+
+/* Result card */
+.result-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.result-icon { font-size: 56px; }
+.result-title { font-family: 'Bebas Neue', cursive; font-size: 36px; letter-spacing: 2px; }
+.result-sub { color: var(--muted); font-size: 14px; font-weight: 500; }
+.pts-gained { font-family: 'Bebas Neue', cursive; font-size: 48px; color: var(--green); }
+
+/* Scores list */
+.scores-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
+.score-row {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.score-row.me { border-color: var(--yellow); }
+.score-rank { font-family: 'Bebas Neue', cursive; font-size: 24px; color: var(--muted); width: 32px; text-align: center; }
+.score-av { font-size: 28px; width: 36px; text-align: center; overflow: hidden; border-radius: 50%; }
+.score-av img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.score-name { font-weight: 700; font-size: 15px; flex: 1; }
+.score-pts { font-family: 'Bebas Neue', cursive; font-size: 22px; color: var(--yellow); }
+
+/* Mafia specific */
+.role-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+.role-card.mafia { border-color: var(--red); }
+.role-card.village { border-color: var(--green); }
+.role-card.detective { border-color: var(--blue); }
+.role-card.doctor { border-color: var(--purple); }
+.role-emoji { font-size: 64px; margin-bottom: 8px; }
+.role-name { font-family: 'Bebas Neue', cursive; font-size: 40px; letter-spacing: 2px; }
+.role-desc { color: var(--muted); font-size: 14px; font-weight: 500; line-height: 1.5; margin-top: 8px; }
+.role-team { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+.role-team.mafia { color: var(--red); }
+.role-team.village { color: var(--green); }
+
+.player-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
+.player-row {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 15px;
+}
+.player-av { font-size: 26px; width: 36px; text-align: center; flex-shrink: 0; overflow: hidden; border-radius: 50%; }
+.player-av img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+
+.tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 6px;
+  padding: 3px 8px;
+  margin-left: auto;
+}
+.tag-dead { background: rgba(255,59,59,0.15); color: var(--red); }
+.tag-host { background: rgba(255,233,59,0.15); color: var(--yellow); }
+
+/* Error */
+.err { color: var(--red); font-size: 13px; font-weight: 700; text-align: center; }
+
+/* Waiting */
+.pulse { display: flex; gap: 6px; justify-content: center; }
+.pulse span { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); animation: p 1.2s ease-in-out infinite; }
+.pulse span:nth-child(2) { animation-delay: 0.2s; }
+.pulse span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes p { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+
+.status { color: var(--muted); font-size: 14px; font-weight: 500; text-align: center; }
+
+/* Custom prompts */
+.prompt-tag {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.prompts-wrap { display: flex; flex-wrap: wrap; gap: 6px; max-width: 320px; width: 100%; }
+
+/* Char count */
+.chars { font-size: 11px; color: var(--muted); font-weight: 700; text-align: right; width: 100%; max-width: 320px; }
+</style>
+</head>
+<body>
+
+<!-- JOIN -->
+<div id="s-join" class="screen active">
+  <div class="big-title">
+    <span class="line1">PARTY</span>
+    <span class="line1">PACK</span>
+    <span class="line2">BY YOUR CREW</span>
+  </div>
+  <input class="code-input" id="inp-code" placeholder="XXXX" maxlength="4" oninput="this.value=this.value.toUpperCase()" autocomplete="off" spellcheck="false"/>
+  <input id="inp-name" placeholder="Your name" maxlength="14" autocomplete="off"/>
+  <button class="btn btn-yellow" onclick="goToAvatar()">Let's go →</button>
+  <div class="err" id="join-err"></div>
+</div>
+
+<!-- AVATAR PICK -->
+<div id="s-avatar" class="screen">
+  <div class="section-title">Pick Your Avatar</div>
+  <div class="avatar-grid" id="av-grid"></div>
+
+  <div class="label">or upload a photo</div>
+  <div class="av-custom" onclick="document.getElementById('avatar-upload').click()">
+    <span id="upload-preview">📷 Upload photo</span>
+  </div>
+  <input type="file" id="avatar-upload" accept="image/*" onchange="handleAvatarUpload(this)"/>
+
+  <button class="btn btn-yellow" id="av-confirm-btn" onclick="confirmAvatar()">Join Game →</button>
+  <button class="btn btn-ghost" onclick="show('join')">← Back</button>
+</div>
+
+<!-- LOBBY -->
+<div id="s-lobby" class="screen">
+  <div class="profile-pill">
+    <div class="av" id="lobby-av"></div>
+    <div id="lobby-name">Player</div>
+    <div class="tag tag-host" id="lobby-host-tag" style="display:none;margin-left:0">HOST</div>
+  </div>
+  <div class="room-pill" id="lobby-room">----</div>
+  <div class="status">Waiting for host to start...</div>
+  <div class="pulse"><span></span><span></span><span></span></div>
+
+  <!-- Custom prompts section (host only) -->
+  <div id="custom-prompts-section" style="display:none;width:100%;max-width:320px">
+    <div class="label" style="margin-bottom:8px">Add Custom Prompts</div>
+    <textarea id="custom-prompt-input" placeholder="Add your own prompts, one per line...&#10;e.g. My boss when I'm 5 mins late&#10;Trying to explain TikTok to grandma"></textarea>
+    <button class="btn btn-ghost" style="margin-top:8px;font-size:15px" onclick="submitCustomPrompts()">Add Prompts</button>
+    <div class="prompts-wrap" id="prompts-added"></div>
+  </div>
+
+  <div id="lobby-players" class="player-list"></div>
+</div>
+
+<!-- TEXT ANSWER -->
+<div id="s-answer" class="screen">
+  <div class="label" id="ans-game-label">Quiplash</div>
+  <div class="result-card" style="padding:16px">
+    <div style="font-size:15px;font-weight:700;color:var(--yellow);line-height:1.4" id="ans-prompt">...</div>
+    <div class="label" id="ans-hint" style="display:none;color:var(--muted)"></div>
+  </div>
+  <textarea id="ans-text" placeholder="Type here..." maxlength="80"></textarea>
+  <div class="chars"><span id="ans-chars">80</span> left</div>
+  <div class="timer-wrap"><div class="timer-bar" id="ans-timer"></div></div>
+  <button class="btn btn-yellow" id="ans-btn" onclick="submitText()">Submit →</button>
+  <div class="status" id="ans-status"></div>
+</div>
+
+<!-- VOTE -->
+<div id="s-vote" class="screen">
+  <div class="label" id="vote-label">Vote</div>
+  <div style="font-family:'Bebas Neue',cursive;font-size:22px;text-align:center;line-height:1.2;max-width:300px" id="vote-heading">Pick one</div>
+  <div class="result-card" style="padding:12px;display:none" id="vote-prompt-card">
+    <div style="font-size:14px;font-weight:700;color:var(--yellow)" id="vote-prompt-text"></div>
+  </div>
+  <div class="timer-wrap"><div class="timer-bar" id="vote-timer"></div></div>
+  <div class="opt-list" id="vote-opts"></div>
+  <div class="status" id="vote-status"></div>
+</div>
+
+<!-- DRAW — YOUR CANVAS -->
+<div id="s-draw" class="screen">
+  <div class="label">Draw this!</div>
+  <div style="font-family:'Bebas Neue',cursive;font-size:22px;color:var(--yellow);text-align:center;line-height:1.2;max-width:300px" id="draw-prompt">...</div>
+  <canvas id="draw-canvas" width="340" height="260"></canvas>
+  <div class="draw-tools">
+    <div class="col-dot on" style="background:#111" onclick="setCol('#111',this)"></div>
+    <div class="col-dot" style="background:#ff3b3b" onclick="setCol('#ff3b3b',this)"></div>
+    <div class="col-dot" style="background:#3b8bff" onclick="setCol('#3b8bff',this)"></div>
+    <div class="col-dot" style="background:#00e87a" onclick="setCol('#00e87a',this)"></div>
+    <div class="col-dot" style="background:#ffe93b" onclick="setCol('#ffe93b',this)"></div>
+    <div class="col-dot" style="background:#b43bff" onclick="setCol('#b43bff',this)"></div>
+    <div class="col-dot" style="background:#ff8c3b" onclick="setCol('#ff8c3b',this)"></div>
+    <button class="tool-pill on" onclick="setSz(4,this)">S</button>
+    <button class="tool-pill" onclick="setSz(12,this)">M</button>
+    <button class="tool-pill" onclick="setSz(26,this)">L</button>
+    <button class="tool-pill" id="erase-pill" onclick="toggleErase(this)">Erase</button>
+    <button class="tool-pill" onclick="clearDraw()">Clear</button>
+  </div>
+  <div class="timer-wrap"><div class="timer-bar" id="draw-timer"></div></div>
+  <button class="btn btn-green" onclick="doneDraw()">Done Drawing!</button>
+</div>
+
+<!-- WATCH CANVAS (others drawing) -->
+<div id="s-watch" class="screen">
+  <div class="label" id="watch-label">Watch the drawing</div>
+  <div style="font-family:'Bebas Neue',cursive;font-size:22px;color:var(--yellow);text-align:center" id="watch-name">Player is drawing...</div>
+  <canvas id="watch-canvas" width="340" height="260"></canvas>
+  <div class="status" id="watch-status">Guess what it is when asked!</div>
+  <div class="pulse"><span></span><span></span><span></span></div>
+</div>
+
+<!-- WAIT -->
+<div id="s-wait" class="screen">
+  <div class="result-icon" id="wait-icon">⏳</div>
+  <div class="result-title" id="wait-title" style="font-family:'Bebas Neue',cursive;font-size:36px;letter-spacing:2px">Hang on...</div>
+  <div class="status" id="wait-status"></div>
+  <div class="pulse"><span></span><span></span><span></span></div>
+</div>
+
+<!-- ROUND RESULT -->
+<div id="s-result" class="screen">
+  <div class="result-card">
+    <div class="result-icon" id="res-icon">🎉</div>
+    <div class="result-title" id="res-title">Result</div>
+    <div class="pts-gained" id="res-pts"></div>
+    <div class="result-sub" id="res-sub"></div>
+  </div>
+  <div class="pulse"><span></span><span></span><span></span></div>
+</div>
+
+<!-- RANK -->
+<div id="s-rank" class="screen">
+  <div class="label">Most → Least popular</div>
+  <div style="font-family:'Bebas Neue',cursive;font-size:22px;text-align:center;line-height:1.2;max-width:300px;color:var(--yellow)" id="rank-q"></div>
+  <div class="rank-list" id="rank-list"></div>
+  <div class="timer-wrap"><div class="timer-bar" id="rank-timer"></div></div>
+  <button class="btn btn-yellow" onclick="submitRank()">Submit →</button>
+  <div class="status" id="rank-status"></div>
+</div>
+
+<!-- FINAL SCORES -->
+<div id="s-scores" class="screen">
+  <div class="section-title" id="scores-game">Game Over</div>
+  <div class="scores-list" id="scores-list"></div>
+  <div class="status">Waiting for next game...</div>
+  <div class="pulse"><span></span><span></span><span></span></div>
+</div>
+
+<!-- MAFIA: ROLE REVEAL -->
+<div id="s-mafia-role" class="screen">
+  <div class="label">Your Secret Role</div>
+  <div class="role-card" id="role-card">
+    <div class="role-emoji" id="role-emoji">👤</div>
+    <div class="role-name" id="role-name">Villager</div>
+    <div class="role-team" id="role-team"></div>
+    <div class="role-desc" id="role-desc"></div>
+  </div>
+  <div id="mafia-team-reveal" style="display:none;width:100%;max-width:320px">
+    <div class="label" style="margin-bottom:8px;color:var(--red)">Your Mafia Team</div>
+    <div class="player-list" id="mafia-teammates"></div>
+  </div>
+  <div class="status">Remember your role — game starts soon!</div>
+  <div class="pulse"><span></span><span></span><span></span></div>
+</div>
+
+<!-- MAFIA: NIGHT -->
+<div id="s-mafia-night" class="screen">
+  <div class="label" id="night-label">Night falls...</div>
+  <div style="font-family:'Bebas Neue',cursive;font-size:30px;text-align:center;color:var(--red)" id="night-title">Night</div>
+  <div style="font-size:14px;font-weight:500;color:var(--muted);text-align:center;max-width:280px" id="night-instruction"></div>
+  <div class="timer-wrap"><div class="timer-bar" id="night-timer"></div></div>
+  <div class="opt-list" id="night-targets"></div>
+  <div class="status" id="night-status"></div>
+</div>
+
+<!-- MAFIA: DAY -->
+<div id="s-mafia-day" class="screen">
+  <div class="label">Day — Vote someone out!</div>
+  <div class="player-list" id="day-players"></div>
+  <div class="timer-wrap"><div class="timer-bar" id="day-timer"></div></div>
+  <div class="opt-list" id="day-vote-opts"></div>
+  <div class="status" id="day-status"></div>
+</div>
+
+<!-- MAFIA: SPECTATE -->
+<div id="s-mafia-spec" class="screen">
+  <div class="result-icon">👻</div>
+  <div class="result-title" style="font-family:'Bebas Neue',cursive;font-size:36px">You're Dead</div>
+  <div class="status">Watch the game play out...</div>
+  <div class="player-list" id="spec-alive"></div>
+  <div class="pulse"><span></span><span></span><span></span></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+let myId = null, myCode = null, myPlayer = null;
+let myAvatarData = null; // emoji string or data URL
+let selectedEmoji = '🦊';
+let isHost = false;
+
+// Drawing state
+let drawCanvas, drawCtx, wCanvas, wCtx;
+let drawing = false, curCol = '#111', curSz = 4, erasing = false, curStroke = [];
+let timers = {};
+
+// Auto-fill room code from URL
+const up = new URLSearchParams(window.location.search);
+if (up.get('room')) document.getElementById('inp-code').value = up.get('room').toUpperCase();
+
+// ─── SCREEN NAV ───
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+}
+
+// ─── TIMER ───
+function startTimer(id, secs) {
+  clearInterval(timers[id]);
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.width = '100%';
+  el.style.background = 'var(--yellow)';
+  let elapsed = 0;
+  timers[id] = setInterval(() => {
+    elapsed++;
+    const pct = Math.max(0, 100 - (elapsed / secs * 100));
+    el.style.width = pct + '%';
+    if (pct < 20) el.style.background = 'var(--red)';
+    else if (pct < 50) el.style.background = 'var(--orange)';
+    if (pct <= 0) clearInterval(timers[id]);
+  }, 1000);
+}
+
+// ─── AVATAR SETUP ───
+const EMOJIS = ['🦊','🐼','🦁','🐸','🦋','🐙','🦄','🐲','🐯','🦝','🦉','🐺','🦈','🐻','🦚','🐧','🦀','🦑','🐬','🦜'];
+
+function goToAvatar() {
+  const code = document.getElementById('inp-code').value.trim().toUpperCase();
+  const name = document.getElementById('inp-name').value.trim();
+  if (code.length < 4) { document.getElementById('join-err').textContent = 'Enter a 4-letter code!'; return; }
+  if (!name) { document.getElementById('join-err').textContent = 'Enter your name!'; return; }
+  document.getElementById('join-err').textContent = '';
+
+  const grid = document.getElementById('av-grid');
+  grid.innerHTML = EMOJIS.map((e,i) => `
+    <div class="av-btn${i===0?' chosen':''}" onclick="pickEmoji('${e}',this)">${e}</div>
+  `).join('');
+  selectedEmoji = EMOJIS[0];
+  myAvatarData = selectedEmoji;
+  show('avatar');
+}
+
+function pickEmoji(emoji, btn) {
+  selectedEmoji = emoji;
+  myAvatarData = emoji;
+  document.querySelectorAll('.av-btn').forEach(b => b.classList.remove('chosen'));
+  btn.classList.add('chosen');
+  // clear custom upload
+  document.getElementById('upload-preview').innerHTML = '📷 Upload photo';
+}
+
+function handleAvatarUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    myAvatarData = e.target.result;
+    document.getElementById('upload-preview').innerHTML = `<img src="${myAvatarData}" alt="avatar"/> Custom photo`;
+    document.querySelectorAll('.av-btn').forEach(b => b.classList.remove('chosen'));
+  };
+  reader.readAsDataURL(file);
+}
+
+function confirmAvatar() {
+  const code = document.getElementById('inp-code').value.trim().toUpperCase();
+  const nickname = document.getElementById('inp-name').value.trim();
+  socket.emit('join_room', { code, nickname, avatar: myAvatarData });
+}
+
+function renderAv(avatar, el) {
+  if (!el) return;
+  if (avatar && avatar.startsWith('data:')) {
+    el.innerHTML = `<img src="${avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  } else {
+    el.textContent = avatar || '🎮';
+  }
+}
+
+// ─── JOIN / LOBBY ───
+socket.on('room_joined', ({ code, player }) => {
+  myCode = code; myPlayer = player; myId = socket.id;
+  isHost = player.isHost;
+  setupLobby(player, code);
+  show('lobby');
+});
+
+socket.on('room_created', ({ code, player }) => {
+  myCode = code; myPlayer = player; myId = socket.id;
+  isHost = true;
+  setupLobby(player, code);
+  show('lobby');
+});
+
+function setupLobby(player, code) {
+  const avEl = document.getElementById('lobby-av');
+  renderAv(player.avatar, avEl);
+  document.getElementById('lobby-name').textContent = player.nickname;
+  document.getElementById('lobby-room').textContent = code;
+  if (player.isHost) {
+    document.getElementById('lobby-host-tag').style.display = 'block';
+    document.getElementById('custom-prompts-section').style.display = 'block';
+  }
+}
+
+socket.on('join_error', ({ message }) => {
+  document.getElementById('join-err').textContent = message;
+  show('join');
+});
+
+socket.on('room_update', ({ players, phase, hostId }) => {
+  isHost = myId === hostId;
+  if (document.getElementById('custom-prompts-section')) {
+    document.getElementById('custom-prompts-section').style.display = isHost ? 'block' : 'none';
+  }
+  if (document.getElementById('lobby-host-tag')) {
+    document.getElementById('lobby-host-tag').style.display = isHost ? 'block' : 'none';
+  }
+  renderLobbyPlayers(players);
+  if (phase === 'lobby') show('lobby');
+});
+
+function renderLobbyPlayers(players) {
+  const list = document.getElementById('lobby-players');
+  if (!list) return;
+  list.innerHTML = players.map(p => {
+    const isMe = p.id === myId;
+    return `<div class="player-row${isMe?' style="border-color:var(--yellow)"':''}">
+      <div class="player-av" id="pav-${p.id}"></div>
+      <span>${p.nickname}${isMe?' (you)':''}</span>
+      ${p.isHost ? '<span class="tag tag-host">HOST</span>' : ''}
+    </div>`;
+  }).join('');
+  players.forEach(p => renderAv(p.avatar, document.getElementById('pav-' + p.id)));
+}
+
+// Custom prompts
+function submitCustomPrompts() {
+  const text = document.getElementById('custom-prompt-input').value.trim();
+  if (!text) return;
+  const prompts = text.split('\n').map(p => p.trim()).filter(p => p);
+  socket.emit('add_custom_prompts', { prompts });
+  document.getElementById('custom-prompt-input').value = '';
+  socket.once('prompts_added', ({ count }) => {
+    const wrap = document.getElementById('prompts-added');
+    wrap.innerHTML = `<div class="prompt-tag">✅ ${count} custom prompts added!</div>`;
+  });
+}
+
+// ─── HELPERS ───
+let selectedVote = null;
+function resetVote() { selectedVote = null; }
+
+function pickOpt(id, btnEl) {
+  if (selectedVote) return;
+  selectedVote = id;
+  btnEl.classList.add('picked');
+  document.querySelectorAll('.opt-btn').forEach(b => { if (b !== btnEl) b.classList.add('dim'); });
+}
+
+// ─── QUIPLASH ───
+socket.on('your_prompt', ({ prompt, timeLimit }) => {
+  document.getElementById('ans-game-label').textContent = 'QUIPLASH';
+  document.getElementById('ans-prompt').textContent = prompt;
+  document.getElementById('ans-hint').style.display = 'none';
+  resetField('ans-text', 'ans-btn', 'ans-status', 'ans-chars');
+  startTimer('ans-timer', timeLimit);
+  show('answer');
+});
+
+socket.on('vote_now', ({ options, prompt, timeLimit }) => {
+  resetVote();
+  document.getElementById('vote-label').textContent = 'QUIPLASH — VOTE';
+  document.getElementById('vote-heading').textContent = 'Which is funnier?';
+  const pc = document.getElementById('vote-prompt-card');
+  const pt = document.getElementById('vote-prompt-text');
+  if (prompt) { pt.textContent = prompt; pc.style.display = 'flex'; } else pc.style.display = 'none';
+  document.getElementById('vote-status').textContent = '';
+  document.getElementById('vote-opts').innerHTML = options.map(o => `
+    <button class="opt-btn" onclick="doVote('${o.playerId}',this,'vote','vote: quiplash')">
+      ${o.answer}
+    </button>
+  `).join('');
+  startTimer('vote-timer', timeLimit || 25);
+  show('vote');
+});
+
+function doVote(id, btn, type, label) {
+  if (selectedVote) return;
+  pickOpt(id, btn);
+  socket.emit('game_input', { type, vote: id, answerId: id });
+  document.getElementById('vote-status').textContent = '✅ Voted!';
+}
+
+socket.on('wait_for_votes', ({ message }) => {
+  showWait('😬', 'Waiting...', message || 'Others are still going...');
+});
+
+socket.on('vote_results_player', () => {
+  showWait('📊', 'Round done!', 'Next matchup...');
+});
+
+// ─── FIBBAGE ───
+socket.on('enter_lie', ({ prompt, timeLimit, hint }) => {
+  document.getElementById('ans-game-label').textContent = 'FIBBAGE';
+  document.getElementById('ans-prompt').textContent = prompt;
+  if (hint) { document.getElementById('ans-hint').textContent = hint; document.getElementById('ans-hint').style.display = 'block'; }
+  else document.getElementById('ans-hint').style.display = 'none';
+  resetField('ans-text', 'ans-btn', 'ans-status', 'ans-chars');
+  startTimer('ans-timer', timeLimit);
+  show('answer');
+});
+
+socket.on('pick_answer', ({ answers, prompt, timeLimit }) => {
+  resetVote();
+  document.getElementById('vote-label').textContent = 'FIBBAGE — FIND THE TRUTH';
+  document.getElementById('vote-heading').textContent = 'Which one is real?';
+  const pc = document.getElementById('vote-prompt-card');
+  const pt = document.getElementById('vote-prompt-text');
+  if (prompt) { pt.textContent = prompt; pc.style.display = 'flex'; } else pc.style.display = 'none';
+  document.getElementById('vote-status').textContent = '';
+  const letters = ['A','B','C','D','E'];
+  document.getElementById('vote-opts').innerHTML = answers.map((a,i) => `
+    <button class="opt-btn" onclick="doPickVote('${a.id}',this)">
+      <div class="opt-letter">${letters[i]}</div>${a.text}
+    </button>
+  `).join('');
+  startTimer('vote-timer', timeLimit || 25);
+  show('vote');
+});
+
+function doPickVote(id, btn) {
+  if (selectedVote) return;
+  pickOpt(id, btn);
+  socket.emit('game_input', { type: 'vote', answerId: id });
+  document.getElementById('vote-status').textContent = '✅ Locked in!';
+}
+
+socket.on('fibbage_results_player', ({ truth }) => {
+  showWait('📖', 'The truth was...', truth);
+});
+
+// ─── DRAWFUL — DRAW ───
+socket.on('drawful_you_draw', ({ prompt, round, totalRounds, timeLimit }) => {
+  document.getElementById('draw-prompt').textContent = prompt;
+  initDrawCanvas();
+  startTimer('draw-timer', timeLimit);
+  show('draw');
+});
+
+// ─── DRAWFUL — WATCH ───
+let watchCtxRef = null;
+
+socket.on('drawful_watch', ({ drawerName, drawerAvatar, round, totalRounds }) => {
+  document.getElementById('watch-label').textContent = `Round ${round} of ${totalRounds}`;
+  document.getElementById('watch-name').textContent = `${drawerAvatar || '🎨'} ${drawerName} is drawing...`;
+  document.getElementById('watch-status').textContent = 'Guess what it is when asked!';
+  initWatchCanvas();
+  socket.emit('game_input', { type: 'request_strokes' }); // get current state
+  show('watch');
+});
+
+socket.on('draw_full_state', ({ strokes }) => {
+  if (!watchCtxRef) return;
+  watchCtxRef.fillStyle = 'white';
+  watchCtxRef.fillRect(0, 0, 340, 260);
+  strokes.forEach(stroke => drawStrokeOnCtx(watchCtxRef, stroke, 340, 260));
+});
+
+socket.on('draw_stroke', ({ stroke }) => {
+  if (watchCtxRef) drawStrokeOnCtx(watchCtxRef, stroke, 340, 260);
+});
+
+socket.on('draw_cleared', () => {
+  if (watchCtxRef) { watchCtxRef.fillStyle = 'white'; watchCtxRef.fillRect(0, 0, 340, 260); }
+});
+
+function drawStrokeOnCtx(ctx, stroke, w, h) {
+  if (!stroke || stroke.length < 2) return;
+  ctx.beginPath();
+  ctx.strokeStyle = stroke[0].color || '#000';
+  ctx.lineWidth = stroke[0].size || 4;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.moveTo(stroke[0].x * w, stroke[0].y * h);
+  stroke.forEach(pt => ctx.lineTo(pt.x * w, pt.y * h));
+  ctx.stroke();
+}
+
+function initWatchCanvas() {
+  wCanvas = document.getElementById('watch-canvas');
+  if (!wCanvas) return;
+  watchCtxRef = wCanvas.getContext('2d');
+  watchCtxRef.fillStyle = 'white';
+  watchCtxRef.fillRect(0, 0, 340, 260);
+}
+
+// ─── DRAWFUL — GUESS ───
+socket.on('drawful_guess', ({ timeLimit, drawerName, strokes }) => {
+  // Show mini canvas + guess input
+  document.getElementById('ans-game-label').textContent = 'DRAWFUL';
+  document.getElementById('ans-prompt').textContent = `What is ${drawerName} drawing?!`;
+  document.getElementById('ans-hint').style.display = 'none';
+  resetField('ans-text', 'ans-btn', 'ans-status', 'ans-chars');
+  startTimer('ans-timer', timeLimit);
+  show('answer');
+  // Replay strokes on watch canvas for reference
+  initWatchCanvas();
+  if (strokes) strokes.forEach(s => drawStrokeOnCtx(watchCtxRef, s, 340, 260));
+});
+
+socket.on('drawful_drawer_wait', ({ message }) => {
+  showWait('🎨', 'Nice!', message);
+});
+
+// ─── DRAWFUL — VOTE ───
+socket.on('drawful_vote', ({ answers, strokes, timeLimit, drawerName }) => {
+  resetVote();
+  document.getElementById('vote-label').textContent = 'DRAWFUL — VOTE';
+  document.getElementById('vote-heading').textContent = `What was ${drawerName} drawing?`;
+  document.getElementById('vote-prompt-card').style.display = 'none';
+  document.getElementById('vote-status').textContent = '';
+  const letters = ['A','B','C','D','E','F'];
+  document.getElementById('vote-opts').innerHTML = answers.map((a,i) => `
+    <button class="opt-btn" onclick="doPickVote('${a.id}',this)">
+      <div class="opt-letter">${letters[i]}</div>${a.text}
+    </button>
+  `).join('');
+  startTimer('vote-timer', timeLimit || 20);
+  show('vote');
+});
+
+socket.on('drawful_results', ({ correctAnswer, answers, votes, players, myId: mid, gotIt, fooledCount }) => {
+  const pts = gotIt ? 1000 : 0;
+  const foolPts = fooledCount * 500;
+  const total = pts + foolPts;
+  let icon = gotIt ? '🎯' : fooledCount > 0 ? '😈' : '😅';
+  let title = gotIt ? 'GOT IT!' : fooledCount > 0 ? `FOOLED ${fooledCount}!` : 'WRONG!';
+  let sub = `The answer was: "${correctAnswer}"`;
+  showResult(icon, title, total > 0 ? `+${total} pts` : '0 pts', sub);
+});
+
+// ─── SHARED TEXT SUBMIT ───
+document.getElementById('ans-text').addEventListener('input', function() {
+  document.getElementById('ans-chars').textContent = 80 - this.value.length;
+});
+
+function submitText() {
+  const val = document.getElementById('ans-text').value.trim();
+  if (!val) return;
+  socket.emit('game_input', { type: 'answer', answer: val });
+  socket.emit('game_input', { type: 'lie', lie: val });
+  socket.emit('game_input', { type: 'guess', guess: val });
+  document.getElementById('ans-text').disabled = true;
+  document.getElementById('ans-btn').disabled = true;
+  document.getElementById('ans-status').textContent = '✅ Submitted!';
+}
+
+function resetField(textId, btnId, statusId, charsId) {
+  document.getElementById(textId).value = '';
+  document.getElementById(textId).disabled = false;
+  document.getElementById(btnId).disabled = false;
+  document.getElementById(statusId).textContent = '';
+  if (charsId) document.getElementById(charsId).textContent = '80';
+}
+
+// ─── DRAW TOOLS ───
+function initDrawCanvas() {
+  drawCanvas = document.getElementById('draw-canvas');
+  if (!drawCanvas) return;
+  drawCtx = drawCanvas.getContext('2d');
+  drawCtx.fillStyle = 'white';
+  drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+  drawCanvas.onpointerdown = dS;
+  drawCanvas.onpointermove = dM;
+  drawCanvas.onpointerup = dE;
+  drawCanvas.onpointerleave = dE;
+}
+
+function getPos(e) {
+  const r = drawCanvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - r.left) * (drawCanvas.width / r.width),
+    y: (e.clientY - r.top) * (drawCanvas.height / r.height),
+    nx: (e.clientX - r.left) / r.width,
+    ny: (e.clientY - r.top) / r.height
+  };
+}
+
+function dS(e) {
+  e.preventDefault(); drawing = true;
+  const p = getPos(e);
+  const c = erasing ? 'white' : curCol, s = erasing ? 30 : curSz;
+  curStroke = [{ x: p.nx, y: p.ny, color: c, size: s }];
+  drawCtx.beginPath(); drawCtx.strokeStyle = c; drawCtx.lineWidth = s;
+  drawCtx.lineCap = 'round'; drawCtx.lineJoin = 'round';
+  drawCtx.moveTo(p.x, p.y);
+}
+function dM(e) {
+  if (!drawing) return; e.preventDefault();
+  const p = getPos(e);
+  const c = erasing ? 'white' : curCol, s = erasing ? 30 : curSz;
+  curStroke.push({ x: p.nx, y: p.ny, color: c, size: s });
+  drawCtx.lineTo(p.x, p.y); drawCtx.stroke();
+}
+function dE(e) {
+  if (!drawing) return; drawing = false;
+  if (curStroke.length > 1) socket.emit('game_input', { type: 'stroke', stroke: curStroke });
+  curStroke = [];
+}
+
+function setCol(c, btn) {
+  curCol = c; erasing = false;
+  document.querySelectorAll('.col-dot').forEach(b => b.classList.remove('on'));
+  document.getElementById('erase-pill').classList.remove('on');
+  btn.classList.add('on');
+}
+function setSz(s, btn) {
+  curSz = s;
+  document.querySelectorAll('.tool-pill:not(#erase-pill)').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+function toggleErase(btn) {
+  erasing = !erasing; btn.classList.toggle('on');
+  document.querySelectorAll('.col-dot').forEach(b => b.classList.remove('on'));
+}
+function clearDraw() {
+  if (drawCtx) { drawCtx.fillStyle = 'white'; drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height); }
+  socket.emit('game_input', { type: 'clear' });
+}
+function doneDraw() {
+  socket.emit('game_input', { type: 'done_drawing' });
+  showWait('✅', 'Done!', 'Others are guessing your masterpiece...');
+}
+
+// ─── TRIVIA ───
+socket.on('answer_question', ({ question, options, timeLimit }) => {
+  resetVote();
+  document.getElementById('vote-label').textContent = 'TRIVIA KNOCKOUT';
+  document.getElementById('vote-heading').textContent = question;
+  document.getElementById('vote-prompt-card').style.display = 'none';
+  document.getElementById('vote-status').textContent = '';
+  const letters = ['A','B','C','D'];
+  document.getElementById('vote-opts').innerHTML = options.map((o,i) => `
+    <button class="opt-btn" onclick="doTrivia('${o.replace(/'/g,"\\'")}',this)">
+      <div class="opt-letter">${letters[i]}</div>${o}
+    </button>
+  `).join('');
+  startTimer('vote-timer', timeLimit);
+  show('vote');
+});
+
+function doTrivia(answer, btn) {
+  if (selectedVote) return;
+  pickOpt(answer, btn);
+  socket.emit('game_input', { type: 'answer', answer });
+  document.getElementById('vote-status').textContent = '✅ Locked in!';
+}
+
+socket.on('trivia_reveal_player', ({ correctAnswer, correct, streak }) => {
+  const pts = correct ? 300 + (streak > 1 ? (streak-1)*100 : 0) : 0;
+  showResult(
+    correct ? '✅' : '❌',
+    correct ? 'CORRECT!' : 'WRONG!',
+    pts > 0 ? `+${pts}${streak>1?' 🔥':''}` : '0 pts',
+    correct ? (streak > 1 ? `${streak} in a row!` : 'Nice one!') : `Answer: ${correctAnswer}`
+  );
+});
+
+socket.on('you_are_eliminated', () => {
+  showWait('💀', 'Eliminated!', 'Watch the survivors...');
+});
+
+socket.on('spectating', () => {
+  showWait('👀', 'Spectating', 'You\'re out — watch along!');
+});
+
+// ─── POLL MINE ───
+socket.on('cast_vote', ({ question, options, timeLimit }) => {
+  resetVote();
+  document.getElementById('vote-label').textContent = 'POLL MINE';
+  document.getElementById('vote-heading').textContent = question;
+  document.getElementById('vote-prompt-card').style.display = 'none';
+  document.getElementById('vote-status').textContent = '';
+  document.getElementById('vote-opts').innerHTML = options.map(o => `
+    <button class="opt-btn" onclick="doPoll('${o.replace(/'/g,"\\'")}',this)">${o}</button>
+  `).join('');
+  startTimer('vote-timer', timeLimit);
+  show('vote');
+});
+
+function doPoll(option, btn) {
+  if (selectedVote) return;
+  pickOpt(option, btn);
+  socket.emit('game_input', { type: 'vote', option });
+  document.getElementById('vote-status').textContent = '✅ Voted!';
+}
+
+socket.on('rank_options', ({ question, options, timeLimit }) => {
+  rankItems = [...options];
+  document.getElementById('rank-q').textContent = question;
+  document.getElementById('rank-status').textContent = '';
+  renderRank();
+  startTimer('rank-timer', timeLimit);
+  show('rank');
+});
+
+let rankItems = [];
+function renderRank() {
+  document.getElementById('rank-list').innerHTML = rankItems.map((item, i) => `
+    <div class="rank-row" draggable="true" data-i="${i}" ondragstart="rS(event)" ondragover="rO(event)" ondrop="rD(event)">
+      <div class="rank-num">${i+1}</div><span>${item}</span><span class="rank-handle">⠿</span>
+    </div>
+  `).join('');
+}
+let rSrc = null;
+function rS(e) { rSrc = parseInt(e.currentTarget.dataset.i); }
+function rO(e) { e.preventDefault(); }
+function rD(e) {
+  e.preventDefault();
+  const t = parseInt(e.currentTarget.dataset.i);
+  if (rSrc === null || rSrc === t) return;
+  rankItems.splice(t, 0, rankItems.splice(rSrc, 1)[0]);
+  rSrc = null; renderRank();
+}
+function submitRank() {
+  socket.emit('game_input', { type: 'prediction', ranking: rankItems });
+  document.getElementById('rank-status').textContent = '✅ Submitted!';
+  document.querySelector('#s-rank .btn').disabled = true;
+}
+
+socket.on('pollmine_results_player', ({ actualRanking, myPrediction, myVote }) => {
+  let correct = 0;
+  if (myPrediction) myPrediction.forEach((o,i) => { if (actualRanking[i] === o) correct++; });
+  showResult(
+    correct >= 3 ? '🎯' : correct >= 2 ? '👍' : '🤷',
+    `${correct}/${actualRanking.length} RIGHT`,
+    '',
+    `You voted: ${myVote || '—'}`
+  );
+});
+
+// ─── MAFIA ───
+socket.on('mafia_role', ({ role, roleInfo, mafiaTeam, players }) => {
+  const card = document.getElementById('role-card');
+  card.className = `role-card ${role === 'detective' ? 'detective' : role === 'doctor' ? 'doctor' : role}`;
+  document.getElementById('role-emoji').textContent = roleInfo.emoji;
+  document.getElementById('role-name').textContent = roleInfo.name.toUpperCase();
+  document.getElementById('role-desc').textContent = roleInfo.desc;
+  const teamEl = document.getElementById('role-team');
+  teamEl.textContent = roleInfo.team === 'mafia' ? '⚠️ MAFIA TEAM' : '✅ VILLAGE TEAM';
+  teamEl.className = `role-team ${roleInfo.team}`;
+
+  if (mafiaTeam && mafiaTeam.length > 1) {
+    document.getElementById('mafia-team-reveal').style.display = 'block';
+    document.getElementById('mafia-teammates').innerHTML = players
+      .filter(p => mafiaTeam.includes(p.nickname) && p.id !== myId)
+      .map(p => `<div class="player-row"><div class="player-av" id="mpav-${p.id}"></div>${p.nickname} <span class="tag tag-dead" style="background:rgba(255,59,59,.15);color:var(--red)">MAFIA</span></div>`)
+      .join('');
+    players.filter(p => mafiaTeam.includes(p.nickname)).forEach(p => renderAv(p.avatar, document.getElementById('mpav-' + p.id)));
+  } else {
+    document.getElementById('mafia-team-reveal').style.display = 'none';
+  }
+  show('mafia-role');
+});
+
+socket.on('mafia_night_action', ({ role, action, instruction, targets, timeLimit }) => {
+  document.getElementById('night-label').textContent = role.toUpperCase() + ' — NIGHT';
+  document.getElementById('night-title').textContent = action === 'kill' ? '🔪 CHOOSE YOUR TARGET' : action === 'investigate' ? '🔍 INVESTIGATE' : '💊 PROTECT';
+  document.getElementById('night-instruction').textContent = instruction;
+  document.getElementById('night-status').textContent = '';
+  document.getElementById('night-targets').innerHTML = targets.map(t => `
+    <button class="opt-btn" onclick="doNightAction('${t.id}',this)">
+      <div style="font-size:22px">${t.avatar || '👤'}</div>${t.nickname}
+    </button>
+  `).join('');
+  startTimer('night-timer', timeLimit);
+  show('mafia-night');
+});
+
+function doNightAction(targetId, btn) {
+  if (selectedVote) return;
+  pickOpt(targetId, btn);
+  socket.emit('game_input', { type: 'night_action', target: targetId });
+  document.getElementById('night-status').textContent = '✅ Action locked in!';
+}
+
+socket.on('mafia_night_sleep', ({ message, timeLimit }) => {
+  document.getElementById('night-label').textContent = 'NIGHT';
+  document.getElementById('night-title').textContent = '🌙 SLEEP';
+  document.getElementById('night-instruction').textContent = message;
+  document.getElementById('night-targets').innerHTML = '';
+  document.getElementById('night-status').textContent = '';
+  startTimer('night-timer', timeLimit);
+  show('mafia-night');
+});
+
+socket.on('mafia_action_confirmed', ({ message }) => {
+  document.getElementById('night-status').textContent = message;
+});
+
+socket.on('mafia_detective_result', ({ targetName, isEvil, message }) => {
+  showResult(isEvil ? '🚨' : '✅', targetName, message, isEvil ? 'Tell the village! (carefully...)' : 'Keep investigating...');
+});
+
+socket.on('mafia_dawn', ({ killed, killedName, killedAvatar, saved, alivePlayers }) => {
+  if (saved) {
+    showResult('💊', 'SAVED!', '', 'The Doctor saved someone from death...');
+  } else if (killed) {
+    showResult('💀', 'DEATH!', killedName + ' was killed', 'The Mafia struck in the night');
+  } else {
+    showResult('😮', 'NO KILL', '', 'Nobody died last night...');
+  }
+});
+
+socket.on('mafia_day_vote', ({ instruction, targets, alivePlayers, timeLimit }) => {
+  resetVote();
+  // Show alive players list
+  document.getElementById('day-players').innerHTML = alivePlayers.map(p => `
+    <div class="player-row" id="drow-${p.id}">
+      <div class="player-av" id="dpav-${p.id}"></div>
+      ${p.nickname}${p.id === myId ? ' (you)' : ''}
+    </div>
+  `).join('');
+  alivePlayers.forEach(p => renderAv(p.avatar, document.getElementById('dpav-' + p.id)));
+
+  document.getElementById('day-status').textContent = instruction;
+  document.getElementById('day-vote-opts').innerHTML = targets.map(t => `
+    <button class="opt-btn" onclick="doDayVote('${t.id}',this)">
+      <div class="player-av" id="dvpav-${t.id}" style="width:28px;height:28px;font-size:20px;border-radius:50%;overflow:hidden"></div>
+      ${t.nickname}
+    </button>
+  `).join('');
+  targets.forEach(t => renderAv(t.avatar, document.getElementById('dvpav-' + t.id)));
+  startTimer('day-timer', timeLimit);
+  show('mafia-day');
+});
+
+function doDayVote(targetId, btn) {
+  if (selectedVote) return;
+  pickOpt(targetId, btn);
+  socket.emit('game_input', { type: 'day_vote', target: targetId });
+  document.getElementById('day-status').textContent = '✅ Voted!';
+}
+
+socket.on('mafia_vote_result', ({ eliminatedId, eliminatedName, eliminatedRole, eliminatedRoleInfo, tied, alivePlayers }) => {
+  if (tied) {
+    showResult('🤝', 'TIE!', 'No one eliminated', 'Nobody could agree...');
+  } else if (eliminatedId) {
+    const icon = eliminatedRoleInfo?.emoji || '💀';
+    showResult(icon, eliminatedName + ' is out!', eliminatedRoleInfo?.name || '', `They were the ${eliminatedRoleInfo?.name}!`);
+  }
+});
+
+socket.on('mafia_you_died', ({ killedBy }) => {
+  showWait('💀', 'You Died', `Eliminated by ${killedBy}`);
+  setTimeout(() => show('mafia-spec'), 3000);
+});
+
+socket.on('mafia_spectate', ({ alivePlayers }) => {
+  if (alivePlayers) {
+    document.getElementById('spec-alive').innerHTML = alivePlayers.map(p => `
+      <div class="player-row"><div class="player-av" id="spav-${p.id}"></div>${p.nickname}</div>
+    `).join('');
+    alivePlayers.forEach(p => renderAv(p.avatar, document.getElementById('spav-' + p.id)));
+  }
+  show('mafia-spec');
+});
+
+socket.on('mafia_game_over', ({ winner, won, allRoles }) => {
+  const icon = won ? '🏆' : '💀';
+  const title = won ? 'YOU WIN!' : 'YOU LOSE';
+  const sub = winner === 'village' ? 'Village wins! Mafia eliminated.' : 'Mafia wins! Village overrun.';
+  showResult(icon, title, '', sub);
+});
+
+// ─── FINAL SCORES ───
+socket.on('final_scores', ({ scores, gameName }) => {
+  document.getElementById('scores-game').textContent = gameName + ' — Final Scores';
+  const myRank = scores.findIndex(s => s.id === myId);
+  document.getElementById('scores-list').innerHTML = scores.map((s, i) => {
+    const isMe = s.id === myId;
+    const medals = ['🥇','🥈','🥉'];
+    return `<div class="score-row${isMe?' me':''}">
+      <div class="score-rank">${medals[i] || (i+1)}</div>
+      <div class="score-av" id="fsav-${s.id}"></div>
+      <div class="score-name">${s.nickname}${isMe?' ◀':''}  </div>
+      <div class="score-pts">${s.score}</div>
+    </div>`;
+  }).join('');
+  scores.forEach(s => renderAv(s.avatar, document.getElementById('fsav-' + s.id)));
+  show('scores');
+});
+
+socket.on('game_over', ({ scores }) => {
+  // handled by final_scores
+});
+
+socket.on('game_ended', ({ returnToLobby }) => {
+  if (returnToLobby) {
+    resetVote();
+    show('lobby');
+  }
+});
+
+// ─── UTIL ───
+function showWait(icon, title, msg) {
+  document.getElementById('wait-icon').textContent = icon;
+  document.getElementById('wait-title').textContent = title;
+  document.getElementById('wait-status').textContent = msg || '';
+  show('wait');
+}
+
+function showResult(icon, title, pts, sub) {
+  document.getElementById('res-icon').textContent = icon;
+  document.getElementById('res-title').textContent = title;
+  document.getElementById('res-pts').textContent = pts || '';
+  document.getElementById('res-sub').textContent = sub || '';
+  show('result');
+}
+</script>
+</body>
+</html>
