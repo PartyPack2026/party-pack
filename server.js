@@ -11,6 +11,11 @@ const io = new Server(server);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
+app.get("/join", (req, res) => {
+  const room = req.query.room ? `?room=${req.query.room}` : "";
+  res.redirect(`/join.html${room}`);
+});
+
 // Game state
 const rooms = {};
 
