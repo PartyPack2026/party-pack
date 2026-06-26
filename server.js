@@ -11,39 +11,24 @@ const io = new Server(server);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-app.get("/join", (req, res) => {
-  const room = req.query.room ? `?room=${req.query.room}` : "";
+app.get('/join', (req, res) => {
+  const room = req.query.room ? `?room=${req.query.room}` : '';
   res.redirect(`/join.html${room}`);
 });
 
-// Game state
 const rooms = {};
 
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
-function generateRoom(code) {
-  return {
-    code,
-    players: {},
-    host: null,
-    game: null,
-    gameState: null,
-    phase: 'lobby'
-  };
-}
-
-// Game imports
 const Quiplash = require('./src/games/Quiplash');
 const Fibbage = require('./src/games/Fibbage');
 const Drawful = require('./src/games/Drawful');
 const TriviaKnockout = require('./src/games/TriviaKnockout');
 const PollMine = require('./src/games/PollMine');
-
 const GAMES = { Quiplash, Fibbage, Drawful, TriviaKnockout, PollMine };
 
-// QR code endpoint
 app.get('/qr/:code', async (req, res) => {
   const { code } = req.params;
   const host = req.headers['x-forwarded-host'] || req.headers.host;
@@ -57,20 +42,42 @@ app.get('/qr/:code', async (req, res) => {
   }
 });
 
-io.on('connection', (socket) => {
-  console.log('Connected:', socket.id);
+function getAvatar(index) {
+  const avatars = ['🦊','🐼','🦁','🐸','🦋','🐙','🦄','🐲'];
+  return avatars[index % avatars.length];
+}
 
-  // Host creates a room
+function emitRoomUpdate(code) {
+  const room = rooms[code];
+  if (!room) return;
+  io.to(code).emit('room_update', {
+    code,
+    players: Object.values(room.players),
+    phase: room.phase,
+    game: room.game,
+    hostId: room.hostId
+  });
+}
+
+function endGame(code, scores) {
+  const room = rooms[code];
+  if (!room) return;
+  room.phase = 'results';
+  io.to(code).emit('game_over', { scores });
+}
+
+io.on('connection', (socket) => {
+
+  // Host creates room AND joins as a player
   socket.on('create_room', ({ nickname }) => {
     const code = generateRoomCode();
-    rooms[code] = generateRoom(code);
-    rooms[code].host = socket.id;
+    rooms[code] = {
+      code, players: {}, hostId: socket.id,
+      game: null, gameInstance: null, phase: 'lobby'
+    };
     rooms[code].players[socket.id] = {
-      id: socket.id,
-      nickname: nickname || 'Host',
-      score: 0,
-      isHost: true,
-      avatar: getAvatar(0)
+      id: socket.id, nickname: nickname || 'Host',
+      score: 0, isHost: true, avatar: getAvatar(0)
     };
     socket.join(code);
     socket.roomCode = code;
@@ -78,20 +85,15 @@ io.on('connection', (socket) => {
     emitRoomUpdate(code);
   });
 
-  // Player joins a room
   socket.on('join_room', ({ code, nickname }) => {
     const room = rooms[code];
-    if (!room) return socket.emit('error', { message: 'Room not found' });
-    if (Object.keys(room.players).length >= 8) return socket.emit('error', { message: 'Room is full' });
-    if (room.phase !== 'lobby') return socket.emit('error', { message: 'Game already started' });
-
-    const playerCount = Object.keys(room.players).length;
+    if (!room) return socket.emit('join_error', { message: 'Room not found!' });
+    if (Object.keys(room.players).length >= 8) return socket.emit('join_error', { message: 'Room is full!' });
+    if (room.phase !== 'lobby') return socket.emit('join_error', { message: 'Game already in progress!' });
+    const count = Object.keys(room.players).length;
     room.players[socket.id] = {
-      id: socket.id,
-      nickname: nickname || `Player ${playerCount + 1}`,
-      score: 0,
-      isHost: false,
-      avatar: getAvatar(playerCount)
+      id: socket.id, nickname: nickname || `Player ${count+1}`,
+      score: 0, isHost: false, avatar: getAvatar(count)
     };
     socket.join(code);
     socket.roomCode = code;
@@ -99,16 +101,13 @@ io.on('connection', (socket) => {
     emitRoomUpdate(code);
   });
 
-  // Host starts a game
   socket.on('start_game', ({ gameName }) => {
     const code = socket.roomCode;
     const room = rooms[code];
-    if (!room || room.host !== socket.id) return;
-    if (Object.keys(room.players).length < 2) return socket.emit('error', { message: 'Need at least 2 players' });
-
+    if (!room || room.hostId !== socket.id) return;
+    if (Object.keys(room.players).length < 2) return socket.emit('join_error', { message: 'Need at least 2 players!' });
     const GameClass = GAMES[gameName];
-    if (!GameClass) return socket.emit('error', { message: 'Unknown game' });
-
+    if (!GameClass) return;
     room.game = gameName;
     room.phase = 'playing';
     const gameInstance = new GameClass(room, io, endGame);
@@ -116,7 +115,6 @@ io.on('connection', (socket) => {
     gameInstance.start();
   });
 
-  // Player sends game input
   socket.on('game_input', (data) => {
     const code = socket.roomCode;
     const room = rooms[code];
@@ -124,19 +122,17 @@ io.on('connection', (socket) => {
     room.gameInstance.handleInput(socket.id, data);
   });
 
-  // Host advances phase
   socket.on('next_phase', () => {
     const code = socket.roomCode;
     const room = rooms[code];
-    if (!room || room.host !== socket.id || !room.gameInstance) return;
+    if (!room || room.hostId !== socket.id || !room.gameInstance) return;
     room.gameInstance.nextPhase();
   });
 
-  // Return to lobby
   socket.on('return_to_lobby', () => {
     const code = socket.roomCode;
     const room = rooms[code];
-    if (!room || room.host !== socket.id) return;
+    if (!room || room.hostId !== socket.id) return;
     room.phase = 'lobby';
     room.game = null;
     room.gameInstance = null;
@@ -150,48 +146,16 @@ io.on('connection', (socket) => {
     if (!code || !rooms[code]) return;
     const room = rooms[code];
     delete room.players[socket.id];
-
-    if (Object.keys(room.players).length === 0) {
-      delete rooms[code];
-      return;
+    if (Object.keys(room.players).length === 0) { delete rooms[code]; return; }
+    if (room.hostId === socket.id) {
+      room.hostId = Object.keys(room.players)[0];
+      room.players[room.hostId].isHost = true;
     }
-
-    // Reassign host if needed
-    if (room.host === socket.id) {
-      room.host = Object.keys(room.players)[0];
-      room.players[room.host].isHost = true;
-    }
-
     emitRoomUpdate(code);
-    io.to(code).emit('player_left', { id: socket.id });
   });
 });
 
-function emitRoomUpdate(code) {
-  const room = rooms[code];
-  if (!room) return;
-  io.to(code).emit('room_update', {
-    code,
-    players: Object.values(room.players),
-    phase: room.phase,
-    game: room.game
-  });
-}
-
-function endGame(code, scores) {
-  const room = rooms[code];
-  if (!room) return;
-  room.phase = 'results';
-  io.to(code).emit('game_over', { scores });
-}
-
-function getAvatar(index) {
-  const avatars = ['🦊', '🐼', '🦁', '🐸', '🦋', '🐙', '🦄', '🐲'];
-  return avatars[index % avatars.length];
-}
-
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🎮 Party Game Server running on port ${PORT}`);
-  console.log(`📱 Players join at /join\n`);
+  console.log(`\n🎮 Party Pack running on port ${PORT}\n`);
 });
