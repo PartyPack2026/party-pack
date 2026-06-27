@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Party Pack</title>
+<title>Couch Pack</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Bebas+Neue&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -47,8 +47,17 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 .join-code{font-family:'Bebas Neue',cursive;font-size:80px;color:var(--y);letter-spacing:16px;line-height:1;
   animation:codePulse 2s ease-in-out infinite}
 @keyframes codePulse{0%,100%{opacity:1}50%{opacity:.7}}
-.join-url-text{font-size:13px;color:var(--m);letter-spacing:1px}
-#qr-img{width:110px;height:110px;border-radius:8px;border:3px solid var(--b)}
+.join-url-text{font-size:14px;color:var(--y);letter-spacing:1px;font-weight:700}
+#qr-img{width:110px;height:110px;border-radius:8px;border:3px solid var(--b);cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+#qr-img:hover{transform:scale(1.08);border-color:var(--y);box-shadow:0 0 24px rgba(255,230,45,.3)}
+
+/* QR fullscreen overlay */
+.qr-overlay{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:300;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;cursor:pointer}
+.qr-overlay.open{display:flex}
+.qr-overlay-img{width:340px;height:340px;border-radius:16px;border:4px solid var(--y);box-shadow:0 0 80px rgba(255,230,45,.4)}
+.qr-big-label{font-family:'Bebas Neue',cursive;font-size:36px;color:var(--y);letter-spacing:4px}
+.qr-big-url{font-size:22px;font-weight:700;color:var(--t);letter-spacing:1px}
+.qr-close-hint{font-size:12px;color:var(--m);letter-spacing:2px;text-transform:uppercase;margin-top:8px}
 
 /* Player wall */
 .lobby-mid{flex:1;display:flex;align-items:center;justify-content:center;padding:0 40px;position:relative;z-index:1}
@@ -95,10 +104,11 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 .pc-num{font-family:'Bebas Neue',cursive;font-size:32px;color:var(--y)}
 .pc-label{font-size:12px;font-weight:700;color:var(--m);text-transform:uppercase;letter-spacing:1px}
 
-/* custom prompts */
-.prompts-btn{background:var(--s);border:2px solid var(--b);border-radius:12px;padding:16px 20px;
-  font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:var(--m);cursor:pointer;white-space:nowrap}
-.prompts-btn:hover{border-color:var(--y);color:var(--y)}
+/* ticker */
+.ticker{position:fixed;bottom:0;left:0;right:0;background:var(--y);padding:6px 0;z-index:100;overflow:hidden}
+.ticker-inner{display:flex;gap:60px;animation:tick 30s linear infinite;white-space:nowrap}
+.ticker-inner span{font-family:'Bebas Neue',cursive;font-size:16px;letter-spacing:2px;color:#000;flex-shrink:0}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* ── GAME SCREEN ── */
 #s-game{flex-direction:column}
@@ -184,50 +194,34 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 @keyframes pa{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
 .status-txt{color:var(--m);font-size:14px;font-weight:500;text-align:center}
 
-/* custom prompts modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--s);border:2px solid var(--b);border-radius:20px;padding:32px;width:500px;max-width:90vw;display:flex;flex-direction:column;gap:16px}
-.modal h3{font-family:'Bebas Neue',cursive;font-size:28px;color:var(--y);letter-spacing:2px}
-.modal textarea{background:var(--bg);border:2px solid var(--b);border-radius:12px;color:var(--t);font-family:'Space Grotesk',sans-serif;font-size:15px;padding:14px;width:100%;outline:none;resize:none;height:150px}
-.modal textarea:focus{border-color:var(--y)}
-.modal-btns{display:flex;gap:10px}
-.modal-btn{flex:1;padding:14px;border:none;border-radius:10px;font-family:'Bebas Neue',cursive;font-size:20px;cursor:pointer;letter-spacing:1px}
-.modal-btn.save{background:var(--y);color:#000}
-.modal-btn.cancel{background:var(--b);color:var(--t)}
+/* custom prompts modal removed */
 </style>
 </head>
 <body>
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
 
-<!-- CUSTOM PROMPTS MODAL -->
-<div class="modal-overlay" id="prompts-modal">
-  <div class="modal">
-    <h3>Custom Prompts</h3>
-    <p style="color:var(--m);font-size:14px">Add your own prompts — one per line. They'll be mixed into the game!</p>
-    <textarea id="custom-prompt-input" placeholder="e.g. My boss when I'm 5 minutes late&#10;Explaining TikTok to grandma&#10;What I actually think about during meetings"></textarea>
-    <div class="modal-btns">
-      <button class="modal-btn save" onclick="savePrompts()">Add Prompts</button>
-      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
-    </div>
-    <div id="prompts-count" style="color:var(--g);font-size:13px;font-weight:700;text-align:center"></div>
-  </div>
+<!-- QR FULLSCREEN OVERLAY -->
+<div class="qr-overlay" id="qr-overlay" onclick="closeQR()">
+  <div class="qr-big-label">Scan to Join</div>
+  <img class="qr-overlay-img" id="qr-big" src="" alt="QR Code"/>
+  <div class="qr-big-url" id="qr-big-url">couchpack.one/join</div>
+  <div class="qr-close-hint">Tap anywhere to close</div>
 </div>
 
 <!-- LOBBY -->
 <div id="s-lobby" class="screen active">
   <div class="lobby-top">
     <div class="logo">
-      <div class="logo-main">Party Pack</div>
+      <div class="logo-main">Couch Pack</div>
       <div class="logo-sub">The Party Game</div>
     </div>
     <div class="join-info">
-      <div class="join-code-label">Join at your URL · Room Code</div>
+      <div class="join-code-label">Go to couchpack.one/join · Code</div>
       <div class="join-code" id="room-code">----</div>
-      <div class="join-url-text" id="join-url-text"></div>
+      <div class="join-url-text">couchpack.one/join</div>
     </div>
-    <img id="qr-img" style="display:none" src="" alt="QR Code"/>
+    <img id="qr-img" style="display:none" src="" alt="QR Code" onclick="openQR()" title="Click to enlarge"/>
   </div>
 
   <div class="lobby-mid">
@@ -275,7 +269,6 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
         <div class="pc-num" id="p-count">0</div>
         <div class="pc-label">Players<br>Joined</div>
       </div>
-      <button class="prompts-btn" onclick="openModal()">+ Custom Prompts</button>
       <button class="start-btn" id="start-btn" disabled onclick="startGame()">Start Game</button>
     </div>
   </div>
@@ -353,8 +346,15 @@ function fetchQR(code) {
   fetch('/qr/' + code).then(r => r.json()).then(d => {
     const img = document.getElementById('qr-img');
     img.src = d.qr; img.style.display = 'block';
-    document.getElementById('join-url-text').textContent = d.url.replace(/https?:\/\//,'');
+    document.getElementById('qr-big').src = d.qr;
   });
+}
+
+function openQR() {
+  document.getElementById('qr-overlay').classList.add('open');
+}
+function closeQR() {
+  document.getElementById('qr-overlay').classList.remove('open');
 }
 
 function renderPlayers(ps) {
@@ -432,21 +432,6 @@ function updateDots(count, total) {
     `<div class="dot${i < count ? ' on' : ''}"></div>`).join('');
 }
 
-// Custom prompts
-function openModal() { document.getElementById('prompts-modal').classList.add('open'); }
-function closeModal() { document.getElementById('prompts-modal').classList.remove('open'); }
-function savePrompts() {
-  const text = document.getElementById('custom-prompt-input').value.trim();
-  if (!text) { closeModal(); return; }
-  const prompts = text.split('\n').map(p => p.trim()).filter(p => p);
-  socket.emit('add_custom_prompts', { prompts });
-  socket.once('prompts_added', ({ count }) => {
-    document.getElementById('prompts-count').textContent = `${count} custom prompts added!`;
-    document.getElementById('custom-prompt-input').value = '';
-    setTimeout(closeModal, 1500);
-  });
-}
-
 // Music helpers
 function fadeOutMusic() {
   const a = document.getElementById('audio-theme');
@@ -473,7 +458,7 @@ function fadeInMusic() {
 function startTicker() {
   const msgs = [
     'JOIN WITH YOUR PHONE', 'NO APP NEEDED', 'SCAN THE QR CODE',
-    'PARTY PACK', 'THE ULTIMATE PARTY GAME', 'GRAB YOUR PHONE AND JOIN'
+    'COUCH PACK', 'THE PARTY GAME', 'GO TO COUCHPACK.ONE/JOIN'
   ];
   const doubled = [...msgs, ...msgs];
   const inner = document.getElementById('ticker-inner');
