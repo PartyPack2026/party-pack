@@ -50,17 +50,33 @@ function endGame(code, scores) {
   io.to(code).emit('game_over', { scores });
 }
 
-// All games
+// Load game from multiple possible paths (root or src/games/)
+function tryRequire(name) {
+  const paths = ["./" + name, "./src/games/" + name];
+  for (const p of paths) {
+    try { return require(p); } catch(e) {}
+  }
+  throw new Error("Could not find game: " + name);
+}
+
 const GAMES = {
-  MindMeld:       require('./src/games/MindMeld'),
-  HotTake:        require('./src/games/HotTake'),
-  Voltage:        require('./src/games/Voltage'),
-  Mole:           require('./src/games/Mole'),
-  Psychic:        require('./src/games/Psychic'),
-  Copycat:        require('./src/games/Copycat'),
+  Quiplash:       tryRequire("Quiplash"),
+  Fibbage:        tryRequire("Fibbage"),
+  Drawful:        tryRequire("Drawful"),
+  TriviaKnockout: tryRequire("TriviaKnockout"),
+  PollMine:       tryRequire("PollMine"),
+  Mafia:          tryRequire("Mafia"),
+  MindMeld:       tryRequire("MindMeld"),
+  HotTake:        tryRequire("HotTake"),
+  Voltage:        tryRequire("Voltage"),
+  Mole:           tryRequire("Mole"),
+  Psychic:        tryRequire("Psychic"),
+  Copycat:        tryRequire("Copycat"),
 };
 
 const MIN_PLAYERS = {
+  Quiplash: 2, Fibbage: 2, Drawful: 2,
+  TriviaKnockout: 2, PollMine: 2, Mafia: 4,
   MindMeld: 2, HotTake: 2, Voltage: 2,
   Mole: 4, Psychic: 3, Copycat: 3,
 };
