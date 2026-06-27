@@ -1,22 +1,24 @@
 const FACTS = [
   { prompt: "A flamingo can only eat when its head is ___", truth: "upside down", category: "Animals" },
   { prompt: "It is illegal to own just one guinea pig in ___", truth: "Switzerland", category: "Law" },
-  { prompt: "The inventor of the Pringles can requested to be buried in ___", truth: "a Pringles can", category: "Weird" },
+  { prompt: "The inventor of the Pringles can is buried in ___", truth: "a Pringles can", category: "Weird" },
   { prompt: "Cleopatra lived closer in time to the Moon landing than to ___", truth: "the pyramids being built", category: "History" },
   { prompt: "A day on Venus is longer than ___", truth: "a year on Venus", category: "Space" },
   { prompt: "Bananas are technically ___, but strawberries are not", truth: "berries", category: "Food" },
-  { prompt: "Crows can recognize human faces and hold ___ against people they don't like", truth: "grudges", category: "Animals" },
+  { prompt: "Crows can recognise human faces and hold ___ against people who wronged them", truth: "grudges", category: "Animals" },
   { prompt: "Oxford University is older than ___", truth: "the Aztec Empire", category: "History" },
-  { prompt: "The average person walks past ___ murderers in their lifetime", truth: "36", category: "Creepy" },
   { prompt: "It rains ___ on Neptune", truth: "diamonds", category: "Space" },
   { prompt: "A shrimp's heart is located in its ___", truth: "head", category: "Animals" },
-  { prompt: "Nintendo was founded in ___, making playing cards", truth: "1889", category: "Gaming" },
+  { prompt: "Nintendo was founded in ___, originally making playing cards", truth: "1889", category: "Gaming" },
   { prompt: "Humans share 60% of their DNA with ___", truth: "bananas", category: "Science" },
-  { prompt: "The longest recorded flight of a chicken is ___ seconds", truth: "13", category: "Animals" },
   { prompt: "Scotland's national animal is the ___", truth: "unicorn", category: "Weird" },
   { prompt: "A group of flamingos is called a ___", truth: "flamboyance", category: "Animals" },
   { prompt: "Honey found in ancient Egyptian tombs is still ___ after 3000 years", truth: "edible", category: "Food" },
   { prompt: "Sloths can hold their breath longer than ___", truth: "dolphins", category: "Animals" },
+  { prompt: "The world's oldest piece of chewing gum is ___ years old", truth: "9000", category: "Weird" },
+  { prompt: "There are more possible chess games than ___ in the observable universe", truth: "atoms", category: "Math" },
+  { prompt: "The average cloud weighs the same as ___ elephants", truth: "100", category: "Science" },
+  { prompt: "Wombat poo is shaped like ___", truth: "cubes", category: "Animals" },
 ];
 
 class Fibbage {
@@ -44,10 +46,10 @@ class Fibbage {
       category: this.currentFact.category, prompt: this.currentFact.prompt
     });
 
+    const hint = `Starts with "${this.currentFact.truth[0].toUpperCase()}"`;
     Object.values(this.room.players).forEach(p => {
       this.io.to(p.id).emit('enter_lie', {
-        prompt: this.currentFact.prompt, timeLimit: 40,
-        hint: `Truth starts with "${this.currentFact.truth[0].toUpperCase()}"`
+        prompt: this.currentFact.prompt, timeLimit: 40, hint
       });
     });
 
@@ -57,7 +59,7 @@ class Fibbage {
   handleInput(playerId, data) {
     if (this.phase === 'lying' && data.type === 'lie') {
       if (!this.lies[playerId]) {
-        this.lies[playerId] = data.lie.trim() || '(nothing)';
+        this.lies[playerId] = data.lie.trim() || '(blank)';
         const count = Object.keys(this.lies).length;
         const total = Object.keys(this.room.players).length;
         this.io.to(this.code).emit('player_answered', { playerId, count, total });
@@ -75,7 +77,6 @@ class Fibbage {
   startVoting() {
     this.phase = 'voting';
     Object.values(this.room.players).forEach(p => { if (!this.lies[p.id]) this.lies[p.id] = '(blank)'; });
-
     this.answers = [];
     Object.entries(this.lies).forEach(([pid, lie]) => {
       if (lie.toLowerCase() !== this.currentFact.truth.toLowerCase()) {
@@ -89,14 +90,12 @@ class Fibbage {
       prompt: this.currentFact.prompt,
       answers: this.answers.map(a => ({ id: a.id, text: a.text }))
     });
-
     Object.values(this.room.players).forEach(p => {
       this.io.to(p.id).emit('pick_answer', {
         prompt: this.currentFact.prompt, timeLimit: 25,
         answers: this.answers.map(a => ({ id: a.id, text: a.text }))
       });
     });
-
     this.voteTimer = setTimeout(() => this.showResults(), 28000);
   }
 
@@ -113,7 +112,6 @@ class Fibbage {
         this.room.players[answer.playerId].score += 400;
       }
     });
-
     this.io.to(this.code).emit('fibbage_results', {
       truth: this.currentFact.truth, prompt: this.currentFact.prompt,
       answers: this.answers, votes: this.votes, players: this.room.players
@@ -124,7 +122,6 @@ class Fibbage {
         votes: this.votes, myId: id, players: this.room.players
       });
     });
-
     setTimeout(() => this.nextRound(), 8000);
   }
 
@@ -132,7 +129,9 @@ class Fibbage {
     const scores = Object.values(this.room.players)
       .map(p => ({ id: p.id, nickname: p.nickname, avatar: p.avatar, score: p.score }))
       .sort((a, b) => b.score - a.score);
-    this.io.to(this.code).emit('round_scores', { scores, gameName: 'Fibbage' });
+    Object.keys(this.room.players).forEach(id => {
+      this.io.to(id).emit('final_scores', { scores, gameName: 'Fibbage' });
+    });
     this.endGame(this.code, scores);
   }
 
