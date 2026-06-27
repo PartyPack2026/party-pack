@@ -1,14 +1,14 @@
 const POLLS = [
-  { q: "If you had to eat one food forever, what would it be?", o: ["Pizza","Tacos","Sushi","Pasta","Burgers"] },
-  { q: "What would you do first with a million dollars?", o: ["Travel the world","Buy a house","Invest it","Quit your job","Give it away"] },
-  { q: "What's your go-to karaoke song style?", o: ["80s power ballad","Pop banger","Country tearjerker","Rap anthem","I don't do karaoke"] },
-  { q: "Pick your ideal Friday night:", o: ["Big house party","Small dinner with friends","Movie marathon alone","Bar crawl","Gaming all night"] },
-  { q: "What superpower would ruin your life?", o: ["Knowing when people lie","Hearing everyone's thoughts","Seeing the future","Invisibility","Flying (no landing skills)"] },
-  { q: "Worst thing about being famous:", o: ["No privacy","Fake friends","Cancel culture","Paparazzi","Everyone has an opinion"] },
-  { q: "Your survival strategy in a zombie apocalypse:", o: ["Find a fortress","Build a team","Go solo","Find an island","Accept fate immediately"] },
-  { q: "Most likely to become your villain origin story:", o: ["Slow internet","Someone eating your lunch","A bad haircut","Missing a flight","Being put on hold for 2 hours"] },
-  { q: "If animals could talk, which would be the rudest?", o: ["Cats","Geese","Dolphins","Crows","Seagulls"] },
-  { q: "Most stressful dream scenario:", o: ["Showing up to an exam unprepared","Teeth falling out","Being chased","Showing up to work naked","Losing your phone"] },
+  { q: "If you had to eat one food for the rest of your life, what would it be?", o: ["Pizza","Tacos","Sushi","Pasta","Burgers"] },
+  { q: "Most chaotic thing to do at someone else's wedding:", o: ["Give an unsolicited speech","Bring a plus-one nobody knows","Propose to someone","Cry the entire time","Leave before the cake"] },
+  { q: "Pick your survival strategy in a zombie apocalypse:", o: ["Find a fortress","Build a team","Go solo","Find an island","Accept fate immediately"] },
+  { q: "What would you do first with a million dollars?", o: ["Travel the world","Quit my job dramatically","Buy a house","Pay off family debt","Invest it and tell no one"] },
+  { q: "Which group chat are you most likely to mute?", o: ["Family group chat","Work colleagues","Old school friends","The one nobody uses","The one that's too active"] },
+  { q: "Most likely to become your villain origin story:", o: ["Slow internet","Someone eating your lunch","Bad parking","Being put on hold forever","A paper cut at the worst moment"] },
+  { q: "If animals could talk, which would be the most insufferable?", o: ["Cats","Geese","Dolphins","Pigeons","Golden retrievers"] },
+  { q: "Pick your ideal way to spend a Sunday:", o: ["Absolute silence","Brunch with friends","Watching sport all day","Countryside walk","Still in bed at 2pm"] },
+  { q: "What's your go-to move when you don't know anyone at a party?", o: ["Find the dog","Go to the kitchen","Check my phone the whole time","Talk to literally everyone","Leave early"] },
+  { q: "Most stressful thing on this list:", o: ["Making a phone call","Being on read","Running late","A full inbox","Small talk with strangers"] },
 ];
 
 class PollMine {
@@ -35,11 +35,9 @@ class PollMine {
       round: this.currentRound, totalRounds: this.rounds,
       question: this.currentPoll.q, options: this.currentPoll.o
     });
-
     Object.values(this.room.players).forEach(p => {
       this.io.to(p.id).emit('cast_vote', { question: this.currentPoll.q, options: this.currentPoll.o, timeLimit: 25 });
     });
-
     this.voteTimer = setTimeout(() => this.startPredicting(), 28000);
   }
 
@@ -69,14 +67,12 @@ class PollMine {
     this.actualRanking = [...this.currentPoll.o].sort((a, b) => this.tally[b] - this.tally[a]);
 
     this.io.to(this.code).emit('pollmine_predict', { question: this.currentPoll.q, options: this.currentPoll.o });
-
     Object.values(this.room.players).forEach(p => {
       this.io.to(p.id).emit('rank_options', {
         question: this.currentPoll.q, timeLimit: 35,
         options: [...this.currentPoll.o].sort(() => Math.random() - 0.5)
       });
     });
-
     this.predictTimer = setTimeout(() => this.showPollResults(), 38000);
   }
 
@@ -106,7 +102,6 @@ class PollMine {
         players: this.room.players
       });
     });
-
     setTimeout(() => this.nextRound(), 9000);
   }
 
@@ -114,7 +109,9 @@ class PollMine {
     const scores = Object.values(this.room.players)
       .map(p => ({ id: p.id, nickname: p.nickname, avatar: p.avatar, score: p.score }))
       .sort((a, b) => b.score - a.score);
-    this.io.to(this.code).emit('round_scores', { scores, gameName: 'Poll Mine' });
+    Object.keys(this.room.players).forEach(id => {
+      this.io.to(id).emit('final_scores', { scores, gameName: 'Poll Mine' });
+    });
     this.endGame(this.code, scores);
   }
 
