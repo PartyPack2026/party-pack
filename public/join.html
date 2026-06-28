@@ -52,7 +52,7 @@ textarea{resize:none;height:90px;font-size:15px}
 
 /* avatar */
 .av-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:320px;width:100%}
-.av-btn{aspect-ratio:1;background:var(--s);border:2px solid var(--b);border-radius:12px;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;-webkit-appearance:none}
+.av-btn{aspect-ratio:1;background:var(--s);border:2px solid var(--b);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;-webkit-appearance:none;overflow:hidden;padding:0}
 .av-btn:active{transform:scale(.9)}
 .av-btn.on{border-color:var(--y);background:rgba(255,230,45,.1)}
 .av-custom{background:var(--s);border:2px dashed var(--b);border-radius:12px;width:100%;max-width:320px;height:70px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-size:13px;font-weight:700;color:var(--m);transition:all .15s;overflow:hidden}
@@ -84,6 +84,18 @@ textarea{resize:none;height:90px;font-size:15px}
 
 /* result card */
 .res-card{background:var(--s);border:2px solid var(--b);border-radius:16px;padding:24px 20px;width:100%;max-width:320px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+
+/* reaction bar */
+.reaction-bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;max-width:320px;width:100%}
+.react-btn{background:var(--s);border:2px solid var(--b);border-radius:12px;padding:10px 16px;font-size:22px;cursor:pointer;transition:all .1s;-webkit-appearance:none;flex:1;min-width:52px}
+.react-btn:active{transform:scale(.85);border-color:var(--y)}
+
+/* typing indicator on answer screen */
+.typing-indicator{display:flex;gap:6px;align-items:center;min-height:20px;font-size:12px;color:var(--m);font-weight:700}
+.t-dots{display:flex;gap:2px;margin-left:4px}
+.t-dots span{width:3px;height:3px;border-radius:50%;background:var(--m);animation:tdot 1s infinite}
+.t-dots span:nth-child(2){animation-delay:.2s}.t-dots span:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,80%,100%{transform:scale(.6)}40%{transform:scale(1)}}
 .res-icon{font-size:52px}
 .res-title{font-family:'Bebas Neue',cursive;font-size:clamp(28px,8vw,40px);letter-spacing:2px}
 .res-pts{font-family:'Bebas Neue',cursive;font-size:clamp(36px,10vw,52px);color:var(--g)}
@@ -93,6 +105,7 @@ textarea{resize:none;height:90px;font-size:15px}
 /* timer */
 .timer-wrap{width:100%;max-width:320px;height:4px;background:var(--b);border-radius:100px;overflow:hidden}
 .timer-bar{height:100%;width:100%;background:var(--y);border-radius:100px;transition:width 1s linear,background .5s}
+.timer-secs{font-family:'Bebas Neue',cursive;font-size:14px;color:var(--m);text-align:right;width:100%;max-width:320px;margin-top:-10px}
 
 /* mole specific */
 .mission-card{background:var(--s);border:2px solid var(--r);border-radius:14px;padding:18px;width:100%;max-width:320px;text-align:center;display:flex;flex-direction:column;gap:8px}
@@ -146,6 +159,7 @@ textarea{resize:none;height:90px;font-size:15px}
   <input id="inp-name" placeholder="Your name" maxlength="14" autocomplete="off"/>
   <button class="btn" onclick="goAvatar()">Let's go</button>
   <div class="err" id="join-err"></div>
+  <a href="/tutorial" style="font-size:12px;color:var(--m);font-weight:700;letter-spacing:1px;text-decoration:none;margin-top:4px">How to Play ›</a>
 </div>
 
 <!-- AVATAR -->
@@ -170,6 +184,7 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="room-pill" id="lobby-room">----</div>
   <div class="status">Waiting for the host to start...</div>
   <div class="pulse"><span></span><span></span><span></span></div>
+  <button class="btn btn-ghost" style="margin-top:8px;font-size:15px;padding:12px" onclick="window.location.href='/tutorial'">How to Play</button>
 </div>
 
 <!-- TEXT ANSWER -->
@@ -177,9 +192,11 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="label" id="ans-label">Answer</div>
   <div class="prompt-card" id="ans-prompt">...</div>
   <div class="label" id="ans-hint" style="display:none;color:var(--m)"></div>
+  <div class="typing-indicator" id="others-typing"></div>
   <textarea id="ans-text" placeholder="Type here..." maxlength="80"></textarea>
   <div class="chars"><span id="ans-chars">80</span> left</div>
   <div class="timer-wrap"><div class="timer-bar" id="ans-timer"></div></div>
+  <div class="timer-secs" id="ans-timer-secs"></div>
   <button class="btn" id="ans-btn" onclick="submitText()">Submit</button>
   <div class="status" id="ans-status"></div>
 </div>
@@ -189,6 +206,7 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="label" id="vote-label">Vote</div>
   <div class="prompt-card" id="vote-prompt" style="display:none"></div>
   <div class="timer-wrap"><div class="timer-bar" id="vote-timer"></div></div>
+  <div class="timer-secs" id="vote-timer-secs"></div>
   <div class="opts" id="vote-opts"></div>
   <div class="status" id="vote-status"></div>
 </div>
@@ -198,6 +216,7 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="label">Hot Take or Normal Take?</div>
   <div class="prompt-card" id="ht-statement">...</div>
   <div class="timer-wrap"><div class="timer-bar" id="ht-timer"></div></div>
+  <div class="timer-secs" id="ht-timer-secs"></div>
   <div class="ht-btns">
     <button class="ht-btn hot" id="ht-hot" onclick="doHotTake('hot',this)">HOT TAKE</button>
     <button class="ht-btn norm" id="ht-norm" onclick="doHotTake('normal',this)">Normal Take</button>
@@ -225,6 +244,7 @@ textarea{resize:none;height:90px;font-size:15px}
     <button class="tool-pill" onclick="clearDraw()">Clear</button>
   </div>
   <div class="timer-wrap"><div class="timer-bar" id="draw-timer"></div></div>
+  <div class="timer-secs" id="draw-timer-secs"></div>
   <button class="btn btn-green" id="draw-done-btn" onclick="doneDraw()">Done Drawing!</button>
 </div>
 
@@ -245,6 +265,18 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="pulse"><span></span><span></span><span></span></div>
 </div>
 
+<!-- REACTIONS (floating bar always accessible during game) -->
+<div id="reaction-bar-container" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:rgba(10,10,10,.95);border-top:2px solid #222;z-index:100">
+  <div class="reaction-bar">
+    <button class="react-btn" onclick="sendReaction('😂')">😂</button>
+    <button class="react-btn" onclick="sendReaction('🔥')">🔥</button>
+    <button class="react-btn" onclick="sendReaction('💀')">💀</button>
+    <button class="react-btn" onclick="sendReaction('👏')">👏</button>
+    <button class="react-btn" onclick="sendReaction('😱')">😱</button>
+    <button class="react-btn" onclick="sendReaction('🗑️')">🗑️</button>
+  </div>
+</div>
+
 <!-- RESULT -->
 <div id="s-result" class="screen">
   <div class="res-card">
@@ -262,6 +294,7 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="prompt-card" id="rank-q" style="font-size:13px"></div>
   <div class="rank-list" id="rank-list"></div>
   <div class="timer-wrap"><div class="timer-bar" id="rank-timer"></div></div>
+  <div class="timer-secs" id="rank-timer-secs"></div>
   <button class="btn" onclick="submitRank()" id="rank-btn">Submit</button>
   <div class="status" id="rank-status"></div>
 </div>
@@ -283,6 +316,7 @@ textarea{resize:none;height:90px;font-size:15px}
     <div class="mission-hints" id="mission-hints"></div>
   </div>
   <div class="timer-wrap"><div class="timer-bar" id="mole-mission-timer"></div></div>
+  <div class="timer-secs" id="mole-mission-timer-secs"></div>
   <div class="status" id="mole-mission-status">Keep talking naturally and slip the word in!</div>
   <button class="btn btn-green" id="mission-done-btn" style="display:none" onclick="claimMission()">I Did It!</button>
 </div>
@@ -302,6 +336,7 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="section-title">Who Is The Mole?</div>
   <div class="status">Vote for who you think was The Mole</div>
   <div class="timer-wrap"><div class="timer-bar" id="mole-vote-timer"></div></div>
+  <div class="timer-secs" id="mole-vote-timer-secs"></div>
   <div class="opts" id="mole-vote-opts"></div>
   <div class="status" id="mole-vote-status"></div>
 </div>
@@ -314,6 +349,7 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="label">You can only answer with these nonsense words:</div>
   <div class="nonsense-words" id="psych-nonsense-display"></div>
   <div class="timer-wrap"><div class="timer-bar" id="psych-wait-timer"></div></div>
+  <div class="timer-secs" id="psych-wait-timer-secs"></div>
   <div class="status">Wait for questions, then pick your nonsense answer!</div>
   <div class="pulse"><span></span><span></span><span></span></div>
 </div>
@@ -333,6 +369,7 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="status" id="psych-category-label" style="color:var(--y);font-weight:700"></div>
   <div class="q-history" id="psych-q-history"></div>
   <div class="timer-wrap"><div class="timer-bar" id="psych-guess-timer"></div></div>
+  <div class="timer-secs" id="psych-guess-timer-secs"></div>
   <input id="psych-q-input" placeholder="Ask a yes/no question..." maxlength="60"/>
   <button class="btn" id="psych-ask-btn" onclick="askPsychic()">Ask!</button>
   <div class="status" style="font-size:12px;color:var(--m)">OR</div>
@@ -370,6 +407,7 @@ textarea{resize:none;height:90px;font-size:15px}
     <button class="tool-pill" onclick="clearCC()">Clear</button>
   </div>
   <div class="timer-wrap"><div class="timer-bar" id="cc-timer"></div></div>
+  <div class="timer-secs" id="cc-timer-secs"></div>
   <button class="btn btn-green" onclick="submitCopycatDrawing()">Submit Drawing!</button>
 </div>
 
@@ -379,6 +417,7 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="prompt-card" id="cc-vote-prompt" style="font-size:13px"></div>
   <div class="chain-viewer" id="cc-chain"></div>
   <div class="timer-wrap"><div class="timer-bar" id="cc-vote-timer"></div></div>
+  <div class="timer-secs" id="cc-vote-timer-secs"></div>
   <div class="opts" id="cc-vote-opts"></div>
   <div class="status" id="cc-vote-status"></div>
 </div>
@@ -409,30 +448,60 @@ function startTimer(id,secs){
   if(!el)return;
   el.style.width='100%';el.style.background='var(--y)';
   let elapsed=0;
+  // find sibling countdown label if exists
+  const parent=el.parentElement;
+  let secsEl=parent?parent.nextElementSibling:null;
+  if(secsEl&&!secsEl.classList.contains('timer-secs'))secsEl=null;
   timers[id]=setInterval(()=>{
     elapsed++;
     const pct=Math.max(0,100-(elapsed/secs*100));
+    const remaining=Math.max(0,secs-elapsed);
     el.style.width=pct+'%';
     if(pct<20)el.style.background='var(--r)';
     else if(pct<50)el.style.background='var(--o)';
+    if(secsEl)secsEl.textContent=remaining+'s';
     if(pct<=0)clearInterval(timers[id]);
   },1000);
 }
 
 // ── AVATAR ──
-const EMOJIS=['🦊','🐼','🦁','🐸','🦋','🐙','🦄','🐲','🐯','🦝','🦉','🐺','🦈','🐻','🦚','🐧','🦀','🦑','🐬','🦜'];
+// SVG avatar definitions - shapes + colors, no emojis
+const AVATARS = [
+  {id:'a1',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ff2d2d"/><circle cx="30" cy="22" r="12" fill="#fff" opacity=".9"/><ellipse cx="30" cy="48" rx="18" ry="12" fill="#fff" opacity=".9"/></svg>'},
+  {id:'a2',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ffe62d"/><polygon points="30,8 52,52 8,52" fill="#0a0a0a" opacity=".85"/></svg>'},
+  {id:'a3',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#00f076"/><rect x="12" y="12" width="36" height="36" rx="4" fill="#0a0a0a" opacity=".85"/></svg>'},
+  {id:'a4',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#3b8bff"/><circle cx="30" cy="30" r="18" fill="#fff" opacity=".9"/><circle cx="30" cy="30" r="10" fill="#3b8bff"/></svg>'},
+  {id:'a5',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#cc2dff"/><polygon points="30,10 50,30 40,52 20,52 10,30" fill="#fff" opacity=".9"/></svg>'},
+  {id:'a6',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ff8c00"/><line x1="10" y1="10" x2="50" y2="50" stroke="#fff" stroke-width="6" stroke-linecap="round"/><line x1="50" y1="10" x2="10" y2="50" stroke="#fff" stroke-width="6" stroke-linecap="round"/></svg>'},
+  {id:'a7',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#0a0a0a"/><circle cx="30" cy="30" r="20" fill="none" stroke="#ffe62d" stroke-width="5"/><circle cx="30" cy="30" r="6" fill="#ffe62d"/></svg>'},
+  {id:'a8',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ff2d2d"/><rect x="10" y="26" width="40" height="8" fill="#fff" rx="4"/><rect x="26" y="10" width="8" height="40" fill="#fff" rx="4"/></svg>'},
+  {id:'a9',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#141414"/><circle cx="20" cy="30" r="8" fill="#00f076"/><circle cx="40" cy="30" r="8" fill="#ff2d2d"/></svg>'},
+  {id:'a10',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#3b8bff"/><polygon points="30,12 38,26 54,28 42,40 46,56 30,48 14,56 18,40 6,28 22,26" fill="#fff" opacity=".9"/></svg>'},
+  {id:'a11',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ffe62d"/><rect x="10" y="10" width="17" height="17" rx="2" fill="#0a0a0a"/><rect x="33" y="10" width="17" height="17" rx="2" fill="#0a0a0a"/><rect x="10" y="33" width="17" height="17" rx="2" fill="#0a0a0a"/><rect x="33" y="33" width="17" height="17" rx="2" fill="#0a0a0a"/></svg>'},
+  {id:'a12',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#00f076"/><path d="M10 30 Q30 10 50 30 Q30 50 10 30Z" fill="#0a0a0a" opacity=".85"/></svg>'},
+  {id:'a13',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#cc2dff"/><rect x="8" y="8" width="44" height="44" rx="22" fill="none" stroke="#fff" stroke-width="5"/><line x1="18" y1="18" x2="42" y2="42" stroke="#fff" stroke-width="4"/></svg>'},
+  {id:'a14',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ff8c00"/><polygon points="30,5 35,20 50,20 38,30 43,46 30,37 17,46 22,30 10,20 25,20" fill="#0a0a0a" opacity=".85"/></svg>'},
+  {id:'a15',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#0a0a0a"/><circle cx="30" cy="30" r="18" fill="#ff2d2d"/><circle cx="30" cy="30" r="10" fill="#0a0a0a"/><circle cx="30" cy="30" r="4" fill="#ff2d2d"/></svg>'},
+  {id:'a16',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#3b8bff"/><path d="M15 45 L30 15 L45 45 Z" fill="#fff" opacity=".9"/><path d="M10 25 L50 25" stroke="#fff" stroke-width="4"/></svg>'},
+  {id:'a17',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ffe62d"/><circle cx="20" cy="20" r="8" fill="#0a0a0a"/><circle cx="40" cy="20" r="8" fill="#0a0a0a"/><path d="M14 40 Q30 52 46 40" stroke="#0a0a0a" stroke-width="4" fill="none" stroke-linecap="round"/></svg>'},
+  {id:'a18',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ff2d2d"/><path d="M30 8 L52 22 L52 38 L30 52 L8 38 L8 22 Z" fill="#fff" opacity=".9"/></svg>'},
+  {id:'a19',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#141414"/><rect x="8" y="8" width="44" height="8" rx="2" fill="#00f076"/><rect x="8" y="26" width="44" height="8" rx="2" fill="#00f076"/><rect x="8" y="44" width="44" height="8" rx="2" fill="#00f076"/></svg>'},
+  {id:'a20',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#cc2dff"/><circle cx="30" cy="30" r="14" fill="#fff" opacity=".9"/><circle cx="24" cy="26" r="3" fill="#cc2dff"/><circle cx="36" cy="26" r="3" fill="#cc2dff"/><path d="M22 36 Q30 44 38 36" stroke="#cc2dff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'},
+];
 function goAvatar(){
   const code=document.getElementById('inp-code').value.trim().toUpperCase();
   const name=document.getElementById('inp-name').value.trim();
   if(code.length<4){document.getElementById('join-err').textContent='Enter a 4-letter code!';return;}
   if(!name){document.getElementById('join-err').textContent='Enter your name!';return;}
   document.getElementById('join-err').textContent='';
-  document.getElementById('av-grid').innerHTML=EMOJIS.map((e,i)=>`<div class="av-btn${i===0?' on':''}" onclick="pickEmoji('${e}',this)">${e}</div>`).join('');
-  selectedEmoji=EMOJIS[0];myAvatarData=selectedEmoji;
+  document.getElementById('av-grid').innerHTML=AVATARS.map((a,i)=>`<div class="av-btn${i===0?' on':''}" onclick="pickAvatar('${a.id}',this)" data-svg="">${a.svg}</div>`).join('');
+  myAvatarData='av:'+AVATARS[0].id+'|'+AVATARS[0].svg;
   show('avatar');
 }
-function pickEmoji(e,btn){
-  selectedEmoji=e;myAvatarData=e;
+function pickAvatar(id,btn){
+  const av=AVATARS.find(a=>a.id===id);
+  if(!av)return;
+  myAvatarData='av:'+id+'|'+av.svg;
   document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('upload-txt').innerHTML='Upload photo';
@@ -457,8 +526,18 @@ function confirmJoin(){
 
 function renderAv(av,el){
   if(!el)return;
-  if(av&&av.startsWith('data:'))el.innerHTML=`<img src="${av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-  else if(av)el.textContent=av;
+  if(!av){el.innerHTML='';return;}
+  if(av.startsWith('data:')){
+    el.innerHTML=`<img src="${av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  } else if(av.startsWith('av:')){
+    // SVG avatar format: av:id|<svg...>
+    const svgPart=av.split('|').slice(1).join('|');
+    el.innerHTML=svgPart;
+    el.style.borderRadius='50%';
+    el.style.overflow='hidden';
+  } else {
+    el.textContent=av;
+  }
 }
 
 socket.on('room_joined',({code,player})=>{
@@ -470,7 +549,69 @@ socket.on('room_joined',({code,player})=>{
 });
 socket.on('join_error',({message})=>{document.getElementById('join-err').textContent=message;show('join');});
 socket.on('room_update',({phase})=>{if(phase==='lobby')show('lobby');});
-socket.on('game_ended',({returnToLobby})=>{if(returnToLobby)show('lobby');});
+socket.on('player_answered',({count,total,playerId})=>{
+  // Show live count on answer screen
+  const statusEl=document.getElementById('ans-status');
+  if(statusEl&&statusEl.textContent&&statusEl.textContent.includes('Submitted')){
+    statusEl.textContent=`Submitted! ${count}/${total} answered`;
+    statusEl.style.color=count>=total?'var(--g)':'var(--m)';
+  }
+});
+socket.on('game_ended',({returnToLobby})=>{
+  if(returnToLobby){
+    show('lobby');
+    document.getElementById('reaction-bar-container').style.display='none';
+  }
+});
+
+// ── REACTIONS ──
+function sendReaction(emoji){
+  socket.emit('reaction', {emoji});
+  // visual feedback - bounce the button
+}
+
+socket.on('player_reaction', ({nickname, emoji}) => {
+  // Flash a toast on the player's screen too
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%) scale(0);background:rgba(20,20,20,.95);border:2px solid #222;border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;color:#f5f5f5;z-index:200;transition:transform .2s;white-space:nowrap;pointer-events:none';
+  toast.textContent = nickname + ': ' + emoji;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.style.transform='translateX(-50%) scale(1)',10);
+  setTimeout(()=>{toast.style.transform='translateX(-50%) scale(0)';setTimeout(()=>toast.remove(),200);},2000);
+});
+
+// ── TYPING INDICATORS ──
+let typingTimeout = null;
+const othersTyping = {};
+
+document.getElementById('ans-text').addEventListener('input', function(){
+  document.getElementById('ans-chars').textContent = 80 - this.value.length;
+  socket.emit('typing', {isTyping: true});
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(()=>socket.emit('typing',{isTyping:false}), 1500);
+});
+
+socket.on('player_typing', ({playerId, nickname, isTyping}) => {
+  if (isTyping) othersTyping[playerId] = nickname;
+  else delete othersTyping[playerId];
+  const el = document.getElementById('others-typing');
+  if (!el) return;
+  const names = Object.values(othersTyping).filter(n=>n!==myPlayer?.nickname);
+  if (names.length === 0) { el.innerHTML=''; return; }
+  el.innerHTML = `${names.slice(0,2).join(', ')} ${names.length===1?'is':'are'} typing
+    <div class="t-dots"><span></span><span></span><span></span></div>`;
+});
+
+// Show reaction bar during game phases
+function showWithReactions(screenId) {
+  show(screenId);
+  const gameScreens = ['answer','vote','hottake','draw','watch','wait','result','rank',
+    'mole-mission','mole-catch','mole-vote','psychic-word','psychic-answer',
+    'psychic-guess','psychic-wait-ans','copycat-draw','copycat-vote'];
+  const lobbyScreens = ['join','avatar','lobby','scores'];
+  const isGame = gameScreens.some(s => screenId.includes(s));
+  document.getElementById('reaction-bar-container').style.display = isGame ? 'block' : 'none';
+}
 
 // ── SHARED SUBMIT ──
 document.getElementById('ans-text').addEventListener('input',function(){document.getElementById('ans-chars').textContent=80-this.value.length;});
@@ -513,7 +654,7 @@ function showResult(icon,title,pts,sub,isNeg){
   ptsEl.textContent=pts||'';
   ptsEl.className='res-pts'+(isNeg?' neg':'');
   document.getElementById('res-sub').textContent=sub||'';
-  show('result');
+  showWithReactions('result');
 }
 
 // opt buttons
@@ -528,7 +669,7 @@ function pickOpt(id,btn,emitData){
 // ── MIND MELD ──
 socket.on('mindmeld_answer',({question,timeLimit})=>{
   resetAnswer('MIND MELD',question,null,timeLimit);
-  show('answer');
+  showWithReactions('answer');
 });
 socket.on('mindmeld_result_player',({answer,count,isMeld,meldWith,players:ps})=>{
   const pts=count===Object.keys(ps).length?1000:count>1?200+(count*100):0;
@@ -548,7 +689,7 @@ socket.on('hottake_vote',({statement,timeLimit})=>{
   document.getElementById('ht-hot').className='ht-btn hot';
   document.getElementById('ht-norm').className='ht-btn norm';
   startTimer('ht-timer',timeLimit);
-  show('hottake');
+  showWithReactions('hottake');
 });
 function doHotTake(vote,btn){
   if(selVote)return;selVote=vote;
@@ -568,7 +709,7 @@ socket.on('hottake_result_player',({myVote,majority,isLone,inMajority,isTie,pts}
 // ── VOLTAGE ──
 socket.on('voltage_answer',({category,timeLimit})=>{
   resetAnswer('VOLTAGE',category,`Unique answers score +300. Shared = less.`,timeLimit);
-  show('answer');
+  showWithReactions('answer');
 });
 socket.on('voltage_result_player',({answer,points,reason})=>{
   showResult(
@@ -606,7 +747,7 @@ socket.on('mole_role',({isMole,word,hints,instruction,timeLimit})=>{
     document.getElementById('mole-mission-status').textContent=instruction;
     document.getElementById('mission-done-btn').style.display='block';
     startTimer('mole-mission-timer',timeLimit);
-    show('mole-mission');
+    showWithReactions('mole-mission');
   }
 });
 
@@ -623,7 +764,7 @@ socket.on('mole_vote_prompt',({players:ps,timeLimit})=>{
   `).join('');
   document.getElementById('mole-vote-status').textContent='';
   startTimer('mole-vote-timer',timeLimit);
-  show('mole-vote');
+  showWithReactions('mole-vote');
 });
 function doMoleVote(id,btn){
   pickOpt(id,btn,{type:'mole_vote',suspectId:id});
@@ -672,7 +813,7 @@ socket.on('psychic_you_are_psychic',({word,category,nonsenseWords,instruction})=
   document.getElementById('psych-category').textContent=`Category: ${category}`;
   document.getElementById('psych-nonsense-display').innerHTML=nonsenseWords.map(w=>`<div class="nsw">${w}</div>`).join('');
   startTimer('psych-wait-timer',60);
-  show('psychic-word');
+  showWithReactions('psychic-word');
 });
 socket.on('psychic_answer_this',({question,nonsenseWords,timeLimit})=>{
   selectedNonsense=null;
@@ -682,7 +823,7 @@ socket.on('psychic_answer_this',({question,nonsenseWords,timeLimit})=>{
     <div class="nsw" onclick="pickNonsense('${w}',this)">${w}</div>
   `).join('');
   startTimer('psych-wait-timer',timeLimit||15);
-  show('psychic-answer');
+  showWithReactions('psychic-answer');
 });
 function pickNonsense(word,btn){
   selectedNonsense=word;
@@ -699,7 +840,7 @@ socket.on('psychic_you_are_guesser',({category,psychicName,nonsenseWords})=>{
   document.getElementById('psych-full-history').innerHTML='';
   document.getElementById('psych-guess-status').textContent='';
   startTimer('psych-guess-timer',90);
-  show('psychic-guess');
+  showWithReactions('psychic-guess');
 });
 socket.on('psychic_ask_question',({timeLimit,questions})=>{
   document.getElementById('psych-q-history').innerHTML=questions.map(q=>`
@@ -708,7 +849,7 @@ socket.on('psychic_ask_question',({timeLimit,questions})=>{
   document.getElementById('psych-q-input').value='';
   document.getElementById('psych-guess-input').value='';
   startTimer('psych-guess-timer',timeLimit||20);
-  show('psychic-guess');
+  showWithReactions('psychic-guess');
 });
 function askPsychic(){
   const q=document.getElementById('psych-q-input').value.trim();
@@ -731,7 +872,7 @@ socket.on('psychic_got_answer',({answer,questions})=>{
   document.getElementById('psych-full-history').innerHTML=questions.map(q=>`
     <div class="q-hist-row"><span>${q.questioner}: ${q.question}</span><span class="q-hist-ans">${q.answer||'...'}</span></div>
   `).join('');
-  show('psychic-wait-ans');
+  showWithReactions('psychic-wait-ans');
   setTimeout(()=>show('psychic-guess'),3000);
 });
 
@@ -787,12 +928,12 @@ function doneDraw(){socket.emit('game_input',{type:'done_drawing'});showWait('�
 
 function drawStrokeOn(ctx,stroke,w,h){if(!stroke||stroke.length<2)return;ctx.beginPath();ctx.strokeStyle=stroke[0].color||'#000';ctx.lineWidth=stroke[0].size||4;ctx.lineCap='round';ctx.lineJoin='round';ctx.moveTo(stroke[0].x*w,stroke[0].y*h);stroke.forEach(pt=>ctx.lineTo(pt.x*w,pt.y*h));ctx.stroke();}
 
-socket.on('drawful_you_draw',({prompt,timeLimit})=>{document.getElementById('draw-prompt').textContent=prompt;initDraw();startTimer('draw-timer',timeLimit);show('draw');});
-socket.on('drawful_watch',({drawerName,drawerAvatar})=>{document.getElementById('watch-label').textContent='Live Drawing';document.getElementById('watch-name').textContent=`${drawerName} is drawing...`;document.getElementById('watch-status').textContent='Guess when asked!';initWatch();socket.emit('game_input',{type:'request_strokes'});show('watch');});
+socket.on('drawful_you_draw',({prompt,timeLimit})=>{document.getElementById('draw-prompt').textContent=prompt;initDraw();startTimer('draw-timer',timeLimit);showWithReactions('draw');});
+socket.on('drawful_watch',({drawerName,drawerAvatar})=>{document.getElementById('watch-label').textContent='Live Drawing';document.getElementById('watch-name').textContent=`${drawerName} is drawing...`;document.getElementById('watch-status').textContent='Guess when asked!';initWatch();socket.emit('game_input',{type:'request_strokes'});showWithReactions('watch');});
 socket.on('draw_full_state',({strokes})=>{if(!watchCtx)return;const wc=document.getElementById('watch-cv');watchCtx.fillStyle='white';watchCtx.fillRect(0,0,wc.width,wc.height);strokes.forEach(s=>drawStrokeOn(watchCtx,s,wc.width,wc.height));});
 socket.on('draw_stroke',({stroke})=>{if(watchCtx){const wc=document.getElementById('watch-cv');drawStrokeOn(watchCtx,stroke,wc.width,wc.height);}});
 socket.on('draw_cleared',()=>{if(watchCtx){const wc=document.getElementById('watch-cv');watchCtx.fillStyle='white';watchCtx.fillRect(0,0,wc.width,wc.height);}});
-socket.on('drawful_guess',({timeLimit,drawerName,strokes})=>{resetAnswer('DRAWFUL',`What is ${drawerName} drawing?!`,null,timeLimit);if(strokes&&strokes.length){initWatch();const wc=document.getElementById('watch-cv');strokes.forEach(s=>drawStrokeOn(watchCtx,s,wc.width,wc.height));}show('answer');});
+socket.on('drawful_guess',({timeLimit,drawerName,strokes})=>{resetAnswer('DRAWFUL',`What is ${drawerName} drawing?!`,null,timeLimit);if(strokes&&strokes.length){initWatch();const wc=document.getElementById('watch-cv');strokes.forEach(s=>drawStrokeOn(watchCtx,s,wc.width,wc.height));}showWithReactions('answer');});
 socket.on('drawful_drawer_wait',({message})=>showWait('🎨','Nice!',message));
 socket.on('drawful_vote',({answers,strokes,timeLimit,drawerName})=>{
   resetVote();
@@ -802,11 +943,23 @@ socket.on('drawful_vote',({answers,strokes,timeLimit,drawerName})=>{
   const letters=['A','B','C','D','E','F'];
   document.getElementById('vote-opts').innerHTML=answers.map((a,i)=>`<button class="opt-btn" onclick="pickOpt('${a.id}',this,{type:'vote',answerId:'${a.id}'})"><div class="opt-ltr">${letters[i]}</div>${a.text}</button>`).join('');
   startTimer('vote-timer',timeLimit||20);
-  show('vote');
+  showWithReactions('vote');
 });
-socket.on('drawful_results',({correctAnswer,gotIt,fooledCount})=>{
+socket.on('drawful_results',({correctAnswer,answers,votes,myId:mid,players})=>{
+  const myVote=votes?votes[myId]:null;
+  const myAnswer=answers?answers.find(a=>a.id===myVote):null;
+  const gotIt=myAnswer&&myAnswer.isCorrect;
+  const fooledCount=votes?Object.values(votes).filter(v=>{
+    const a=answers?answers.find(x=>x.id===v):null;
+    return a&&!a.isCorrect&&a.playerId===myId;
+  }).length:0;
   const pts=(gotIt?1000:0)+(fooledCount*500);
-  showResult(gotIt?'🎯':fooledCount>0?'😈':'😅',gotIt?'GOT IT!':fooledCount>0?`FOOLED ${fooledCount}!`:'WRONG!',pts>0?`+${pts} pts`:'0 pts',`Answer: "${correctAnswer}"`);
+  showResult(
+    gotIt?'🎯':fooledCount>0?'😈':'😅',
+    gotIt?'GOT IT!':fooledCount>0?`FOOLED ${fooledCount}!`:'WRONG!',
+    pts>0?`+${pts} pts`:'0 pts',
+    `Answer: "${correctAnswer}"`
+  );
 });
 
 // ── COPYCAT CANVAS ──
@@ -843,7 +996,7 @@ socket.on('copycat_your_turn',({isFirst,prompt,previousDrawing,instruction,timeL
   }else prevCv.style.display='none';
   initCC();
   startTimer('cc-timer',timeLimit);
-  show('copycat-draw');
+  showWithReactions('copycat-draw');
 });
 socket.on('copycat_wait',({drawerName,position,total})=>{
   showWait('🎨',`${drawerName} is drawing`,`${position} of ${total}`);
@@ -864,34 +1017,65 @@ socket.on('copycat_vote',({originalPrompt,chain,timeLimit})=>{
     </button>
   `).join('');
   startTimer('cc-vote-timer',timeLimit);
-  show('copycat-vote');
+  showWithReactions('copycat-vote');
 });
 
 // ── SHARED VOTE ──
-socket.on('vote_now',({options,prompt,timeLimit})=>{
+socket.on('vote_now',({options,prompt,timeLimit,isCompetitor})=>{
   resetVote();
-  document.getElementById('vote-label').textContent='VOTE';
+  document.getElementById('vote-label').textContent='QUIPLASH — VOTE';
   const vp=document.getElementById('vote-prompt');
   if(prompt){vp.textContent=prompt;vp.style.display='block';}else vp.style.display='none';
   document.getElementById('vote-status').textContent='';
-  document.getElementById('vote-opts').innerHTML=options.map(o=>`<button class="opt-btn" onclick="pickOpt('${o.playerId}',this,{type:'vote',vote:'${o.playerId}'})">${o.answer}</button>`).join('');
+  document.getElementById('vote-opts').innerHTML=options.map(o=>{
+    const isMe=o.playerId===myId;
+    const label=isMe?`${o.answer} <span style="font-size:11px;color:var(--m);font-weight:700">(your answer)</span>`:o.answer;
+    if(isMe) return `<div class="opt-btn dim" style="opacity:.4;pointer-events:none">${label}</div>`;
+    return `<button class="opt-btn" onclick="pickOpt('${o.playerId}',this,{type:'vote',vote:'${o.playerId}'})">${label}</button>`;
+  }).join('');
+  if(isCompetitor){
+    document.getElementById('vote-status').textContent='Vote for the funniest answer — not yours!';
+  }
   startTimer('vote-timer',timeLimit||25);
-  show('vote');
+  showWithReactions('vote');
 });
 socket.on('pick_answer',({answers,prompt,timeLimit})=>{
   resetVote();
-  document.getElementById('vote-label').textContent='PICK THE TRUTH';
+  document.getElementById('vote-label').textContent='FIBBAGE — FIND THE TRUTH';
   const vp=document.getElementById('vote-prompt');
   if(prompt){vp.textContent=prompt;vp.style.display='block';}else vp.style.display='none';
   document.getElementById('vote-status').textContent='';
   const letters=['A','B','C','D','E'];
-  document.getElementById('vote-opts').innerHTML=answers.map((a,i)=>`<button class="opt-btn" onclick="pickOpt('${a.id}',this,{type:'vote',answerId:'${a.id}'})"><div class="opt-ltr">${letters[i]}</div>${a.text}</button>`).join('');
+  document.getElementById('vote-opts').innerHTML=answers.map((a,i)=>{
+    const isMyLie=a.id===`lie_${myId}`;
+    if(isMyLie) return `<div class="opt-btn" style="border-color:var(--r);opacity:.5;pointer-events:none"><div class="opt-ltr">${letters[i]}</div>${a.text} <span style="font-size:11px;color:var(--r)">(your lie)</span></div>`;
+    return `<button class="opt-btn" onclick="pickOpt('${a.id}',this,{type:'vote',answerId:'${a.id}'})"><div class="opt-ltr">${letters[i]}</div>${a.text}</button>`;
+  }).join('');
   startTimer('vote-timer',timeLimit||25);
-  show('vote');
+  showWithReactions('vote');
 });
 socket.on('wait_for_votes',({message})=>showWait('⏳','Hang on...',message));
-socket.on('vote_results_player',()=>showWait('📊','Round done!','Next up...'));
-socket.on('fibbage_results_player',({truth})=>showWait('📖','The truth was...',truth));
+socket.on('vote_results_player',({tally,players,myId:mid})=>{
+  if(!tally||!mid)return showWait('📊','Round done!','Next up...');
+  const myVotes=Object.values(tally).filter(t=>t.winner===mid).length;
+  // show a brief flash of how many voted for you
+  const forMe=Object.values(tally)[myId]||0;
+  showWait('📊','Results!','Check the big screen!');
+});
+socket.on('fibbage_results_player',({truth,answers,votes,myId:mid,players})=>{
+  const myVote=votes?votes[myId]:null;
+  const myAnswer=answers?answers.find(a=>a.id===myVote):null;
+  const gotIt=myAnswer&&!myAnswer.isLie;
+  const fooled=answers?answers.filter(a=>a.playerId===myId&&a.isLie).length:0;
+  const fooledCount=votes?Object.values(votes).filter(v=>v===`lie_${myId}`).length:0;
+  showResult(
+    gotIt?'🎯':fooledCount>0?'😈':'😅',
+    gotIt?'FOUND IT!':fooledCount>0?`FOOLED ${fooledCount}!`:'MISSED IT',
+    gotIt?'+500 pts':fooledCount>0?`+${fooledCount*400} pts`:'0 pts',
+    `The truth: "${truth}"`,
+    false
+  );
+});
 
 // ── TRIVIA ──
 socket.on('answer_question',({question,options,timeLimit})=>{
@@ -903,7 +1087,7 @@ socket.on('answer_question',({question,options,timeLimit})=>{
   const letters=['A','B','C','D'];
   document.getElementById('vote-opts').innerHTML=options.map((o,i)=>`<button class="opt-btn" onclick="pickOpt('${o.replace(/'/g,"\\'")}',this,{type:'answer',answer:'${o.replace(/'/g,"\\'")}'})" ><div class="opt-ltr">${letters[i]}</div>${o}</button>`).join('');
   startTimer('vote-timer',timeLimit);
-  show('vote');
+  showWithReactions('vote');
 });
 socket.on('trivia_reveal_player',({correctAnswer,correct,streak})=>{
   const pts=correct?300+(streak>1?(streak-1)*100:0):0;
@@ -921,7 +1105,7 @@ socket.on('cast_vote',({question,options,timeLimit})=>{
   document.getElementById('vote-status').textContent='';
   document.getElementById('vote-opts').innerHTML=options.map(o=>`<button class="opt-btn" onclick="pickOpt('${o.replace(/'/g,"\\'")}',this,{type:'vote',option:'${o.replace(/'/g,"\\'")}'})">${o}</button>`).join('');
   startTimer('vote-timer',timeLimit);
-  show('vote');
+  showWithReactions('vote');
 });
 socket.on('rank_options',({question,options,timeLimit})=>{
   rankItems=[...options];
@@ -930,7 +1114,7 @@ socket.on('rank_options',({question,options,timeLimit})=>{
   document.getElementById('rank-btn').disabled=false;
   renderRank();
   startTimer('rank-timer',timeLimit);
-  show('rank');
+  showWithReactions('rank');
 });
 function renderRank(){
   document.getElementById('rank-list').innerHTML=rankItems.map((item,i)=>`
@@ -960,7 +1144,7 @@ socket.on('final_scores',({scores,gameName})=>{
       <div class="score-pts">${s.score}</div>
     </div>`).join('');
   scores.forEach(s=>renderAv(s.avatar,document.getElementById('fsav-'+s.id)));
-  show('scores');
+  showWithReactions('scores');
 });
 socket.on('game_over',()=>{});
 socket.on('host_disconnected',()=>{showWait('💔','Host left','The game has ended.');});
