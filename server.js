@@ -16,6 +16,10 @@ const io = new Server(server, {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json({ limit: '5mb' }));
 
+app.get('/tutorial', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tutorial.html'));
+});
+
 app.get('/join', (req, res) => {
   const room = req.query.room ? `?room=${req.query.room}` : '';
   res.redirect(`/join.html${room}`);
@@ -154,6 +158,35 @@ io.on('connection', (socket) => {
     const room = rooms[code];
     if (!room || !room.gameInstance) return;
     room.gameInstance.handleInput(socket.id, data);
+  });
+
+  // Reactions — broadcast to everyone in room
+  socket.on('reaction', ({ emoji }) => {
+    const code = socket.roomCode;
+    if (!code || !rooms[code]) return;
+    const room = rooms[code];
+    const player = room.players[socket.id];
+    if (!player) return;
+    io.to(code).emit('player_reaction', {
+      playerId: socket.id,
+      nickname: player.nickname,
+      avatar: player.avatar,
+      emoji
+    });
+  });
+
+  // Typing indicator
+  socket.on('typing', ({ isTyping }) => {
+    const code = socket.roomCode;
+    if (!code || !rooms[code]) return;
+    const room = rooms[code];
+    const player = room.players[socket.id];
+    if (!player) return;
+    socket.to(code).emit('player_typing', {
+      playerId: socket.id,
+      nickname: player.nickname,
+      isTyping
+    });
   });
 
   socket.on('next_phase', () => {
