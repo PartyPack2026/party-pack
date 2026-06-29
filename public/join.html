@@ -8,6 +8,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Bebas+Neue&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0a0a0a;--s:#141414;--b:#222;--t:#f5f5f5;--m:#555;--r:#ff2d2d;--g:#00f076;--y:#ffe62d;--o:#ff8c00;--p:#cc2dff}
+
+/* ═══ GRAPHIC POLISH ═══ */
+.big-title .l1{filter:drop-shadow(0 0 24px rgba(255,230,45,.25))}
+input,textarea{background:linear-gradient(145deg,#161616,#0e0e0e)!important;box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
+.btn{box-shadow:0 4px 18px rgba(255,230,45,.3)}
+.btn:active{box-shadow:0 2px 8px rgba(255,230,45,.2)}
+.opt-btn{background:linear-gradient(145deg,#161616,#0e0e0e)!important;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.opt-btn.on{box-shadow:0 4px 16px rgba(0,240,118,.2)!important}
+.av-btn{box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.av-btn.on{box-shadow:0 0 0 1px var(--y),0 4px 16px rgba(255,230,45,.25)!important}
+.res-card,.mission-card{background:linear-gradient(145deg,#181818,#0f0f0f)!important;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.ht-btn{box-shadow:0 4px 18px rgba(0,0,0,.4)}
+.profile-pill{background:linear-gradient(145deg,#161616,#0e0e0e)!important;box-shadow:0 3px 12px rgba(0,0,0,.35)}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at top,transparent 55%,rgba(0,0,0,.35) 100%)}
+.section-title{text-shadow:0 0 24px rgba(255,230,45,.15)}
+.react-btn{background:linear-gradient(145deg,#161616,#0e0e0e)!important}
+
+
 body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;min-height:100vh;min-height:-webkit-fill-available}
 
 .screen{display:none;min-height:100vh;min-height:-webkit-fill-available;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;gap:14px}
@@ -436,6 +454,66 @@ textarea{resize:none;height:90px;font-size:15px}
   <div class="timer-secs" id="cc-vote-timer-secs"></div>
   <div class="opts" id="cc-vote-opts"></div>
   <div class="status" id="cc-vote-status"></div>
+</div>
+
+<!-- MAFIA: ROLE REVEAL -->
+<div id="s-mafia-role" class="screen">
+  <div class="label" id="mafia-role-label">Your Secret Role</div>
+  <div class="mission-card" id="mafia-role-card" style="border-color:var(--y)">
+    <div style="font-size:56px" id="mafia-role-emoji">👤</div>
+    <div class="mission-word" id="mafia-role-name" style="color:var(--y)">VILLAGER</div>
+    <div class="status" id="mafia-role-desc" style="color:var(--t);font-weight:600"></div>
+    <div id="mafia-team" class="status" style="color:var(--r);font-weight:700;margin-top:6px"></div>
+  </div>
+  <div class="status">Don't show anyone your screen!</div>
+  <div class="pulse"><span></span><span></span><span></span></div>
+</div>
+
+<!-- MAFIA: NIGHT ACTION -->
+<div id="s-mafia-night" class="screen">
+  <div class="label" id="mafia-night-label" style="color:var(--p)">Night Falls</div>
+  <div class="prompt-card" id="mafia-night-instruction">...</div>
+  <div class="timer-wrap"><div class="timer-bar" id="mafia-night-timer"></div></div>
+  <div class="timer-secs" id="mafia-night-timer-secs"></div>
+  <div class="opts" id="mafia-night-targets"></div>
+  <div class="status" id="mafia-night-status"></div>
+</div>
+
+<!-- MAFIA: SLEEP (villagers at night) -->
+<div id="s-mafia-sleep" class="screen">
+  <div style="font-size:72px">🌙</div>
+  <div class="section-title">You're Asleep</div>
+  <div class="status">The town sleeps while special roles act. Sit tight...</div>
+  <div class="pulse"><span></span><span></span><span></span></div>
+</div>
+
+<!-- MAFIA: DAY VOTE -->
+<div id="s-mafia-day" class="screen">
+  <div class="label">Day — Town Meeting</div>
+  <div class="prompt-card" id="mafia-day-info" style="font-size:14px"></div>
+  <div class="section-title" style="font-size:22px">Who is the Mafia?</div>
+  <div class="timer-wrap"><div class="timer-bar" id="mafia-day-timer"></div></div>
+  <div class="timer-secs" id="mafia-day-timer-secs"></div>
+  <div class="opts" id="mafia-day-targets"></div>
+  <div class="status" id="mafia-day-status"></div>
+</div>
+
+<!-- MAFIA: SPECTATE (dead players) -->
+<div id="s-mafia-spectate" class="screen">
+  <div style="font-size:64px">👻</div>
+  <div class="section-title">You're Out</div>
+  <div class="status" id="mafia-spectate-status">Watch the rest unfold from the afterlife...</div>
+  <div class="pulse"><span></span><span></span><span></span></div>
+</div>
+
+<!-- MAFIA: RESULT -->
+<div id="s-mafia-result" class="screen">
+  <div class="res-card">
+    <div class="res-icon" id="mafia-result-icon">🌅</div>
+    <div class="res-title" id="mafia-result-title">Dawn Breaks</div>
+    <div class="res-sub" id="mafia-result-sub"></div>
+  </div>
+  <div class="pulse"><span></span><span></span><span></span></div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -1218,6 +1296,104 @@ socket.on('pollmine_results_player',({actualRanking,myPrediction,myVote})=>{
 });
 
 // ── FINAL SCORES ──
+
+// ══ MAFIA (player) ══
+let mafiaTargetId=null;
+socket.on('mafia_role',({role,roleInfo,mafiaTeam,players})=>{
+  document.getElementById('mafia-role-emoji').textContent=roleInfo.emoji||'👤';
+  document.getElementById('mafia-role-name').textContent=roleInfo.name.toUpperCase();
+  document.getElementById('mafia-role-desc').textContent=roleInfo.desc||'';
+  const teamEl=document.getElementById('mafia-team');
+  const card=document.getElementById('mafia-role-card');
+  // Color by team
+  const col = role==='mafia'?'var(--r)':role==='detective'?'var(--b)':role==='doctor'?'var(--g)':'var(--y)';
+  card.style.borderColor=col;
+  document.getElementById('mafia-role-name').style.color=col;
+  if(mafiaTeam&&mafiaTeam.length>1){
+    teamEl.textContent='Your fellow Mafia: '+mafiaTeam.filter(n=>n!==myPlayer?.nickname).join(', ');
+  } else teamEl.textContent='';
+  showWithReactions('mafia-role');
+});
+
+socket.on('mafia_night_action',({role,instruction,targets,timeLimit,canCheck})=>{
+  mafiaTargetId=null;
+  const labels={mafia:'🔪 Mafia — Choose Your Target',detective:'🔍 Detective — Investigate',doctor:'💊 Doctor — Protect Someone'};
+  document.getElementById('mafia-night-label').textContent=labels[role]||'Night Action';
+  document.getElementById('mafia-night-instruction').textContent=instruction||'Choose a player.';
+  document.getElementById('mafia-night-status').textContent='';
+  document.getElementById('mafia-night-targets').innerHTML=(targets||[]).map(t=>`
+    <button class="opt-btn" onclick="pickMafiaNight('${t.id}',this,'${role}')">${t.nickname}</button>
+  `).join('');
+  startTimer('mafia-night-timer',timeLimit||30);
+  showWithReactions('mafia-night');
+});
+function pickMafiaNight(id,btn,role){
+  if(mafiaTargetId)return;
+  mafiaTargetId=id;
+  btn.classList.add('on');
+  document.querySelectorAll('#mafia-night-targets .opt-btn').forEach(b=>{if(b!==btn)b.classList.add('dim');});
+  socket.emit('game_input',{type:'night_action',targetId:id});
+  document.getElementById('mafia-night-status').textContent='Locked in!';
+}
+
+socket.on('mafia_night_sleep',()=>{ showWithReactions('mafia-sleep'); });
+socket.on('mafia_spectate',({phase})=>{
+  document.getElementById('mafia-spectate-status').textContent=phase==='night'?'The town sleeps...':'Watch the discussion unfold...';
+  showWithReactions('mafia-spectate');
+});
+
+socket.on('mafia_action_confirmed',({message})=>{
+  document.getElementById('mafia-night-status').textContent=message||'Done!';
+});
+socket.on('mafia_detective_result',({targetName,role,roleInfo})=>{
+  showResult(roleInfo?.emoji||'🔍','Investigation',null,`${targetName} is a ${roleInfo?.name||role}!`);
+});
+
+socket.on('mafia_dawn',({killedName,saved,round})=>{
+  document.getElementById('mafia-result-icon').textContent=saved?'💊':killedName?'💀':'🌅';
+  document.getElementById('mafia-result-title').textContent=saved?'Saved!':killedName?`${killedName} died`:'A peaceful night';
+  document.getElementById('mafia-result-sub').textContent=saved?'The doctor saved someone last night!':killedName?'The Mafia struck in the night.':'Nobody was killed.';
+  showWithReactions('mafia-result');
+});
+
+socket.on('mafia_day_vote',({instruction,targets,timeLimit,alivePlayers})=>{
+  mafiaTargetId=null;
+  document.getElementById('mafia-day-info').textContent=`${(alivePlayers||targets||[]).length} players still alive. Discuss, then vote!`;
+  document.getElementById('mafia-day-status').textContent='';
+  document.getElementById('mafia-day-targets').innerHTML=(targets||[]).map(t=>`
+    <button class="opt-btn" onclick="pickMafiaDay('${t.id}',this)">${t.nickname}</button>
+  `).join('');
+  startTimer('mafia-day-timer',timeLimit||45);
+  showWithReactions('mafia-day');
+});
+function pickMafiaDay(id,btn){
+  if(mafiaTargetId)return;
+  mafiaTargetId=id;
+  btn.classList.add('on');
+  document.querySelectorAll('#mafia-day-targets .opt-btn').forEach(b=>{if(b!==btn)b.classList.add('dim');});
+  socket.emit('game_input',{type:'day_vote',targetId:id});
+  document.getElementById('mafia-day-status').textContent='Vote cast!';
+}
+
+socket.on('mafia_vote_result',({eliminatedName,eliminatedRole,eliminatedRoleInfo,tied})=>{
+  if(tied){
+    showResult('🤝','Tied Vote!',null,'Nobody was eliminated this round.');
+  } else if(eliminatedName){
+    showResult(eliminatedRoleInfo?.emoji||'⚖️',`${eliminatedName} is out!`,null,`They were a ${eliminatedRoleInfo?.name||eliminatedRole}!`);
+  } else {
+    showResult('⚖️','No Elimination',null,'The town couldn\'t decide.');
+  }
+});
+
+socket.on('mafia_you_died',({killedBy})=>{
+  showResult('💀','You Died',null,`Eliminated by ${killedBy}. You can still watch!`);
+  setTimeout(()=>showWithReactions('mafia-spectate'),3000);
+});
+
+socket.on('mafia_game_over',({winner,won,allRoles})=>{
+  showResult(won?'🏆':'💀',won?'Your team WINS!':'Your team lost',null,`${winner==='mafia'?'The Mafia':'The Village'} won the game!`);
+});
+
 socket.on('final_scores',({scores,gameName})=>{
   const medals=['1ST','2ND','3RD'];
   document.getElementById('scores-title').textContent=gameName+' — Scores';
