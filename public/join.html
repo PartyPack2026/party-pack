@@ -166,11 +166,27 @@ textarea{resize:none;height:90px;font-size:15px}
 <div id="s-avatar" class="screen">
   <div class="section-title">Pick Your Avatar</div>
   <div class="av-grid" id="av-grid"></div>
-  <div class="label">or upload a photo</div>
-  <div class="av-custom" onclick="document.getElementById('av-upload').click()">
-    <span id="upload-txt">Upload photo</span>
+  <div style="display:flex;gap:8px;width:100%;max-width:320px">
+    <div class="av-custom" style="flex:1" onclick="document.getElementById('av-upload').click()">
+      <span style="font-size:13px;font-weight:700;color:var(--m)">Upload</span>
+    </div>
+    <div class="av-custom" style="flex:1" onclick="openCamera()">
+      <span style="font-size:13px;font-weight:700;color:var(--m)">Take Photo</span>
+    </div>
   </div>
   <input type="file" id="av-upload" accept="image/*" onchange="handleUpload(this)"/>
+  <div id="camera-wrap" style="display:none;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:320px">
+    <video id="camera-video" style="width:100%;border-radius:12px;background:#000;max-height:200px" autoplay playsinline></video>
+    <div style="display:flex;gap:8px;width:100%">
+      <button class="btn btn-green" style="flex:1;font-size:16px;padding:12px" onclick="snapPhoto()">Snap!</button>
+      <button class="btn btn-ghost" style="flex:1;font-size:14px;padding:12px" onclick="closeCamera()">Cancel</button>
+    </div>
+    <canvas id="snap-canvas" style="display:none"></canvas>
+  </div>
+  <div id="preview-wrap" style="display:none;flex-direction:column;align-items:center;gap:8px">
+    <img id="preview-img" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--y)"/>
+    <button class="btn btn-ghost" style="max-width:200px;font-size:14px;padding:10px" onclick="clearCustomAvatar()">Remove Photo</button>
+  </div>
   <button class="btn" onclick="confirmJoin()">Join Game</button>
   <button class="btn btn-ghost" onclick="show('join')">Back</button>
 </div>
@@ -465,38 +481,50 @@ function startTimer(id,secs){
 }
 
 // ── AVATAR ──
-// SVG avatar definitions - shapes + colors, no emojis
+// SVG avatar definitions - bold geometric characters
 const AVATARS = [
-  {id:'a1',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ff2d2d"/><circle cx="30" cy="22" r="12" fill="#fff" opacity=".9"/><ellipse cx="30" cy="48" rx="18" ry="12" fill="#fff" opacity=".9"/></svg>'},
-  {id:'a2',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ffe62d"/><polygon points="30,8 52,52 8,52" fill="#0a0a0a" opacity=".85"/></svg>'},
-  {id:'a3',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#00f076"/><rect x="12" y="12" width="36" height="36" rx="4" fill="#0a0a0a" opacity=".85"/></svg>'},
-  {id:'a4',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#3b8bff"/><circle cx="30" cy="30" r="18" fill="#fff" opacity=".9"/><circle cx="30" cy="30" r="10" fill="#3b8bff"/></svg>'},
-  {id:'a5',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#cc2dff"/><polygon points="30,10 50,30 40,52 20,52 10,30" fill="#fff" opacity=".9"/></svg>'},
-  {id:'a6',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ff8c00"/><line x1="10" y1="10" x2="50" y2="50" stroke="#fff" stroke-width="6" stroke-linecap="round"/><line x1="50" y1="10" x2="10" y2="50" stroke="#fff" stroke-width="6" stroke-linecap="round"/></svg>'},
-  {id:'a7',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#0a0a0a"/><circle cx="30" cy="30" r="20" fill="none" stroke="#ffe62d" stroke-width="5"/><circle cx="30" cy="30" r="6" fill="#ffe62d"/></svg>'},
-  {id:'a8',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ff2d2d"/><rect x="10" y="26" width="40" height="8" fill="#fff" rx="4"/><rect x="26" y="10" width="8" height="40" fill="#fff" rx="4"/></svg>'},
-  {id:'a9',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#141414"/><circle cx="20" cy="30" r="8" fill="#00f076"/><circle cx="40" cy="30" r="8" fill="#ff2d2d"/></svg>'},
-  {id:'a10',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#3b8bff"/><polygon points="30,12 38,26 54,28 42,40 46,56 30,48 14,56 18,40 6,28 22,26" fill="#fff" opacity=".9"/></svg>'},
-  {id:'a11',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ffe62d"/><rect x="10" y="10" width="17" height="17" rx="2" fill="#0a0a0a"/><rect x="33" y="10" width="17" height="17" rx="2" fill="#0a0a0a"/><rect x="10" y="33" width="17" height="17" rx="2" fill="#0a0a0a"/><rect x="33" y="33" width="17" height="17" rx="2" fill="#0a0a0a"/></svg>'},
-  {id:'a12',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#00f076"/><path d="M10 30 Q30 10 50 30 Q30 50 10 30Z" fill="#0a0a0a" opacity=".85"/></svg>'},
-  {id:'a13',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#cc2dff"/><rect x="8" y="8" width="44" height="44" rx="22" fill="none" stroke="#fff" stroke-width="5"/><line x1="18" y1="18" x2="42" y2="42" stroke="#fff" stroke-width="4"/></svg>'},
-  {id:'a14',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ff8c00"/><polygon points="30,5 35,20 50,20 38,30 43,46 30,37 17,46 22,30 10,20 25,20" fill="#0a0a0a" opacity=".85"/></svg>'},
-  {id:'a15',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#0a0a0a"/><circle cx="30" cy="30" r="18" fill="#ff2d2d"/><circle cx="30" cy="30" r="10" fill="#0a0a0a"/><circle cx="30" cy="30" r="4" fill="#ff2d2d"/></svg>'},
-  {id:'a16',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#3b8bff"/><path d="M15 45 L30 15 L45 45 Z" fill="#fff" opacity=".9"/><path d="M10 25 L50 25" stroke="#fff" stroke-width="4"/></svg>'},
-  {id:'a17',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ffe62d"/><circle cx="20" cy="20" r="8" fill="#0a0a0a"/><circle cx="40" cy="20" r="8" fill="#0a0a0a"/><path d="M14 40 Q30 52 46 40" stroke="#0a0a0a" stroke-width="4" fill="none" stroke-linecap="round"/></svg>'},
-  {id:'a18',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#ff2d2d"/><path d="M30 8 L52 22 L52 38 L30 52 L8 38 L8 22 Z" fill="#fff" opacity=".9"/></svg>'},
-  {id:'a19',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#141414"/><rect x="8" y="8" width="44" height="8" rx="2" fill="#00f076"/><rect x="8" y="26" width="44" height="8" rx="2" fill="#00f076"/><rect x="8" y="44" width="44" height="8" rx="2" fill="#00f076"/></svg>'},
-  {id:'a20',svg:'<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="#cc2dff"/><circle cx="30" cy="30" r="14" fill="#fff" opacity=".9"/><circle cx="24" cy="26" r="3" fill="#cc2dff"/><circle cx="36" cy="26" r="3" fill="#cc2dff"/><path d="M22 36 Q30 44 38 36" stroke="#cc2dff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'},
+  {id:'r',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#ff2d2d"/><circle cx="30" cy="24" r="13" fill="#fff"/><rect x="12" y="40" width="36" height="20" rx="8" fill="#fff"/><circle cx="23" cy="22" r="3" fill="#ff2d2d"/><circle cx="37" cy="22" r="3" fill="#ff2d2d"/><path d="M24 30 Q30 35 36 30" stroke="#ff2d2d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'y',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#ffe62d"/><polygon points="30,5 55,50 5,50" fill="#0a0a0a"/><circle cx="23" cy="36" r="3" fill="#ffe62d"/><circle cx="37" cy="36" r="3" fill="#ffe62d"/><path d="M24 44 Q30 49 36 44" stroke="#ffe62d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'g',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#00f076"/><rect x="10" y="10" width="40" height="40" rx="8" fill="#0a0a0a"/><circle cx="22" cy="26" r="3.5" fill="#00f076"/><circle cx="38" cy="26" r="3.5" fill="#00f076"/><path d="M22 36 Q30 42 38 36" stroke="#00f076" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'b',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#3b8bff"/><circle cx="30" cy="30" r="22" fill="#fff"/><circle cx="22" cy="26" r="4" fill="#3b8bff"/><circle cx="38" cy="26" r="4" fill="#3b8bff"/><path d="M21 37 Q30 44 39 37" stroke="#3b8bff" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="30" cy="30" r="22" fill="none" stroke="#3b8bff" stroke-width="3"/></svg>`},
+  {id:'p',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#cc2dff"/><polygon points="30,8 52,22 52,38 30,52 8,38 8,22" fill="#fff"/><circle cx="22" cy="28" r="3.5" fill="#cc2dff"/><circle cx="38" cy="28" r="3.5" fill="#cc2dff"/><path d="M22 38 Q30 44 38 38" stroke="#cc2dff" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'o',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#ff8c00"/><polygon points="30,4 56,42 4,42" fill="#fff"/><circle cx="22" cy="34" r="3" fill="#ff8c00"/><circle cx="38" cy="34" r="3" fill="#ff8c00"/><line x1="22" y1="40" x2="38" y2="40" stroke="#ff8c00" stroke-width="2.5" stroke-linecap="round"/></svg>`},
+  {id:'dk',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><circle cx="30" cy="30" r="22" fill="#ffe62d"/><circle cx="22" cy="26" r="4" fill="#0a0a0a"/><circle cx="38" cy="26" r="4" fill="#0a0a0a"/><path d="M22 38 Q30 44 38 38" stroke="#0a0a0a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'tl',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#141414"/><rect x="8" y="8" width="44" height="44" rx="4" fill="#ff2d2d"/><circle cx="22" cy="26" r="4" fill="#fff"/><circle cx="38" cy="26" r="4" fill="#fff"/><path d="M20 38 Q30 45 40 38" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'st',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#00f076"/><polygon points="30,5 35,20 50,20 38,30 43,46 30,37 17,46 22,30 10,20 25,20" fill="#0a0a0a"/><circle cx="24" cy="27" r="2.5" fill="#00f076"/><circle cx="36" cy="27" r="2.5" fill="#00f076"/><path d="M24 34 Q30 38 36 34" stroke="#00f076" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'dm',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#3b8bff"/><polygon points="30,6 54,24 45,52 15,52 6,24" fill="#fff"/><circle cx="22" cy="28" r="3.5" fill="#3b8bff"/><circle cx="38" cy="28" r="3.5" fill="#3b8bff"/><path d="M22 38 Q30 44 38 38" stroke="#3b8bff" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'zz',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#cc2dff"/><circle cx="30" cy="30" r="22" fill="#0a0a0a"/><rect x="14" y="26" width="32" height="4" rx="2" fill="#cc2dff"/><circle cx="22" cy="22" r="4" fill="#cc2dff"/><circle cx="38" cy="22" r="4" fill="#cc2dff"/><path d="M18 38 Q30 46 42 38" stroke="#cc2dff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'wv',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#ff8c00"/><rect x="8" y="16" width="44" height="28" rx="14" fill="#fff"/><circle cx="22" cy="28" r="4" fill="#ff8c00"/><circle cx="38" cy="28" r="4" fill="#ff8c00"/><path d="M20 36 Q30 42 40 36" stroke="#ff8c00" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'cr',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#ff2d2d"/><rect x="16" y="8" width="28" height="44" rx="14" fill="#fff"/><circle cx="23" cy="26" r="3.5" fill="#ff2d2d"/><circle cx="37" cy="26" r="3.5" fill="#ff2d2d"/><path d="M22 36 Q30 42 38 36" stroke="#ff2d2d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'sq',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#ffe62d"/><rect x="10" y="10" width="40" height="40" rx="20" fill="#0a0a0a"/><rect x="18" y="22" width="8" height="8" rx="1" fill="#ffe62d"/><rect x="34" y="22" width="8" height="8" rx="1" fill="#ffe62d"/><rect x="18" y="36" width="24" height="5" rx="2.5" fill="#ffe62d"/></svg>`},
+  {id:'xo',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><polygon points="30,8 52,20 52,40 30,52 8,40 8,20" fill="#00f076"/><circle cx="23" cy="28" r="3" fill="#0a0a0a"/><circle cx="37" cy="28" r="3" fill="#0a0a0a"/><path d="M22 37 Q30 43 38 37" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'rv',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#3b8bff"/><ellipse cx="30" cy="28" rx="18" ry="20" fill="#fff"/><circle cx="22" cy="26" r="4" fill="#3b8bff"/><circle cx="38" cy="26" r="4" fill="#3b8bff"/><ellipse cx="30" cy="37" rx="8" ry="5" fill="#3b8bff" opacity=".3"/><path d="M22 35 Q30 41 38 35" stroke="#3b8bff" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'gh',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#141414"/><path d="M30 8 C16 8 10 18 10 28 L10 46 L20 40 L30 44 L40 40 L50 46 L50 28 C50 18 44 8 30 8Z" fill="#f5f5f5"/><circle cx="22" cy="28" r="4" fill="#141414"/><circle cx="38" cy="28" r="4" fill="#141414"/><path d="M22 36 Q30 42 38 36" stroke="#141414" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'rk',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#ff2d2d"/><polygon points="30,6 56,26 46,54 14,54 4,26" fill="#fff"/><circle cx="23" cy="30" r="3.5" fill="#ff2d2d"/><circle cx="37" cy="30" r="3.5" fill="#ff2d2d"/><path d="M22 39 Q30 45 38 39" stroke="#ff2d2d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'lf',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#cc2dff"/><circle cx="30" cy="26" r="18" fill="#fff"/><rect x="8" y="40" width="44" height="20" rx="6" fill="#fff"/><circle cx="22" cy="24" r="3.5" fill="#cc2dff"/><circle cx="38" cy="24" r="3.5" fill="#cc2dff"/><path d="M22 33 Q30 39 38 33" stroke="#cc2dff" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`},
+  {id:'zx',svg:`<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#00f076"/><rect x="10" y="10" width="40" height="40" rx="4" fill="#0a0a0a"/><rect x="18" y="22" width="10" height="7" rx="3.5" fill="#00f076"/><rect x="32" y="22" width="10" height="7" rx="3.5" fill="#00f076"/><rect x="16" y="35" width="28" height="7" rx="3.5" fill="#00f076"/></svg>`},
 ];
 function goAvatar(){
   const code=document.getElementById('inp-code').value.trim().toUpperCase();
   const name=document.getElementById('inp-name').value.trim();
   if(code.length<4){document.getElementById('join-err').textContent='Enter a 4-letter code!';return;}
   if(!name){document.getElementById('join-err').textContent='Enter your name!';return;}
-  document.getElementById('join-err').textContent='';
-  document.getElementById('av-grid').innerHTML=AVATARS.map((a,i)=>`<div class="av-btn${i===0?' on':''}" onclick="pickAvatar('${a.id}',this)" data-svg="">${a.svg}</div>`).join('');
-  myAvatarData='av:'+AVATARS[0].id+'|'+AVATARS[0].svg;
-  show('avatar');
+  document.getElementById('join-err').textContent='Checking room...';
+  document.querySelector('#s-join .btn').disabled=true;
+  // Validate room exists before showing avatar
+  socket.emit('check_room',{code});
+  socket.once('room_check_result',({exists})=>{
+    document.querySelector('#s-join .btn').disabled=false;
+    if(!exists){
+      document.getElementById('join-err').textContent="Can't find that room! Check the code.";
+      document.getElementById('join-err').style.color='var(--r)';
+      return;
+    }
+    document.getElementById('join-err').textContent='';
+    document.getElementById('av-grid').innerHTML=AVATARS.map((a,i)=>`<div class="av-btn${i===0?' on':''}" onclick="pickAvatar('${a.id}',this)">${a.svg}</div>`).join('');
+    myAvatarData='av:'+AVATARS[0].id+'|'+AVATARS[0].svg;
+    show('avatar');
+  });
 }
 function pickAvatar(id,btn){
   const av=AVATARS.find(a=>a.id===id);
@@ -510,13 +538,61 @@ function handleUpload(inp){
   const file=inp.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=ev=>{
-    myAvatarData=ev.target.result;
-    const img=document.createElement('img');img.src=myAvatarData;
-    document.getElementById('upload-txt').innerHTML='';
-    document.getElementById('upload-txt').appendChild(img);
-    document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('on'));
+    setCustomAvatar(ev.target.result);
   };
   reader.readAsDataURL(file);
+}
+
+function setCustomAvatar(dataUrl){
+  // Resize to max 200x200
+  const img=new Image();
+  img.onload=()=>{
+    const canvas=document.createElement('canvas');
+    const size=Math.min(img.width,img.height);
+    canvas.width=200;canvas.height=200;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(img,(img.width-size)/2,(img.height-size)/2,size,size,0,0,200,200);
+    myAvatarData=canvas.toDataURL('image/jpeg',0.7);
+    document.getElementById('preview-img').src=myAvatarData;
+    document.getElementById('preview-wrap').style.display='flex';
+    document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('on'));
+  };
+  img.src=dataUrl;
+}
+
+function clearCustomAvatar(){
+  myAvatarData='av:'+AVATARS[0].id+'|'+AVATARS[0].svg;
+  document.getElementById('preview-wrap').style.display='none';
+  document.getElementById('av-grid').querySelectorAll('.av-btn')[0].classList.add('on');
+}
+
+let cameraStream=null;
+async function openCamera(){
+  try{
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+    document.getElementById('camera-video').srcObject=cameraStream;
+    document.getElementById('camera-wrap').style.display='flex';
+  }catch(e){
+    alert('Camera not available. Try uploading a photo instead.');
+  }
+}
+
+function snapPhoto(){
+  const video=document.getElementById('camera-video');
+  const canvas=document.getElementById('snap-canvas');
+  canvas.width=200;canvas.height=200;
+  const ctx=canvas.getContext('2d');
+  const size=Math.min(video.videoWidth,video.videoHeight);
+  ctx.drawImage(video,(video.videoWidth-size)/2,(video.videoHeight-size)/2,size,size,0,0,200,200);
+  const dataUrl=canvas.toDataURL('image/jpeg',0.7);
+  closeCamera();
+  setCustomAvatar(dataUrl);
+}
+
+function closeCamera(){
+  if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());
+  cameraStream=null;
+  document.getElementById('camera-wrap').style.display='none';
 }
 function confirmJoin(){
   const code=document.getElementById('inp-code').value.trim().toUpperCase();
@@ -557,6 +633,15 @@ socket.on('player_answered',({count,total,playerId})=>{
     statusEl.style.color=count>=total?'var(--g)':'var(--m)';
   }
 });
+socket.on('show_tutorial', ({gameName}) => {
+  showWait('📺', 'Watch the Big Screen', 'Tutorial playing — game starts soon!');
+});
+
+socket.on('tutorial_done', () => {
+  // Game is starting - show a "game starting" screen briefly
+  showWait('🎮', 'Game Starting!', 'Get ready...');
+});
+
 socket.on('game_ended',({returnToLobby})=>{
   if(returnToLobby){
     show('lobby');
