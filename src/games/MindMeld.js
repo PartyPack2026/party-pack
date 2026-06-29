@@ -113,17 +113,29 @@ class MindMeld {
       .filter(([, pids]) => pids.length > 1)
       .map(([answer, pids]) => ({ answer, pids, names: pids.map(id => this.room.players[id]?.nickname) }));
 
-    this.io.to(this.code).emit('mindmeld_results', {
-      question: this.currentQ,
-      answers: Object.entries(this.answers).map(([pid, answer]) => ({
-        pid, answer, count: tally[answer],
-        nickname: this.room.players[pid]?.nickname,
-        avatar: this.room.players[pid]?.avatar
-      })),
-      meldPairs,
-      tally,
-      players: this.room.players
+    const answerList = Object.entries(this.answers).map(([pid, answer]) => ({
+      pid, answer, count: tally[answer],
+      nickname: this.room.players[pid]?.nickname,
+      avatar: this.room.players[pid]?.avatar
+    })).sort((a,b) => b.count - a.count);
+
+    // Reveal one by one
+    answerList.forEach((a, i) => {
+      setTimeout(() => {
+        this.io.to(this.code).emit('mindmeld_reveal_one', {
+          answer: a, index: i, total: answerList.length,
+          question: this.currentQ
+        });
+      }, i * 700);
     });
+
+    setTimeout(() => {
+      this.io.to(this.code).emit('mindmeld_results', {
+        question: this.currentQ,
+        answers: answerList,
+        meldPairs, tally, players: this.room.players
+      });
+    }, answerList.length * 700 + 300);
 
     Object.entries(this.answers).forEach(([pid, answer]) => {
       const count = tally[answer];
@@ -137,7 +149,8 @@ class MindMeld {
       });
     });
 
-    setTimeout(() => this.nextRound(), 8000);
+    const delay = Object.keys(this.room.players).length * 700 + 6000;
+    setTimeout(() => this.nextRound(), delay);
   }
 
   showFinalResults() {
