@@ -31,6 +31,17 @@ app.get('/rooms-debug', (req, res) => {
 
 const rooms = {};
 
+// Premium unlock codes — keep these secret, server-side only.
+// Add/change these to whatever you sell. Case-insensitive.
+const PREMIUM_CODES = new Set([
+  'COUCH2026',
+  'PARTYALL',
+  'UNLOCKME',
+  'FRIENDS5',
+  'VIPGAMES',
+]);
+const PREMIUM_GAMES = new Set(['Fibbage','Drawful','PollMine','Copycat','Psychic','Mole','Mafia']);
+
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
@@ -80,7 +91,7 @@ const GAMES = {
 };
 
 const MIN_PLAYERS = {
-  Quiplash: 2, Fibbage: 2, Drawful: 2,
+  Quiplash: 3, Fibbage: 3, Drawful: 3,
   TriviaKnockout: 2, PollMine: 2, Mafia: 4,
   MindMeld: 2, HotTake: 2, Voltage: 2,
   Mole: 4, Psychic: 3, Copycat: 3, Stampede: 2,
@@ -112,6 +123,14 @@ io.on('connection', (socket) => {
     socket.isHost = true;
     socket.emit('room_created', { code });
     emitRoomUpdate(code);
+  });
+
+  socket.on('redeem_premium', ({ code }) => {
+    const valid = code && PREMIUM_CODES.has(String(code).trim().toUpperCase());
+    if (valid && socket.roomCode && rooms[socket.roomCode]) {
+      rooms[socket.roomCode].premiumUnlocked = true;
+    }
+    socket.emit('premium_result', { valid: !!valid });
   });
 
   socket.on('check_room', ({ code }) => {
@@ -147,6 +166,10 @@ io.on('connection', (socket) => {
     const code = socket.roomCode;
     const room = rooms[code];
     if (!room || room.hostId !== socket.id) return;
+    // Block premium games unless this room unlocked them
+    if (PREMIUM_GAMES.has(gameName) && !room.premiumUnlocked) {
+      return socket.emit('start_error', { message: 'This is a premium game! Enter an unlock code.' });
+    }
     const min = MIN_PLAYERS[gameName] || 2;
     if (Object.keys(room.players).length < min) {
       return socket.emit('start_error', { message: `Need at least ${min} players for ${gameName}!` });
