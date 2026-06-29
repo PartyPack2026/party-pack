@@ -31,16 +31,32 @@ app.get('/rooms-debug', (req, res) => {
 
 const rooms = {};
 
-// Premium unlock codes — keep these secret, server-side only.
-// Add/change these to whatever you sell. Case-insensitive.
-const PREMIUM_CODES = new Set([
-  'COUCH2026',
-  'PARTYALL',
-  'UNLOCKME',
-  'FRIENDS5',
-  'VIPGAMES',
-]);
-const PREMIUM_GAMES = new Set(['Fibbage','Drawful','PollMine','Copycat','Psychic','Mole','Mafia']);
+// ═══ PREMIUM CODES & BUNDLES ═══
+// Each code unlocks a set of games. 'all' = everything premium.
+// Keep these secret — server-side only. Codes are case-insensitive.
+// To sell bundles, give customers a code that maps to the games in that bundle.
+const ALL_PREMIUM = ['Fibbage','Drawful','PollMine','Copycat','Psychic','Mole','Mafia'];
+const PREMIUM_GAMES = new Set(ALL_PREMIUM);
+
+const CODE_BUNDLES = {
+  // Full unlock codes — everything
+  'MRCOLEISSIGMA': { name: 'Sigma Pass', games: 'all' },
+  'COUCH2026':     { name: 'Full Pack', games: 'all' },
+  'PARTYALL':      { name: 'Full Pack', games: 'all' },
+  'VIPGAMES':      { name: 'VIP Pass', games: 'all' },
+
+  // Example BUNDLE codes — unlock only specific games
+  // (use these as templates for selling themed bundles)
+  'DRAWBUNDLE':    { name: 'Artist Bundle', games: ['Drawful','Copycat'] },
+  'SOCIALBUNDLE':  { name: 'Social Deduction Bundle', games: ['Mafia','Mole','Psychic'] },
+  'CLASSICBUNDLE': { name: 'Classics Bundle', games: ['Fibbage','PollMine'] },
+};
+
+function gamesForCode(code) {
+  const entry = CODE_BUNDLES[String(code || '').trim().toUpperCase()];
+  if (!entry) return null;
+  return entry.games === 'all' ? [...ALL_PREMIUM] : entry.games;
+}
 
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -126,11 +142,17 @@ io.on('connection', (socket) => {
   });
 
   socket.on('redeem_premium', ({ code }) => {
-    const valid = code && PREMIUM_CODES.has(String(code).trim().toUpperCase());
+    const unlocked = gamesForCode(code);
+    const valid = !!unlocked;
     if (valid && socket.roomCode && rooms[socket.roomCode]) {
-      rooms[socket.roomCode].premiumUnlocked = true;
+      const room = rooms[socket.roomCode];
+      if (!room.unlockedGames) room.unlockedGames = new Set();
+      unlocked.forEach(g => room.unlockedGames.add(g));
+      // legacy flag if everything is unlocked
+      room.premiumUnlocked = ALL_PREMIUM.every(g => room.unlockedGames.has(g));
     }
-    socket.emit('premium_result', { valid: !!valid });
+    const bundleName = valid ? CODE_BUNDLES[String(code).trim().toUpperCase()].name : null;
+    socket.emit('premium_result', { valid, unlocked: unlocked || [], bundleName });
   });
 
   socket.on('check_room', ({ code }) => {
@@ -167,8 +189,11 @@ io.on('connection', (socket) => {
     const room = rooms[code];
     if (!room || room.hostId !== socket.id) return;
     // Block premium games unless this room unlocked them
-    if (PREMIUM_GAMES.has(gameName) && !room.premiumUnlocked) {
-      return socket.emit('start_error', { message: 'This is a premium game! Enter an unlock code.' });
+    if (PREMIUM_GAMES.has(gameName)) {
+      const isUnlocked = room.premiumUnlocked || (room.unlockedGames && room.unlockedGames.has(gameName));
+      if (!isUnlocked) {
+        return socket.emit('start_error', { message: 'This is a premium game! Enter an unlock code.' });
+      }
     }
     const min = MIN_PLAYERS[gameName] || 2;
     if (Object.keys(room.players).length < min) {
