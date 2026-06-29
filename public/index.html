@@ -9,6 +9,15 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0a;--s:#141414;--b:#222;--t:#f5f5f5;--m:#555;--r:#ff2d2d;--g:#00f076;--y:#ffe62d;--o:#ff8c00;--p:#cc2dff}
 
+/* Sound toggle */
+.sound-toggle{position:fixed;bottom:12px;right:16px;z-index:80;width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(145deg,#1a1a1a,#0f0f0f);border:2px solid var(--b);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.sound-toggle:hover{border-color:var(--y);transform:scale(1.08)}
+.sound-toggle svg{width:20px;height:20px;fill:var(--y)}
+.sound-toggle.muted svg{fill:var(--m)}
+
+
 /* ═══ PROFESSIONAL POLISH ═══ */
 /* Balanced 3-column lobby header */
 .lobby-top{display:grid!important;grid-template-columns:1fr auto 1fr;align-items:center}
@@ -73,7 +82,7 @@
 .premium-box p{color:var(--t);opacity:.85;font-size:15px;line-height:1.5;margin-bottom:20px}
 .premium-games-list{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:24px}
 .premium-game-chip{background:rgba(255,230,45,.1);border:1px solid rgba(255,230,45,.3);border-radius:100px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--y)}
-.premium-code-input{width:100%;background:var(--bg);border:2px solid var(--b);border-radius:12px;color:var(--y);font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:6px;text-align:center;padding:14px;outline:none;text-transform:uppercase;margin-bottom:12px}
+.premium-code-input{width:100%;background:var(--bg);border:2px solid var(--b);border-radius:12px;color:var(--y);font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:3px;text-align:center;padding:14px 10px;outline:none;text-transform:uppercase;margin-bottom:12px;box-sizing:border-box}
 .premium-code-input:focus{border-color:var(--y)}
 .premium-submit{width:100%;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;border:none;border-radius:12px;padding:16px;font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;cursor:pointer;margin-bottom:10px}
 .premium-submit:hover{filter:brightness(1.1)}
@@ -431,8 +440,8 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 .tutorial-dot{width:8px;height:8px;border-radius:50%;background:var(--b);transition:background .3s,width .3s}
 .tutorial-dot.on{background:var(--y);width:24px;border-radius:4px}
 .tutorial-bar{position:absolute;bottom:0;left:0;height:3px;background:var(--y);transition:width .1s linear;border-radius:0}
-.tutorial-skip{position:absolute;top:16px;right:24px;background:rgba(255,255,255,.1);border:2px solid var(--b);border-radius:8px;padding:8px 16px;color:var(--m);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s}
-.tutorial-skip:hover{border-color:var(--y);color:var(--y)}
+.tutorial-skip{position:absolute;top:20px;right:24px;background:var(--y);border:none;border-radius:100px;padding:12px 28px;color:#000;font-family:'Bebas Neue',cursive;font-weight:700;font-size:18px;letter-spacing:1px;cursor:pointer;transition:all .15s;box-shadow:0 4px 16px rgba(255,230,45,.3)}
+.tutorial-skip:hover{transform:scale(1.06);box-shadow:0 6px 24px rgba(255,230,45,.5)}
 
 /* pulse */
 .pulse{display:flex;gap:6px;justify-content:center}
@@ -451,11 +460,11 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 
 <!-- TUTORIAL OVERLAY -->
 <div id="tutorial-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column;align-items:center;justify-content:center">
-  <div class="bg-grid"></div>
-  <div class="bg-glow"></div>
-  <button class="tutorial-skip" onclick="skipTutorial()">Skip →</button>
-  <div class="tutorial-wrap" id="tutorial-wrap"></div>
-  <div class="tutorial-dots" id="tutorial-dots"></div>
+  <div class="bg-grid" style="pointer-events:none"></div>
+  <div class="bg-glow" style="pointer-events:none"></div>
+  <button class="tutorial-skip" onclick="skipTutorial()" style="z-index:210">Skip Tutorial →</button>
+  <div class="tutorial-wrap" id="tutorial-wrap" style="pointer-events:none"></div>
+  <div class="tutorial-dots" id="tutorial-dots" style="pointer-events:none"></div>
   <div class="tutorial-bar" id="tutorial-bar" style="width:0%"></div>
 </div>
 
@@ -476,8 +485,9 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
     <div class="premium-games-list" id="premium-games-list"></div>
     <div class="premium-price">Enter your unlock code</div>
     <div class="premium-error" id="premium-error"></div>
-    <input class="premium-code-input" id="premium-code-input" placeholder="CODE" maxlength="12" autocomplete="off"/>
+    <input class="premium-code-input" id="premium-code-input" placeholder="CODE" maxlength="15" autocomplete="off"/>
     <button class="premium-submit" onclick="submitPremiumCode()">Unlock Everything</button>
+    <div style="font-size:13px;color:var(--m);margin:14px 0 10px">Don't have a code? Get the Full Pack for $9.99 and unlock all 13 games forever.</div>
     <button class="premium-close" onclick="closePremium()">Maybe later</button>
   </div>
 </div>
@@ -544,15 +554,46 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 </div>
 
 
+<button class="sound-toggle" id="sound-toggle" onclick="toggleSound()" title="Toggle sound" aria-label="Toggle sound">
+  <svg id="sound-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+</button>
 <div class="conn-status" id="conn-status"><span class="conn-dot" id="conn-dot"></span><span id="conn-text">Connected</span></div>
+<canvas id="confetti" style="position:fixed;inset:0;pointer-events:none;z-index:150;display:none"></canvas>
 <div class="reaction-overlay" id="reaction-overlay"></div>
 <audio id="aud-theme" src="/audio/main-theme.mp3" loop preload="auto"></audio>
 <script src="/music.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
-socket.on('connect',()=>{const d=document.getElementById('conn-dot');const t=document.getElementById('conn-text');if(d)d.classList.remove('off');if(t)t.textContent='Connected';});
+socket.on('connect',()=>{
+  const d=document.getElementById('conn-dot');const t=document.getElementById('conn-text');
+  if(d)d.classList.remove('off');if(t)t.textContent='Connected';
+  // Reclaim host room after a reconnect
+  try{const r=sessionStorage.getItem('cp_host_room');if(r&&myCode){socket.emit('reclaim_host',{code:r});}}catch(e){}
+});
+socket.on('host_reclaimed',({code})=>{myCode=code;});
 socket.on('disconnect',()=>{const d=document.getElementById('conn-dot');const t=document.getElementById('conn-text');if(d)d.classList.add('off');if(t)t.textContent='Reconnecting...';});
+let soundOn = (localStorage.getItem('cp_sound')!=='off');
+function toggleSound(){
+  soundOn=!soundOn;
+  localStorage.setItem('cp_sound', soundOn?'on':'off');
+  applySoundState();
+}
+function applySoundState(){
+  const btn=document.getElementById('sound-toggle');
+  const icon=document.getElementById('sound-icon');
+  if(window.CouchMusic)window.CouchMusic.setEnabled(soundOn);
+  const a=document.getElementById('aud-theme');
+  if(btn)btn.classList.toggle('muted',!soundOn);
+  if(icon){
+    icon.innerHTML = soundOn
+      ? '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>'
+      : '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+  }
+  if(a&&!soundOn)a.pause();
+  else if(a&&soundOn&&musicStarted&&!currentGameForMusic)a.play().catch(()=>{});
+}
+
 const MUSIC_MAP = {Quiplash:'quiplash',Fibbage:'fibbage',Drawful:'drawful',TriviaKnockout:'trivia',PollMine:'pollmine',Mafia:'mafia',MindMeld:'mindmeld',HotTake:'hottake',Voltage:'voltage',Mole:'mole',Psychic:'psychic',Copycat:'copycat',Stampede:'stampede'};
 let currentGameForMusic=null;
 let myCode=null, players={}, selectedGame='MindMeld';
@@ -578,13 +619,17 @@ function stopLobbyMusic(){
   if(a){let v=a.volume;const f=setInterval(()=>{v=Math.max(0,v-0.06);a.volume=v;if(v<=0){clearInterval(f);a.pause();}},60);}
 }
 
+applySoundState();
 socket.emit('create_room');
 
 socket.on('room_created',({code})=>{
   myCode=code;
+  try{sessionStorage.setItem('cp_host_room',code);}catch(e){}
   document.getElementById('room-code').textContent=code;
   fetchQR(code);
   startTicker();
+  // Sync this device's saved unlocks to the server so premium games work
+  if(unlockedGames.size>0)socket.emit('sync_unlocks',{games:[...unlockedGames]});
   renderCarousel();
 });
 
@@ -680,6 +725,16 @@ const GAMES_DATA = [
 let carouselIndex = 0;
 let premiumUnlocked = false;
 let unlockedGames = new Set();
+// Load persisted unlocks from this device
+try {
+  const saved = JSON.parse(localStorage.getItem('cp_unlocks')||'[]');
+  saved.forEach(g=>unlockedGames.add(g));
+  const allPrem = ['Fibbage','Drawful','PollMine','Copycat','Psychic','Mole','Mafia'];
+  if(allPrem.every(g=>unlockedGames.has(g)))premiumUnlocked=true;
+} catch(e){}
+function saveUnlocks(){
+  try{ localStorage.setItem('cp_unlocks', JSON.stringify([...unlockedGames])); }catch(e){}
+}
 
 // Check localStorage-free: use a session variable + URL check is unreliable, so use a simple in-memory flag
 // Persistence note: premium unlock persists for the session (host screen stays open during play)
@@ -751,6 +806,7 @@ function submitPremiumCode(){
 socket.on('premium_result',({valid,unlocked,bundleName})=>{
   if(valid){
     (unlocked||[]).forEach(g=>unlockedGames.add(g));
+    saveUnlocks();
     // Check if everything is now unlocked
     const allPrem=GAMES_DATA.filter(g=>g.premium).map(g=>g.id);
     if(allPrem.every(g=>unlockedGames.has(g)))premiumUnlocked=true;
@@ -1563,6 +1619,42 @@ socket.on('start_error',({message})=>{
   const btn=document.getElementById('start-btn');
   if(btn){btn.textContent=message;setTimeout(()=>btn.textContent='Start Game',3000);}
 });
+
+
+// Confetti burst for winners
+function fireConfetti(){
+  const canvas=document.getElementById('confetti');
+  if(!canvas)return;
+  canvas.style.display='block';
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const colors=['#ffe62d','#ff2d2d','#00f076','#3b8bff','#cc2dff','#ff8c00'];
+  const pieces=[];
+  for(let i=0;i<150;i++){
+    pieces.push({
+      x:Math.random()*canvas.width,y:-20-Math.random()*canvas.height*0.5,
+      vx:(Math.random()-0.5)*6,vy:Math.random()*4+3,
+      size:Math.random()*8+4,color:colors[Math.floor(Math.random()*colors.length)],
+      rot:Math.random()*360,vrot:(Math.random()-0.5)*20,shape:Math.random()>0.5?'rect':'circle'
+    });
+  }
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.rot+=p.vrot;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.color;
+      if(p.shape==='rect')ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+      else{ctx.beginPath();ctx.arc(0,0,p.size/2,0,Math.PI*2);ctx.fill();}
+      ctx.restore();
+    });
+    frame++;
+    if(frame<200)requestAnimationFrame(draw);
+    else{canvas.style.display='none';}
+  }
+  draw();
+}
 
 // Particle system for lobby
 (function(){
