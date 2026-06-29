@@ -44,7 +44,7 @@ const rooms = {};
 // Each code unlocks a set of games. 'all' = everything premium.
 // Keep these secret — server-side only. Codes are case-insensitive.
 // To sell bundles, give customers a code that maps to the games in that bundle.
-const ALL_PREMIUM = ['Fibbage','Drawful','PollMine','Copycat','Psychic','Mole','Mafia'];
+const ALL_PREMIUM = ['Bluff','Scrawl','PollMine','Copycat','Psychic','Mole','Mafia'];
 const PREMIUM_GAMES = new Set(ALL_PREMIUM);
 
 const CODE_BUNDLES = {
@@ -56,9 +56,9 @@ const CODE_BUNDLES = {
 
   // Example BUNDLE codes — unlock only specific games
   // (use these as templates for selling themed bundles)
-  'DRAWBUNDLE':    { name: 'Artist Bundle', games: ['Drawful','Copycat'] },
+  'DRAWBUNDLE':    { name: 'Artist Bundle', games: ['Scrawl','Copycat'] },
   'SOCIALBUNDLE':  { name: 'Social Deduction Bundle', games: ['Mafia','Mole','Psychic'] },
-  'CLASSICBUNDLE': { name: 'Classics Bundle', games: ['Fibbage','PollMine'] },
+  'CLASSICBUNDLE': { name: 'Classics Bundle', games: ['Bluff','PollMine'] },
 };
 
 function gamesForCode(code) {
@@ -100,9 +100,9 @@ function tryRequire(name) {
 }
 
 const GAMES = {
-  Quiplash:       tryRequire("Quiplash"),
-  Fibbage:        tryRequire("Fibbage"),
-  Drawful:        tryRequire("Drawful"),
+  Punchline:       tryRequire("Punchline"),
+  Bluff:        tryRequire("Bluff"),
+  Scrawl:        tryRequire("Scrawl"),
   TriviaKnockout: tryRequire("TriviaKnockout"),
   PollMine:       tryRequire("PollMine"),
   Mafia:          tryRequire("Mafia"),
@@ -116,7 +116,7 @@ const GAMES = {
 };
 
 const MIN_PLAYERS = {
-  Quiplash: 3, Fibbage: 3, Drawful: 3,
+  Punchline: 3, Bluff: 3, Scrawl: 3,
   TriviaKnockout: 2, PollMine: 2, Mafia: 4,
   MindMeld: 2, HotTake: 2, Voltage: 2,
   Mole: 4, Psychic: 3, Copycat: 3, Stampede: 2,
