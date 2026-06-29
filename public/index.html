@@ -9,6 +9,21 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0a;--s:#141414;--b:#222;--t:#f5f5f5;--m:#555;--r:#ff2d2d;--g:#00f076;--y:#ffe62d;--o:#ff8c00;--p:#cc2dff}
 
+/* Stampede race track */
+.race-track{display:flex;flex-direction:column;gap:clamp(8px,1.5vh,16px);width:100%;max-width:min(900px,95vw);padding:20px}
+.race-lane{position:relative;height:clamp(44px,7vh,64px);background:linear-gradient(90deg,#0f0f0f,#161616);border-radius:100px;border:2px solid var(--b);overflow:hidden;display:flex;align-items:center}
+.race-lane-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(255,230,45,.15),rgba(255,230,45,.05));border-radius:100px;transition:width .12s linear}
+.race-runner{position:absolute;width:clamp(36px,5vw,52px);height:clamp(36px,5vw,52px);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:left .12s linear;z-index:2;overflow:hidden;border:3px solid var(--y);box-shadow:0 0 16px rgba(255,230,45,.4)}
+.race-runner img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.race-name{position:absolute;left:14px;font-family:'Bebas Neue',cursive;font-size:clamp(14px,2vw,20px);letter-spacing:1px;color:var(--m);z-index:1}
+.race-finish{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:clamp(20px,3vw,28px);z-index:1;opacity:.5}
+.race-pos{position:absolute;right:14px;font-family:'Bebas Neue',cursive;font-size:clamp(16px,2.5vw,24px);color:var(--y);z-index:3}
+.countdown-big{font-family:'Bebas Neue',cursive;font-size:clamp(100px,20vw,240px);color:var(--y);text-shadow:0 0 60px rgba(255,230,45,.6);animation:countPop .6s ease}
+@keyframes countPop{0%{transform:scale(2);opacity:0}50%{transform:scale(1)}100%{transform:scale(1);opacity:1}}
+.stampede-event-banner{position:fixed;top:30%;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--r),var(--o));color:#fff;font-family:'Bebas Neue',cursive;font-size:clamp(28px,5vw,56px);letter-spacing:3px;padding:16px 40px;border-radius:16px;z-index:200;box-shadow:0 8px 40px rgba(255,45,45,.5);animation:eventPop .5s ease}
+@keyframes eventPop{0%{transform:translateX(-50%) scale(0) rotate(-5deg)}60%{transform:translateX(-50%) scale(1.1)}100%{transform:translateX(-50%) scale(1)}}
+
+
 /* ═══ GRAPHIC OVERHAUL ═══ */
 /* Fixed join button */
 .top-join-btn{position:fixed;top:18px;right:20px;z-index:250;display:flex;align-items:center;gap:8px;
@@ -434,6 +449,11 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
         <div class="g-name">Mafia</div>
         <div class="g-min">4+ players</div>
       </button>
+      <button class="g-btn" onclick="sel('Stampede','gSt')" id="gSt">
+        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M5 11l4-7 4 7-2 1-2-3-2 3zm9 0l4-7 1 1-3 5 3 1-2 3-1-1 1-2zM3 15h18v2H3zm2 4h14v2H5z"/></svg></div>
+        <div class="g-name">Stampede</div>
+        <div class="g-min">2+ players · LIVE</div>
+      </button>
     </div>
 
     <div class="lobby-actions">
@@ -463,19 +483,20 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
   <div class="ticker-inner" id="ticker-inner"></div>
 </div>
 
-<audio id="aud-theme" src="/audio/main-theme.mp3" loop></audio>
 
 <div class="reaction-overlay" id="reaction-overlay"></div>
+<script src="/music.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
+const MUSIC_MAP = {Quiplash:'quiplash',Fibbage:'fibbage',Drawful:'drawful',TriviaKnockout:'trivia',PollMine:'pollmine',Mafia:'mafia',MindMeld:'mindmeld',HotTake:'hottake',Voltage:'voltage',Mole:'mole',Psychic:'psychic',Copycat:'copycat',Stampede:'stampede'};
+let currentGameForMusic=null;
 let myCode=null, players={}, selectedGame='MindMeld';
 let tvCanvas, tvCtx, musicStarted=false;
 
 document.addEventListener('click',()=>{
   if(!musicStarted){
-    const a=document.getElementById('aud-theme');
-    a.volume=0.35; a.play().catch(()=>{});
+    if(window.CouchMusic){window.CouchMusic.init();window.CouchMusic.start('lobby');}
     musicStarted=true;
   }
 },{once:true});
@@ -495,7 +516,7 @@ socket.on('room_update',({players:ps,phase})=>{
   renderPlayers(ps);
   updateScorebar(ps);
   document.getElementById('p-count').textContent=ps.length;
-  const mins={MindMeld:2,HotTake:2,Voltage:2,Mole:4,Psychic:3,Copycat:3,Quiplash:2,Fibbage:2,Drawful:2,TriviaKnockout:2,PollMine:2,Mafia:4};
+  const mins={MindMeld:2,HotTake:2,Voltage:2,Mole:4,Psychic:3,Copycat:3,Quiplash:2,Fibbage:2,Drawful:2,TriviaKnockout:2,PollMine:2,Mafia:4,Stampede:2};
   document.getElementById('start-btn').disabled=ps.length<(mins[selectedGame]||2);
   if(phase==='lobby'){show('lobby');fadeInMusic();}
 });
@@ -537,12 +558,12 @@ function sel(name,btnId){
   selectedGame=name;
   document.querySelectorAll('.g-btn').forEach(b=>b.classList.remove('on'));
   document.getElementById(btnId).classList.add('on');
-  const mins={MindMeld:2,HotTake:2,Voltage:2,Mole:4,Psychic:3,Copycat:3,Quiplash:2,Fibbage:2,Drawful:2,TriviaKnockout:2,PollMine:2,Mafia:4};
+  const mins={MindMeld:2,HotTake:2,Voltage:2,Mole:4,Psychic:3,Copycat:3,Quiplash:2,Fibbage:2,Drawful:2,TriviaKnockout:2,PollMine:2,Mafia:4,Stampede:2};
   document.getElementById('start-btn').disabled=Object.keys(players).length<(mins[name]||2);
 }
 function startGame(){
   socket.emit('start_game',{gameName:selectedGame});
-  const labels={MindMeld:'MIND MELD',HotTake:'HOT TAKE',Voltage:'VOLTAGE',Mole:'THE MOLE',Psychic:'PSYCHIC',Copycat:'COPYCAT',Quiplash:'QUIPLASH',Fibbage:'FIBBAGE',Drawful:'DRAWFUL',TriviaKnockout:'TRIVIA KNOCKOUT',PollMine:'POLL MINE',Mafia:'MAFIA'};
+  const labels={MindMeld:'MIND MELD',HotTake:'HOT TAKE',Voltage:'VOLTAGE',Mole:'THE MOLE',Psychic:'PSYCHIC',Copycat:'COPYCAT',Quiplash:'QUIPLASH',Fibbage:'FIBBAGE',Drawful:'DRAWFUL',TriviaKnockout:'TRIVIA KNOCKOUT',PollMine:'POLL MINE',Mafia:'MAFIA',Stampede:'STAMPEDE'};
   document.getElementById('game-label').textContent=labels[selectedGame]||selectedGame;
   show('game');
   document.getElementById('ticker').style.display='none';
@@ -557,8 +578,8 @@ function show(id){
 function setTV(html){document.getElementById('tv').innerHTML=html;}
 function dots(c,t){return `<div class="dots">${Array(t).fill(0).map((_,i)=>`<div class="dot${i<c?' on':''}"></div>`).join('')}</div>`;}
 function updateDots(c,t){const d=document.querySelector('#tv .dots');if(d)d.innerHTML=Array(t).fill(0).map((_,i)=>`<div class="dot${i<c?' on':''}"></div>`).join('');}
-function fadeOutMusic(){const a=document.getElementById('aud-theme');let v=a.volume;const f=setInterval(()=>{v=Math.max(0,v-.05);a.volume=v;if(v<=0){clearInterval(f);a.pause();}},80);}
-function fadeInMusic(){const a=document.getElementById('aud-theme');a.volume=0;a.play().catch(()=>{});let v=0;const f=setInterval(()=>{v=Math.min(.35,v+.04);a.volume=v;if(v>=.35)clearInterval(f);},80);}
+function fadeOutMusic(){/* handled by CouchMusic per-game */}
+function fadeInMusic(){if(musicStarted&&window.CouchMusic&&!currentGameForMusic){window.CouchMusic.start('lobby');}}
 function startTicker(){
   const msgs=['JOIN AT COUCHPACK.ONE/JOIN','NO APP NEEDED','SCAN THE QR CODE','COUCH PACK','THE PARTY GAME','GRAB YOUR PHONE'];
   const doubled=[...msgs,...msgs];
@@ -1039,6 +1060,77 @@ socket.on('mafia_game_over',({winner,players:ps})=>{
     <div class="tv-heading" style="color:var(--y)">${winner} win!</div>`);
 });
 
+
+// ══ STAMPEDE (host display) ══
+let racePlayers=[];
+socket.on('stampede_round',({round,totalRounds,raceLength,players:rp})=>{
+  show('game');
+  racePlayers=rp;
+  if(window.CouchMusic)window.CouchMusic.start('stampede');
+  setTV(`<div class="tv-label">STAMPEDE — RACE ${round} OF ${totalRounds}</div>
+    <div class="tv-heading" id="race-status">Get Ready...</div>
+    <div class="race-track" id="race-track">
+      ${rp.map(p=>`
+        <div class="race-lane">
+          <div class="race-lane-fill" id="rfill-${p.id}" style="width:0%"></div>
+          <div class="race-name">${p.nickname}</div>
+          <div class="race-finish">🏁</div>
+          <div class="race-runner" id="runner-${p.id}" style="left:0%"></div>
+        </div>
+      `).join('')}
+    </div>`);
+  rp.forEach(p=>renderAv(p.avatar,document.getElementById('runner-'+p.id)));
+});
+let countdownVal=3;
+socket.on('stampede_get_ready',()=>{
+  countdownVal=3;
+  const st=document.getElementById('race-status');
+  if(st)st.innerHTML=`<div class="countdown-big" id="cd-big">3</div>`;
+  const tick=setInterval(()=>{
+    countdownVal--;
+    const big=document.getElementById('cd-big');
+    if(window.CouchMusic)window.CouchMusic.sfx('tick');
+    if(countdownVal>0&&big){big.textContent=countdownVal;big.style.animation='none';setTimeout(()=>big.style.animation='countPop .6s ease',10);}
+    else if(countdownVal===0&&big){big.textContent='GO!';big.style.color='var(--g)';}
+    else clearInterval(tick);
+  },1000);
+});
+socket.on('stampede_go',()=>{
+  const st=document.getElementById('race-status');
+  if(st)st.textContent='RACE!';
+  if(window.CouchMusic)window.CouchMusic.sfx('whoosh');
+});
+socket.on('stampede_positions',({progress,raceLength})=>{
+  Object.entries(progress).forEach(([pid,prog])=>{
+    const pct=Math.min(100,prog/raceLength*100);
+    const runner=document.getElementById('runner-'+pid);
+    const fill=document.getElementById('rfill-'+pid);
+    if(runner)runner.style.left=`calc(${pct}% - ${pct/100*52}px)`;
+    if(fill)fill.style.width=pct+'%';
+  });
+});
+socket.on('stampede_event_tv',({label,playerName})=>{
+  const banner=document.createElement('div');
+  banner.className='stampede-event-banner';
+  banner.textContent=playerName?`${label} (${playerName})`:label;
+  document.body.appendChild(banner);
+  if(window.CouchMusic)window.CouchMusic.sfx('pop');
+  setTimeout(()=>{banner.style.transition='opacity .3s';banner.style.opacity='0';setTimeout(()=>banner.remove(),300);},1800);
+});
+socket.on('stampede_winner',({winnerName,winnerAvatar,round,standings,players:ps})=>{
+  if(window.CouchMusic)window.CouchMusic.sfx('win');
+  setTV(`<div class="tv-label">RACE ${round} WINNER</div>
+    <div class="tv-heading" style="color:var(--y);font-size:clamp(32px,6vw,72px)">${winnerName}! 🏆</div>
+    <div class="scores-list">
+      ${standings.map((s,i)=>`<div class="sr" style="animation-delay:${i*.1}s">
+        <div class="sr-rank ${i===0?'g':''}">${s.position}</div>
+        <div class="sr-name">${s.nickname}</div>
+        <div class="sr-pts">${s.roundWins} win${s.roundWins!==1?'s':''}</div>
+      </div>`).join('')}
+    </div>`);
+  updateScorebar(Object.values(ps));
+});
+
 // ── FINAL ──
 // Track who's typing
 const typingPlayers = {};
@@ -1153,6 +1245,11 @@ const TUTORIAL_SLIDES = {
     {title:'Special Roles', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#141414"/><text x="40" y="30" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#00f076">DOCTOR</text><text x="40" y="50" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#3b8bff">DETECTIVE</text><text x="40" y="70" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#ff2d2d">MAFIA</text></svg>', desc:"Doctor protects someone each night. Detective investigates someone and learns their role. Mafia picks who to eliminate.", tip:''},
     {title:'Day vs Night', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><circle cx="26" cy="40" r="16" fill="#ffe62d"/><path d="M54 24 Q70 40 54 56 Q62 40 54 24Z" fill="#f5f5f5"/></svg>', desc:"At night, special roles act secretly on their phones. At day, everyone discusses who they suspect — then votes someone out!", tip:'Mafia: blend in. Village: watch who avoids suspicion.'},
   ],
+  Stampede: [
+    {title:'Stampede', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><path d="M16 36 L24 16 L32 36 L24 40Z" fill="#0a0a0a"/><path d="M40 36 L48 16 L56 36 L48 40Z" fill="#0a0a0a"/><rect x="12" y="50" width="56" height="6" rx="3" fill="#0a0a0a"/><rect x="20" y="62" width="40" height="6" rx="3" fill="#0a0a0a"/></svg>', desc:"A real-time race! TAP your phone as fast as you can to sprint across the finish line. First one there wins the round!", tip:''},
+    {title:'Chaos Events', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><polygon points="44,8 24,42 38,42 30,72 58,34 42,34" fill="#ffe62d"/></svg>', desc:"Watch out! Random events strike mid-race — speed boosts, ice patches that slip you backwards, earthquakes that shuffle everyone, and final sprints!", tip:'The leader often gets frozen — never give up!'},
+    {title:'Best of 3', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><text x="40" y="54" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="48" fill="#0a0a0a">🏁</text></svg>', desc:"Three races decide the champion. Win = 1000 points, and even finishing mid-pack scores. Tap fast, survive the chaos, take the crown!", tip:'Keep tapping even when frozen — it still counts!'},
+  ],
 };
 
 let tutorialSlideIndex = 0;
@@ -1161,6 +1258,8 @@ let tutorialTimer = null;
 let tutorialBarInterval = null;
 
 socket.on('show_tutorial', ({gameName}) => {
+  currentGameForMusic=gameName;
+  if(window.CouchMusic){window.CouchMusic.start(MUSIC_MAP[gameName]||'lobby');}
   const slides = TUTORIAL_SLIDES[gameName];
   if (!slides || slides.length === 0) {
     socket.emit('skip_tutorial');
@@ -1236,6 +1335,7 @@ function skipTutorial() {
 }
 
 socket.on('game_ended', ({returnToLobby}) => {
+  if(returnToLobby&&window.CouchMusic){window.CouchMusic.start('lobby');}
   if(returnToLobby){show('lobby');document.getElementById('ticker').style.display='block';fadeInMusic();}
 });
 socket.on('host_disconnected',()=>{
