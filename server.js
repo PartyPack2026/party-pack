@@ -225,14 +225,17 @@ io.on('connection', (socket) => {
     room.phase = 'tutorial';
     // Send tutorial first, then start game when host skips or auto-starts
     io.to(code).emit('show_tutorial', { gameName });
-    // Auto-start after 12 seconds if host doesn't skip
-    room.tutorialTimer = setTimeout(() => {
-      if (room.phase === 'tutorial') {
-        room.phase = 'playing';
-        room.gameInstance = new GameClass(room, io, endGame);
-        room.gameInstance.start();
-      }
-    }, 12000);
+    // Shared starter so both the timer and manual skip use the same path
+    room.beginGame = () => {
+      if (!rooms[code] || rooms[code].phase !== 'tutorial') return;
+      clearTimeout(rooms[code].tutorialTimer);
+      rooms[code].phase = 'playing';
+      io.to(code).emit('tutorial_done');
+      rooms[code].gameInstance = new GameClass(rooms[code], io, endGame);
+      rooms[code].gameInstance.start();
+    };
+    // Auto-start after 14 seconds if host doesn't skip
+    room.tutorialTimer = setTimeout(() => { if (room.beginGame) room.beginGame(); }, 14000);
   });
 
   socket.on('game_input', (data) => {
@@ -283,13 +286,7 @@ io.on('connection', (socket) => {
     const room = rooms[code];
     if (!room || room.hostId !== socket.id) return;
     if (room.phase !== 'tutorial') return;
-    clearTimeout(room.tutorialTimer);
-    const GameClass = GAMES[room.game];
-    if (!GameClass) return;
-    room.phase = 'playing';
-    room.gameInstance = new GameClass(room, io, endGame);
-    io.to(code).emit('tutorial_done');
-    room.gameInstance.start();
+    if (room.beginGame) room.beginGame();
   });
 
   socket.on('return_to_lobby', () => {
