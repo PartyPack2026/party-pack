@@ -101,20 +101,38 @@ class Voltage {
       if (!results[pid]) results[pid] = { answer: '(nothing)', points: 0, reason: 'No answer' };
     });
 
-    this.io.to(this.code).emit('voltage_results', {
-      category: this.currentCat.name,
-      results: Object.entries(results).map(([pid, r]) => ({
-        pid, nickname: this.room.players[pid]?.nickname,
-        avatar: this.room.players[pid]?.avatar, ...r
-      })),
-      tally, players: this.room.players
+    const resultsList = Object.entries(results).map(([pid, r]) => ({
+      pid, nickname: this.room.players[pid]?.nickname,
+      avatar: this.room.players[pid]?.avatar, ...r
+    })).sort((a,b) => b.points - a.points);
+
+    // Reveal answers one by one for drama
+    resultsList.forEach((r, i) => {
+      setTimeout(() => {
+        this.io.to(this.code).emit('voltage_reveal_one', {
+          result: r,
+          index: i,
+          total: resultsList.length,
+          category: this.currentCat.name,
+          players: this.room.players
+        });
+      }, i * 600);
     });
+
+    // Full results after all revealed
+    setTimeout(() => {
+      this.io.to(this.code).emit('voltage_results', {
+        category: this.currentCat.name,
+        results: resultsList,
+        tally, players: this.room.players
+      });
+    }, resultsList.length * 600 + 200);
 
     Object.entries(results).forEach(([pid, r]) => {
       this.io.to(pid).emit('voltage_result_player', { ...r, players: this.room.players });
     });
 
-    setTimeout(() => this.nextRound(), 7000);
+    setTimeout(() => this.nextRound(), resultsList.length * 600 + 5000);
   }
 
   showFinalResults() {
