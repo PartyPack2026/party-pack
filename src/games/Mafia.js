@@ -53,12 +53,6 @@ class Mafia {
       players: Object.values(this.room.players).map(p=>({id:p.id,nickname:p.nickname,avatar:p.avatar,alive:true}))
     });
 
-    this.io.to(this.code).emit('mafia_voted_out', {
-      name: eliminatedId ? this.room.players[eliminatedId]?.nickname : 'Nobody',
-      role: eliminatedId ? (this.roles[eliminatedId]||'Villager') : '',
-      players: Object.values(this.room.players).map(p=>({id:p.id,nickname:p.nickname,avatar:p.avatar,alive:this.alive.includes(p.id)}))
-    });
-
     setTimeout(() => this.startNight(), 8000);
   }
 
@@ -254,6 +248,15 @@ class Mafia {
     });
 
     if (eliminatedId) this.io.to(eliminatedId).emit('mafia_you_died', { killedBy: 'the village vote' });
+
+    // Host screen: who got voted out and their role
+    this.io.to(this.code).emit('mafia_voted_out', {
+      name: eliminatedName || 'Nobody',
+      role: eliminatedRole ? ROLES[eliminatedRole].name : '',
+      players: Object.values(this.room.players).map(p => ({
+        id: p.id, nickname: p.nickname, avatar: p.avatar, alive: this.alive.includes(p.id)
+      }))
+    });
 
     if (this.checkWin()) return;
     setTimeout(() => this.startNight(), 8000);
