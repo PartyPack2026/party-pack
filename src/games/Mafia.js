@@ -49,10 +49,21 @@ class Mafia {
       });
     });
 
+    this.io.to(this.code).emit('mafia_start', {
+      players: Object.values(this.room.players).map(p=>({id:p.id,nickname:p.nickname,avatar:p.avatar,alive:true}))
+    });
+
+    this.io.to(this.code).emit('mafia_voted_out', {
+      name: eliminatedId ? this.room.players[eliminatedId]?.nickname : 'Nobody',
+      role: eliminatedId ? (this.roles[eliminatedId]||'Villager') : '',
+      players: Object.values(this.room.players).map(p=>({id:p.id,nickname:p.nickname,avatar:p.avatar,alive:this.alive.includes(p.id)}))
+    });
+
     setTimeout(() => this.startNight(), 8000);
   }
 
   startNight() {
+    this.io.to(this.code).emit('mafia_night', { round: this.round + 1 });
     this.round++;
     this.phase = 'night';
     this.mafiaKill = null; this.doctorSave = null; this.detectiveCheck = null;
@@ -176,6 +187,12 @@ class Mafia {
     }
 
     if (this.checkWin()) return;
+    this.io.to(this.code).emit('mafia_day', {
+      round: this.round,
+      killed: this.lastKilled ? this.room.players[this.lastKilled]?.nickname : null,
+      players: Object.values(this.room.players).map(p=>({id:p.id,nickname:p.nickname,avatar:p.avatar,alive:this.alive.includes(p.id)}))
+    });
+
     setTimeout(() => this.startDay(), 7000);
   }
 
@@ -200,7 +217,7 @@ class Mafia {
       this.io.to(id).emit('mafia_spectate', { round: this.round, phase: 'day', alivePlayers });
     });
 
-    this.dayTimer = setTimeout(() => this.resolveDay(), 48000);
+    this.dayTimer = setTimeout(() => this.resolveDay(), 35000);
   }
 
   resolveDay() {
