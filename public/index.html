@@ -9,6 +9,37 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0a;--s:#141414;--b:#222;--t:#f5f5f5;--m:#555;--r:#ff2d2d;--g:#00f076;--y:#ffe62d;--o:#ff8c00;--p:#cc2dff}
 
+/* ═══ PREMIUM ═══ */
+.premium-lock{position:absolute;top:10px;left:18px;display:flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;font-family:'Bebas Neue',cursive;
+  font-size:12px;letter-spacing:1px;padding:3px 10px;border-radius:100px;z-index:3;box-shadow:0 2px 8px rgba(255,140,0,.4)}
+.featured-card.locked{opacity:.92}
+.featured-card.locked .featured-icon{filter:grayscale(.4)}
+.locked-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:4;backdrop-filter:blur(2px)}
+.locked-overlay-icon{font-size:40px}
+.locked-overlay-text{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:1px;color:var(--y)}
+.unlock-btn{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;border:none;border-radius:100px;padding:8px 20px;font-family:'Bebas Neue',cursive;font-size:16px;letter-spacing:1px;cursor:pointer;box-shadow:0 4px 16px rgba(255,140,0,.4);transition:transform .15s}
+.unlock-btn:hover{transform:scale(1.05)}
+
+/* Premium modal */
+.premium-modal{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+.premium-modal.open{display:flex}
+.premium-box{background:linear-gradient(145deg,#1a1a1a,#0f0f0f);border:2px solid var(--y);border-radius:24px;padding:36px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.premium-box h2{font-family:'Bebas Neue',cursive;font-size:42px;color:var(--y);letter-spacing:2px;margin-bottom:8px}
+.premium-box .crown{font-size:56px;margin-bottom:12px}
+.premium-box p{color:var(--t);opacity:.85;font-size:15px;line-height:1.5;margin-bottom:20px}
+.premium-games-list{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:24px}
+.premium-game-chip{background:rgba(255,230,45,.1);border:1px solid rgba(255,230,45,.3);border-radius:100px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--y)}
+.premium-code-input{width:100%;background:var(--bg);border:2px solid var(--b);border-radius:12px;color:var(--y);font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:6px;text-align:center;padding:14px;outline:none;text-transform:uppercase;margin-bottom:12px}
+.premium-code-input:focus{border-color:var(--y)}
+.premium-submit{width:100%;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;border:none;border-radius:12px;padding:16px;font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;cursor:pointer;margin-bottom:10px}
+.premium-submit:hover{filter:brightness(1.1)}
+.premium-close{background:transparent;border:none;color:var(--m);font-size:14px;cursor:pointer;font-weight:700}
+.premium-error{color:var(--r);font-size:13px;font-weight:700;margin-bottom:10px;min-height:18px}
+.premium-success{color:var(--g);font-size:14px;font-weight:700;margin-bottom:10px}
+.premium-price{font-family:'Bebas Neue',cursive;font-size:18px;color:var(--m);letter-spacing:1px;margin-bottom:16px}
+
+
 /* Stampede race track */
 .race-track{display:flex;flex-direction:column;gap:clamp(8px,1.5vh,16px);width:100%;max-width:min(900px,95vw);padding:20px}
 .race-lane{position:relative;height:clamp(44px,7vh,64px);background:linear-gradient(90deg,#0f0f0f,#161616);border-radius:100px;border:2px solid var(--b);overflow:hidden;display:flex;align-items:center}
@@ -400,6 +431,21 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
   <div class="qr-close">Tap anywhere to close</div>
 </div>
 
+<!-- PREMIUM MODAL -->
+<div class="premium-modal" id="premium-modal">
+  <div class="premium-box">
+    <div class="crown">👑</div>
+    <h2>Couch Pack Premium</h2>
+    <p>Unlock all 7 premium games and get the complete party experience!</p>
+    <div class="premium-games-list" id="premium-games-list"></div>
+    <div class="premium-price">Enter your unlock code</div>
+    <div class="premium-error" id="premium-error"></div>
+    <input class="premium-code-input" id="premium-code-input" placeholder="CODE" maxlength="12" autocomplete="off"/>
+    <button class="premium-submit" onclick="submitPremiumCode()">Unlock Everything</button>
+    <button class="premium-close" onclick="closePremium()">Maybe later</button>
+  </div>
+</div>
+
 <!-- LOBBY -->
 <div id="s-lobby" class="screen active">
   <div class="lobby-top">
@@ -549,13 +595,13 @@ const GAMES_DATA = [
   {id:'Stampede',name:'Stampede',min:2,live:true,time:'5 min',desc:'A real-time tap race! Sprint across the screen, dodge chaos events, first to the finish wins.',
    icon:'<svg viewBox="0 0 24 24"><path d="M5 11l4-7 4 7-2 1-2-3-2 3zm9 0l4-7 1 1-3 5 3 1-2 3-1-1 1-2zM3 15h18v2H3zm2 4h14v2H5z"/></svg>',
    c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
-  {id:'Quiplash',name:'Quiplash',min:2,time:'10 min',desc:'Write the funniest answer to wild prompts, then everyone votes for their favourite.',
+  {id:'Quiplash',name:'Quiplash',min:3,time:'10 min',desc:'Write the funniest answer to wild prompts, then everyone votes for their favourite.',
    icon:'<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>',
    c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
-  {id:'Fibbage',name:'Fibbage',min:2,time:'10 min',desc:'Invent a convincing lie to a bizarre fact, then find the real truth among the fakes.',
+  {id:'Fibbage',premium:true,name:'Fibbage',min:3,time:'10 min',desc:'Invent a convincing lie to a bizarre fact, then find the real truth among the fakes.',
    icon:'<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
    c1:'#2a1800',c2:'#0f0f0f',accent:'#ff8c00',iconBg:'rgba(255,140,0,.15)'},
-  {id:'Drawful',name:'Drawful',min:2,time:'10 min',desc:'Draw a ridiculous prompt while everyone watches live and guesses what on earth it is.',
+  {id:'Drawful',premium:true,name:'Drawful',min:3,time:'10 min',desc:'Draw a ridiculous prompt while everyone watches live and guesses what on earth it is.',
    icon:'<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
    c1:'#001a2a',c2:'#0f0f0f',accent:'#3b8bff',iconBg:'rgba(59,139,255,.15)'},
   {id:'MindMeld',name:'Mind Meld',min:2,time:'6 min',desc:'Type the first thing that comes to mind and match your friends for points. Think alike!',
@@ -567,35 +613,43 @@ const GAMES_DATA = [
   {id:'Voltage',name:'Voltage',min:2,time:'7 min',desc:'Fire off answers to a category fast. Unique answers score big, shared ones score less.',
    icon:'<svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>',
    c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
-  {id:'PollMine',name:'Poll Mine',min:2,time:'7 min',desc:'Vote on a question, then predict how the whole group answered. Read the room to win.',
+  {id:'PollMine',premium:true,name:'Poll Mine',min:2,time:'7 min',desc:'Vote on a question, then predict how the whole group answered. Read the room to win.',
    icon:'<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>',
    c1:'#1a002a',c2:'#0f0f0f',accent:'#cc2dff',iconBg:'rgba(204,45,255,.15)'},
-  {id:'Copycat',name:'Copycat',min:3,time:'10 min',desc:'A drawing telephone game. Copy the previous player\\'s art and watch it mutate hilariously.',
+  {id:'Copycat',premium:true,name:'Copycat',min:3,time:'10 min',desc:'A drawing telephone game. Copy the previous drawing and watch it mutate hilariously.',
    icon:'<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
    c1:'#001a2a',c2:'#0f0f0f',accent:'#3b8bff',iconBg:'rgba(59,139,255,.15)'},
-  {id:'Psychic',name:'Psychic',min:3,time:'10 min',desc:'One player answers yes/no questions in pure nonsense words. Everyone else guesses the secret word.',
+  {id:'Psychic',premium:true,name:'Psychic',min:3,time:'10 min',desc:'One player answers yes/no questions in pure nonsense words. Everyone else guesses the secret word.',
    icon:'<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
    c1:'#1a002a',c2:'#0f0f0f',accent:'#cc2dff',iconBg:'rgba(204,45,255,.15)'},
-  {id:'TriviaKnockout',name:'Trivia Knockout',min:2,time:'8 min',desc:'Answer trivia and build a streak. Get one wrong and you\\'re eliminated. Last one standing wins!',
+  {id:'TriviaKnockout',name:'Trivia Knockout',min:2,time:'8 min',desc:'Answer trivia and build a streak. One wrong answer and you are out. Last one standing wins!',
    icon:'<svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>',
    c1:'#002a14',c2:'#0f0f0f',accent:'#00f076',iconBg:'rgba(0,240,118,.15)'},
-  {id:'Mole',name:'The Mole',min:4,time:'12 min',desc:'Slip your secret word into conversation while one hidden Mole tries to catch everyone out.',
+  {id:'Mole',premium:true,name:'The Mole',min:4,time:'12 min',desc:'Slip your secret word into conversation while one hidden Mole tries to catch everyone out.',
    icon:'<svg viewBox="0 0 24 24"><path d="M12 1C5.93 1 1 5.93 1 12s4.93 11 11 11 11-4.93 11-11S18.07 1 12 1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>',
    c1:'#2a0000',c2:'#0f0f0f',accent:'#ff2d2d',iconBg:'rgba(255,45,45,.15)'},
-  {id:'Mafia',name:'Mafia',min:4,time:'15 min',desc:'Classic social deduction. Hidden Mafia, a Doctor, a Detective. Find the killers before it\\'s too late.',
+  {id:'Mafia',premium:true,name:'Mafia',min:4,time:'15 min',desc:'Classic social deduction. Hidden Mafia, a Doctor, a Detective. Find the killers before they win.',
    icon:'<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>',
    c1:'#2a0000',c2:'#0f0f0f',accent:'#ff2d2d',iconBg:'rgba(255,45,45,.15)'},
 ];
 let carouselIndex = 0;
+let premiumUnlocked = false;
+
+// Check localStorage-free: use a session variable + URL check is unreliable, so use a simple in-memory flag
+// Persistence note: premium unlock persists for the session (host screen stays open during play)
+
+function isLocked(g){ return g.premium && !premiumUnlocked; }
 
 function renderCarousel(){
   const g = GAMES_DATA[carouselIndex];
   selectedGame = g.id;
   const stage = document.getElementById('carousel-stage');
   if(!stage) return;
+  const locked = isLocked(g);
   stage.innerHTML = `
-    <div class="featured-card" style="--card-c1:${g.c1};--card-c2:${g.c2};--card-border:${g.accent}40;--card-accent:${g.accent};--card-glow:${g.accent}40;--icon-bg:${g.iconBg};--icon-fill:${g.accent}">
+    <div class="featured-card${locked?' locked':''}" style="--card-c1:${g.c1};--card-c2:${g.c2};--card-border:${g.accent}40;--card-accent:${g.accent};--card-glow:${g.accent}40;--icon-bg:${g.iconBg};--icon-fill:${g.accent}">
       <div class="featured-num">${carouselIndex+1} / ${GAMES_DATA.length}</div>
+      ${g.premium?'<div class="premium-lock">👑 PREMIUM</div>':''}
       <div class="featured-icon">${g.icon}</div>
       <div class="featured-info">
         <div class="featured-name">${g.name}</div>
@@ -606,14 +660,21 @@ function renderCarousel(){
           ${g.live?'<span class="featured-tag live">● LIVE</span>':''}
         </div>
       </div>
+      ${locked?`<div class="locked-overlay">
+        <div class="locked-overlay-icon">🔒</div>
+        <div class="locked-overlay-text">Premium Game</div>
+        <button class="unlock-btn" onclick="openPremium()">Unlock with Code</button>
+      </div>`:''}
     </div>`;
   // dots
   const dots = document.getElementById('carousel-dots');
-  if(dots) dots.innerHTML = GAMES_DATA.map((_,i)=>`<div class="cdot${i===carouselIndex?' on':''}" onclick="jumpGame(${i})"></div>`).join('');
+  if(dots) dots.innerHTML = GAMES_DATA.map((gg,i)=>`<div class="cdot${i===carouselIndex?' on':''}${gg.premium&&!premiumUnlocked?' locked':''}" onclick="jumpGame(${i})" ${gg.premium&&!premiumUnlocked?'style="background:#ff8c0066"':''}></div>`).join('');
   // update start button
-  const mins=Object.fromEntries(GAMES_DATA.map(x=>[x.id,x.min]));
   const sb=document.getElementById('start-btn');
-  if(sb)sb.disabled=Object.keys(players).length<(mins[g.id]||2);
+  if(sb){
+    if(locked){sb.disabled=true;sb.textContent='🔒 Premium';}
+    else{sb.disabled=Object.keys(players).length<(g.min||2);sb.textContent='Start Game';}
+  }
   if(window.CouchMusic)window.CouchMusic.sfx('pop');
 }
 
@@ -626,9 +687,42 @@ function jumpGame(i){
   renderCarousel();
 }
 
+// ═══ PREMIUM UNLOCK ═══
+function openPremium(){
+  // populate premium games list
+  const list=document.getElementById('premium-games-list');
+  if(list)list.innerHTML=GAMES_DATA.filter(g=>g.premium).map(g=>`<span class="premium-game-chip">${g.name}</span>`).join('');
+  document.getElementById('premium-error').textContent='';
+  document.getElementById('premium-code-input').value='';
+  document.getElementById('premium-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('premium-code-input').focus(),100);
+}
+function closePremium(){document.getElementById('premium-modal').classList.remove('open');}
+function submitPremiumCode(){
+  const code=document.getElementById('premium-code-input').value.trim().toUpperCase();
+  socket.emit('redeem_premium',{code});
+}
+socket.on('premium_result',({valid})=>{
+  if(valid){
+    premiumUnlocked=true;
+    document.getElementById('premium-error').style.color='var(--g)';
+    document.getElementById('premium-error').textContent='Unlocked! Enjoy all games 🎉';
+    if(window.CouchMusic)window.CouchMusic.sfx('win');
+    setTimeout(()=>{closePremium();renderCarousel();},1500);
+  } else {
+    document.getElementById('premium-error').style.color='var(--r)';
+    document.getElementById('premium-error').textContent='Invalid code. Try again!';
+    if(window.CouchMusic)window.CouchMusic.sfx('wrong');
+  }
+});
+
 // keyboard arrows
 document.addEventListener('keydown',(e)=>{
   if(document.getElementById('s-lobby').classList.contains('active')){
+    if(document.getElementById('premium-modal').classList.contains('open')){
+      if(e.key==='Enter')submitPremiumCode();
+      return;
+    }
     if(e.key==='ArrowLeft')slideGame(-1);
     else if(e.key==='ArrowRight')slideGame(1);
     else if(e.key==='Enter'){const sb=document.getElementById('start-btn');if(sb&&!sb.disabled)startGame();}
@@ -636,8 +730,9 @@ document.addEventListener('keydown',(e)=>{
 });
 
 function startGame(){
-  socket.emit('start_game',{gameName:selectedGame});
   const g=GAMES_DATA.find(x=>x.id===selectedGame);
+  if(g&&isLocked(g)){openPremium();return;}
+  socket.emit('start_game',{gameName:selectedGame});
   document.getElementById('game-label').textContent=(g?g.name:selectedGame).toUpperCase();
   show('game');
   document.getElementById('ticker').style.display='none';
