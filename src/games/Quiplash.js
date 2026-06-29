@@ -18,7 +18,7 @@ const PROMPTS = [
   "My dating profile says I'm fluent in ___ and silence",
   "The update nobody asked for: ___ 2.0, now with more ___",
   "What my dog actually does all day: ___",
-  "The worst addition to a wedding speech: ___",
+  "The worst thing to say during a job interview: ___",
   "I Googled ___ at 3am and now I can't sleep",
   "A terrible name for a restaurant that somehow still has 5 stars: ___",
   "What the group chat said when I left: ___",
@@ -29,6 +29,56 @@ const PROMPTS = [
   "My therapist's face when I told them about ___",
   "What nobody warned me about adulthood: ___",
   "New app idea: it's like Tinder but for ___",
+  "The least threatening thing a villain could say: ___",
+  "What's definitely in my neighbour's basement: ___",
+  "The worst prize to win on a game show: ___",
+  "A warning label they should put on me: ___",
+  "The real reason cats stare at walls: ___",
+  "What I'd do with five minutes of being invisible: ___",
+  "The worst superpower to have at a funeral: ___",
+  "My autobiography will be called '___'",
+  "The most cursed thing to find in a hotel room: ___",
+  "What the WiFi password at hell would be: ___",
+  "A terrible motivational poster: ___",
+  "The worst thing to hear from your surgeon: ___",
+  "My toxic trait is ___",
+  "What I'd ban if I ruled the world for one day: ___",
+  "The most unhinged thing in my search history: ___",
+  "A bad slogan for a funeral home: ___",
+  "What aliens would steal first from Earth: ___",
+  "The worst thing to whisper in a library: ___",
+  "My final words will probably be '___'",
+  "The most embarrassing reason to call an ambulance: ___",
+  "What's written in my permanent record: ___",
+  "A terrible theme for a wedding: ___",
+  "The worst flavour of ice cream imaginable: ___",
+  "What my ex would put on my wanted poster: ___",
+  "The real reason the dinosaurs went extinct: ___",
+  "A horrible name for a perfume: ___",
+  "What I pretend to understand but absolutely don't: ___",
+  "The worst thing to bring to a potluck: ___",
+  "My spirit animal is a ___ having a bad day",
+  "The most dramatic way to quit a job: ___",
+  "What keeps me up at night (besides ___): ___",
+  "A cursed combination of two foods: ___",
+  "The worst advice my family ever gave me: ___",
+  "What I'd put on a billboard for the whole town to see: ___",
+  "The most useless thing to bring to a deserted island: ___",
+  "A rejected emoji that should exist: ___",
+  "What the inside of my brain sounds like: ___",
+  "The worst possible name for a boat: ___",
+  "My most controversial food opinion: ___",
+  "What I would do for a Klondike bar (be honest): ___",
+  "The reason I'm not allowed back at ___",
+  "A terrible icebreaker question: ___",
+  "What my pet thinks my job is: ___",
+  "The worst thing to find in your takeaway: ___",
+  "A conspiracy theory I just made up: ___",
+  "What I'd name my evil twin: ___",
+  "The most disappointing way to find out you're famous: ___",
+  "A truly cursed pizza topping: ___",
+  "What I scream into the void about: ___",
+  "The worst thing to say on a first date: ___",
 ];
 
 class Quiplash {
@@ -81,14 +131,13 @@ class Quiplash {
     } else if (this.phase === 'voting' && data.type === 'vote') {
       const pair = this.votingPairs[this.currentVoteIndex];
       if (!pair || this.votes[playerId]) return;
-      // Competitors can't vote for themselves
-      if (playerId === pair.p1 && data.vote === pair.p1) return;
-      if (playerId === pair.p2 && data.vote === pair.p2) return;
+      // Competitors don't vote on their own matchup at all
+      if (playerId === pair.p1 || playerId === pair.p2) return;
       if (data.vote !== pair.p1 && data.vote !== pair.p2) return;
       this.votes[playerId] = data.vote;
-      const total = Object.keys(this.room.players).length;
-      this.io.to(this.code).emit('vote_received', { count: Object.keys(this.votes).length, total });
-      if (Object.keys(this.votes).length >= total) { clearTimeout(this.voteTimer); setTimeout(() => this.showVoteResults(), 800); }
+      const expected = this.expectedVoters || 1;
+      this.io.to(this.code).emit('vote_received', { count: Object.keys(this.votes).length, total: expected });
+      if (Object.keys(this.votes).length >= expected) { clearTimeout(this.voteTimer); setTimeout(() => this.showVoteResults(), 800); }
     }
   }
 
@@ -113,28 +162,43 @@ class Quiplash {
     if (!p1 || !p2) { this.currentVoteIndex++; this.showNextVote(); return; }
     const a1 = this.assignments[pair.p1], a2 = this.assignments[pair.p2];
     const allPlayers = Object.keys(this.room.players);
-    const totalVoters = allPlayers.length; // EVERYONE votes, including competitors
+    // Only NON-competitors vote — this keeps it a genuine blind choice
+    const voters = allPlayers.filter(id => id !== pair.p1 && id !== pair.p2);
+    this.expectedVoters = voters.length;
+
+    // Safety: if nobody can vote (tiny lobby), skip to next matchup
+    if (this.expectedVoters === 0) {
+      this.currentVoteIndex++;
+      this.showNextVote();
+      return;
+    }
 
     this.io.to(this.code).emit('quiplash_vote', {
       prompt: a1.prompt,
+      matchup: `${p1.nickname} vs ${p2.nickname}`,
       options: [
         { playerId: pair.p1, nickname: p1.nickname, avatar: p1.avatar, answer: a1.answer },
         { playerId: pair.p2, nickname: p2.nickname, avatar: p2.avatar, answer: a2.answer },
-      ],
-      totalVoters
+      ]
     });
 
-    // ALL players get to vote - competitors can't vote for themselves
     allPlayers.forEach(id => {
       const isCompetitor = id === pair.p1 || id === pair.p2;
-      this.io.to(id).emit('vote_now', {
-        prompt: a1.prompt, timeLimit: 25,
-        isCompetitor,
-        options: [
-          { playerId: pair.p1, answer: a1.answer, nickname: p1.nickname },
-          { playerId: pair.p2, answer: a2.answer, nickname: p2.nickname },
-        ]
-      });
+      if (isCompetitor) {
+        // Competitors watch — they can't vote on their own battle
+        this.io.to(id).emit('wait_for_votes', {
+          message: "Your answer is in the battle! Others are voting now..."
+        });
+      } else {
+        this.io.to(id).emit('vote_now', {
+          prompt: a1.prompt, timeLimit: 25,
+          isCompetitor: false,
+          options: [
+            { playerId: pair.p1, answer: a1.answer },
+            { playerId: pair.p2, answer: a2.answer },
+          ]
+        });
+      }
     });
 
     this.voteTimer = setTimeout(() => this.showVoteResults(), 20000);
