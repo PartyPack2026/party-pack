@@ -9,6 +9,49 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0a;--s:#141414;--b:#222;--t:#f5f5f5;--m:#555;--r:#ff2d2d;--g:#00f076;--y:#ffe62d;--o:#ff8c00;--p:#cc2dff}
 
+/* ═══ PROFESSIONAL POLISH ═══ */
+/* Balanced 3-column lobby header */
+.lobby-top{display:grid!important;grid-template-columns:1fr auto 1fr;align-items:center}
+.lobby-top .logo{justify-self:start}
+.lobby-top .join-info{justify-self:center}
+.lobby-top .qr-block{justify-self:end}
+@media(max-width:700px){.lobby-top{grid-template-columns:1fr;justify-items:center;gap:12px}}
+
+/* Animated player count badge when someone joins */
+@keyframes joinFlash{0%{transform:scale(1)}30%{transform:scale(1.25);color:var(--g)}100%{transform:scale(1)}}
+.pc-num.flash{animation:joinFlash .5s ease}
+
+/* Player cards get a subtle entrance + online dot */
+.p-card{position:relative}
+.p-card::after{content:'';position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--g);box-shadow:0 0 8px var(--g);animation:onlinePulse 2s ease-in-out infinite}
+@keyframes onlinePulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Start button gets a shimmer sweep */
+.start-btn:not(:disabled){position:relative;overflow:hidden}
+.start-btn:not(:disabled)::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:shimmerSweep 3s ease-in-out infinite}
+@keyframes shimmerSweep{0%{left:-100%}50%,100%{left:200%}}
+
+/* Carousel arrows breathe */
+.carousel-arrow{animation:arrowBreathe 2.5s ease-in-out infinite}
+@keyframes arrowBreathe{0%,100%{opacity:.85}50%{opacity:1}}
+
+/* Featured card subtle float */
+.featured-card{animation:cardSlideIn .4s cubic-bezier(.34,1.56,.64,1) both,cardFloat 4s ease-in-out infinite 1s}
+@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* Logo gets animated underline glow already, add a tiny sparkle */
+.logo-main{position:relative}
+
+/* Smooth scrollbar hiding everywhere */
+*{scrollbar-width:thin;scrollbar-color:var(--b) transparent}
+
+/* Connection indicator */
+.conn-status{position:fixed;bottom:12px;left:12px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--m);font-weight:700;letter-spacing:1px;z-index:80;opacity:.6}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g)}
+.conn-dot.off{background:var(--r);box-shadow:0 0 6px var(--r)}
+
+
 /* ═══ PREMIUM ═══ */
 .premium-lock{position:absolute;top:10px;left:18px;display:flex;align-items:center;gap:5px;
   background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;font-family:'Bebas Neue',cursive;
@@ -57,15 +100,11 @@
 
 /* ═══ GRAPHIC OVERHAUL ═══ */
 /* Fixed join button */
-.top-join-btn{position:fixed;top:18px;right:20px;z-index:250;display:flex;align-items:center;gap:8px;
-  background:linear-gradient(135deg,var(--y),#ffd000);color:#000;text-decoration:none;
-  font-family:'Bebas Neue',cursive;font-size:15px;letter-spacing:1.5px;padding:10px 18px;border-radius:100px;
-  box-shadow:0 4px 20px rgba(255,230,45,.3),0 0 0 1px rgba(255,230,45,.5);
-  transition:all .2s;animation:joinPulse 3s ease-in-out infinite}
-.top-join-btn:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 8px 30px rgba(255,230,45,.5)}
-.tjb-dot{width:8px;height:8px;border-radius:50%;background:#000;animation:dotBlink 1.5s ease-in-out infinite}
-@keyframes joinPulse{0%,100%{box-shadow:0 4px 20px rgba(255,230,45,.3),0 0 0 1px rgba(255,230,45,.5)}50%{box-shadow:0 4px 28px rgba(255,230,45,.5),0 0 0 1px rgba(255,230,45,.8)}}
-@keyframes dotBlink{0%,100%{opacity:1}50%{opacity:.3}}
+.qr-block{display:flex;flex-direction:column;align-items:center;gap:8px}
+.qr-join-btn{display:block;background:linear-gradient(135deg,var(--y),#ffd000);color:#000;text-decoration:none;
+  font-family:'Bebas Neue',cursive;font-size:clamp(16px,2vw,20px);letter-spacing:2px;padding:8px 32px;border-radius:100px;
+  box-shadow:0 4px 16px rgba(255,230,45,.3);transition:all .2s;text-align:center;width:100%}
+.qr-join-btn:hover{transform:scale(1.05);box-shadow:0 6px 24px rgba(255,230,45,.5)}
 
 /* Richer card depth */
 .p-card{background:linear-gradient(145deg,#1a1a1a,#0f0f0f)!important;box-shadow:0 4px 16px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04)}
@@ -408,10 +447,7 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 <div class="bg-glow"></div>
 
 <!-- Fixed JOIN button top-right -->
-<a href="/join" class="top-join-btn" id="top-join-btn">
-  <span class="tjb-dot"></span>
-  JOIN AT COUCHPACK.ONE/JOIN
-</a>
+
 
 <!-- TUTORIAL OVERLAY -->
 <div id="tutorial-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column;align-items:center;justify-content:center">
@@ -454,11 +490,14 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
       <div class="logo-sub">The Party Game</div>
     </div>
     <div class="join-info">
-      <div class="join-label">Go to couchpack.one/join</div>
+      <div class="join-label">Room Code</div>
       <div class="join-code" id="room-code">----</div>
       <div class="join-url">couchpack.one/join</div>
     </div>
-    <img id="qr-img" style="display:none" src="" onclick="openQR()" title="Click to enlarge"/>
+    <div class="qr-block">
+      <img id="qr-img" style="display:none" src="" onclick="openQR()" title="Click to enlarge"/>
+      <a href="/join" class="qr-join-btn">Join</a>
+    </div>
   </div>
 
   <div class="lobby-mid">
@@ -505,12 +544,15 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 </div>
 
 
+<div class="conn-status" id="conn-status"><span class="conn-dot" id="conn-dot"></span><span id="conn-text">Connected</span></div>
 <div class="reaction-overlay" id="reaction-overlay"></div>
 <audio id="aud-theme" src="/audio/main-theme.mp3" loop preload="auto"></audio>
 <script src="/music.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
+socket.on('connect',()=>{const d=document.getElementById('conn-dot');const t=document.getElementById('conn-text');if(d)d.classList.remove('off');if(t)t.textContent='Connected';});
+socket.on('disconnect',()=>{const d=document.getElementById('conn-dot');const t=document.getElementById('conn-text');if(d)d.classList.add('off');if(t)t.textContent='Reconnecting...';});
 const MUSIC_MAP = {Quiplash:'quiplash',Fibbage:'fibbage',Drawful:'drawful',TriviaKnockout:'trivia',PollMine:'pollmine',Mafia:'mafia',MindMeld:'mindmeld',HotTake:'hottake',Voltage:'voltage',Mole:'mole',Psychic:'psychic',Copycat:'copycat',Stampede:'stampede'};
 let currentGameForMusic=null;
 let myCode=null, players={}, selectedGame='MindMeld';
@@ -551,7 +593,10 @@ socket.on('room_update',({players:ps,phase})=>{
   ps.forEach(p=>players[p.id]=p);
   renderPlayers(ps);
   updateScorebar(ps);
-  document.getElementById('p-count').textContent=ps.length;
+  const pcEl=document.getElementById('p-count');
+  const prevCount=parseInt(pcEl.textContent)||0;
+  pcEl.textContent=ps.length;
+  if(ps.length>prevCount){pcEl.classList.remove('flash');void pcEl.offsetWidth;pcEl.classList.add('flash');if(window.CouchMusic)window.CouchMusic.sfx('pop');}
   const g=GAMES_DATA.find(x=>x.id===selectedGame);
   document.getElementById('start-btn').disabled=ps.length<((g&&g.min)||2);
   if(phase==='lobby'){show('lobby');fadeInMusic();}
@@ -634,11 +679,12 @@ const GAMES_DATA = [
 ];
 let carouselIndex = 0;
 let premiumUnlocked = false;
+let unlockedGames = new Set();
 
 // Check localStorage-free: use a session variable + URL check is unreliable, so use a simple in-memory flag
 // Persistence note: premium unlock persists for the session (host screen stays open during play)
 
-function isLocked(g){ return g.premium && !premiumUnlocked; }
+function isLocked(g){ return g.premium && !premiumUnlocked && !unlockedGames.has(g.id); }
 
 function renderCarousel(){
   const g = GAMES_DATA[carouselIndex];
@@ -702,13 +748,17 @@ function submitPremiumCode(){
   const code=document.getElementById('premium-code-input').value.trim().toUpperCase();
   socket.emit('redeem_premium',{code});
 }
-socket.on('premium_result',({valid})=>{
+socket.on('premium_result',({valid,unlocked,bundleName})=>{
   if(valid){
-    premiumUnlocked=true;
+    (unlocked||[]).forEach(g=>unlockedGames.add(g));
+    // Check if everything is now unlocked
+    const allPrem=GAMES_DATA.filter(g=>g.premium).map(g=>g.id);
+    if(allPrem.every(g=>unlockedGames.has(g)))premiumUnlocked=true;
     document.getElementById('premium-error').style.color='var(--g)';
-    document.getElementById('premium-error').textContent='Unlocked! Enjoy all games 🎉';
+    const msg=premiumUnlocked?'All games unlocked! 🎉':`${bundleName||'Bundle'} unlocked! 🎉`;
+    document.getElementById('premium-error').textContent=msg;
     if(window.CouchMusic)window.CouchMusic.sfx('win');
-    setTimeout(()=>{closePremium();renderCarousel();},1500);
+    setTimeout(()=>{closePremium();renderCarousel();},1600);
   } else {
     document.getElementById('premium-error').style.color='var(--r)';
     document.getElementById('premium-error').textContent='Invalid code. Try again!';
@@ -741,8 +791,6 @@ function startGame(){
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('s-'+id).classList.add('active');
-  const jb=document.getElementById('top-join-btn');
-  if(jb)jb.style.display=(id==='lobby')?'flex':'none';
 }
 function setTV(html){document.getElementById('tv').innerHTML=html;}
 function dots(c,t){return `<div class="dots">${Array(t).fill(0).map((_,i)=>`<div class="dot${i<c?' on':''}"></div>`).join('')}</div>`;}
