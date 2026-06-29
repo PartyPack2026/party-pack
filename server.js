@@ -113,6 +113,11 @@ io.on('connection', (socket) => {
     emitRoomUpdate(code);
   });
 
+  socket.on('check_room', ({ code }) => {
+    const room = rooms[code];
+    socket.emit('room_check_result', { exists: !!room && room.phase === 'lobby' });
+  });
+
   socket.on('join_room', ({ code, nickname, avatar }) => {
     const room = rooms[code];
     if (!room) return socket.emit('join_error', { message: 'Room not found!' });
@@ -148,9 +153,17 @@ io.on('connection', (socket) => {
     const GameClass = GAMES[gameName];
     if (!GameClass) return;
     room.game = gameName;
-    room.phase = 'playing';
-    room.gameInstance = new GameClass(room, io, endGame);
-    room.gameInstance.start();
+    room.phase = 'tutorial';
+    // Send tutorial first, then start game when host skips or auto-starts
+    io.to(code).emit('show_tutorial', { gameName });
+    // Auto-start after 12 seconds if host doesn't skip
+    room.tutorialTimer = setTimeout(() => {
+      if (room.phase === 'tutorial') {
+        room.phase = 'playing';
+        room.gameInstance = new GameClass(room, io, endGame);
+        room.gameInstance.start();
+      }
+    }, 12000);
   });
 
   socket.on('game_input', (data) => {
@@ -194,6 +207,20 @@ io.on('connection', (socket) => {
     const room = rooms[code];
     if (!room || room.hostId !== socket.id || !room.gameInstance) return;
     room.gameInstance.nextPhase();
+  });
+
+  socket.on('skip_tutorial', () => {
+    const code = socket.roomCode;
+    const room = rooms[code];
+    if (!room || room.hostId !== socket.id) return;
+    if (room.phase !== 'tutorial') return;
+    clearTimeout(room.tutorialTimer);
+    const GameClass = GAMES[room.game];
+    if (!GameClass) return;
+    room.phase = 'playing';
+    room.gameInstance = new GameClass(room, io, endGame);
+    io.to(code).emit('tutorial_done');
+    room.gameInstance.start();
   });
 
   socket.on('return_to_lobby', () => {
