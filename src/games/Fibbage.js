@@ -49,7 +49,7 @@ class Fibbage {
     const hint = `Starts with "${this.currentFact.truth[0].toUpperCase()}"`;
     Object.values(this.room.players).forEach(p => {
       this.io.to(p.id).emit('enter_lie', {
-        prompt: this.currentFact.prompt, timeLimit: 40, hint
+        prompt: this.currentFact.prompt, timeLimit: 35, hint
       });
     });
 
@@ -67,6 +67,9 @@ class Fibbage {
       }
     } else if (this.phase === 'voting' && data.type === 'vote') {
       if (this.votes[playerId]) return;
+      // Can't vote for your own lie
+      const myAnswer = this.answers.find(a => a.playerId === playerId);
+      if (myAnswer && myAnswer.id === data.answerId) return;
       this.votes[playerId] = data.answerId;
       const total = Object.keys(this.room.players).length;
       this.io.to(this.code).emit('vote_received', { count: Object.keys(this.votes).length, total });
@@ -96,7 +99,7 @@ class Fibbage {
         answers: this.answers.map(a => ({ id: a.id, text: a.text }))
       });
     });
-    this.voteTimer = setTimeout(() => this.showResults(), 28000);
+    this.voteTimer = setTimeout(() => this.showResults(), 20000);
   }
 
   showResults() {
