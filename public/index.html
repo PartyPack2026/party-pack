@@ -770,6 +770,215 @@ socket.on('copycat_scores',({tally,players:ps})=>{
   updateScorebar(Object.values(ps));
 });
 
+
+// ══ QUIPLASH (host display) ══
+socket.on('quiplash_round',({round,totalRounds})=>{
+  show('game');
+  const t=Object.keys(players).length;
+  setTV(`<div class="tv-label">QUIPLASH — ROUND ${round} OF ${totalRounds}</div>
+    <div class="tv-heading">Writing answers...</div>
+    <div class="typing-bar" id="typing-bar"></div>
+    <div class="tv-sub" id="qp-count">Check your phones!</div>
+    ${dots(0,t)}`);
+});
+socket.on('quiplash_vote',({prompt,options})=>{
+  const t=Object.keys(players).length;
+  setTV(`<div class="tv-label">VOTE FOR THE FUNNIEST</div>
+    <div class="tv-heading" style="font-size:clamp(20px,3.5vw,40px)">${prompt}</div>
+    <div class="ans-grid" style="margin-top:12px">
+      ${options.map(o=>`<div class="ans-card" id="ac-${o.playerId}">
+        <div class="ans-text">${o.answer}</div>
+        <div class="vbar-wrap"><div class="vbar-fill" id="vb-${o.playerId}" style="width:0%"></div></div>
+      </div>`).join('')}
+    </div>
+    <div class="tv-sub">${dots(0,t)}</div>`);
+});
+socket.on('vote_results',({tally,players:ps})=>{
+  const total=Object.values(tally).reduce((a,b)=>a+b,0);
+  const maxVotes=Math.max(...Object.values(tally),0);
+  setTimeout(()=>{
+    Object.entries(tally).forEach(([pid,count])=>{
+      const b=document.getElementById('vb-'+pid);
+      if(b&&total>0)b.style.width=(count/total*100)+'%';
+    });
+    setTimeout(()=>{
+      Object.entries(tally).forEach(([pid,count])=>{
+        const c=document.getElementById('ac-'+pid);
+        if(c){
+          c.insertAdjacentHTML('beforeend',`<div class="vtally bounce-in">${count} vote${count!==1?'s':''}</div>`);
+          c.classList.add(count===maxVotes&&maxVotes>0?'win':'lose');
+        }
+      });
+      updateScorebar(Object.values(ps));
+    },900);
+  },400);
+});
+
+// ══ FIBBAGE (host display) ══
+socket.on('fibbage_round',({round,totalRounds,category,prompt})=>{
+  show('game');
+  const t=Object.keys(players).length;
+  setTV(`<div class="tv-label">FIBBAGE — ROUND ${round} OF ${totalRounds}</div>
+    <div class="tv-sub" style="color:var(--o)">${category||''}</div>
+    <div class="tv-heading" style="font-size:clamp(20px,3.5vw,40px)">${prompt}</div>
+    <div class="typing-bar" id="typing-bar"></div>
+    <div class="tv-sub">Write a convincing lie!</div>
+    ${dots(0,t)}`);
+});
+socket.on('fibbage_vote',({prompt,answers})=>{
+  const t=Object.keys(players).length;
+  setTV(`<div class="tv-label">WHICH IS THE TRUTH?</div>
+    <div class="tv-heading" style="font-size:clamp(18px,3vw,34px)">${prompt}</div>
+    <div class="opts-grid" style="margin-top:12px">
+      ${answers.map((a,i)=>`<div class="opt-tv" id="fb-${a.id}">
+        <div class="opt-ltr">${String.fromCharCode(65+i)}</div>${a.text}
+      </div>`).join('')}
+    </div>
+    <div class="tv-sub">${dots(0,t)}</div>`);
+});
+socket.on('fibbage_results',({truth,answers,votes,players:ps})=>{
+  // Highlight the truth, show who got fooled
+  setTimeout(()=>{
+    answers.forEach(a=>{
+      const el=document.getElementById('fb-'+a.id);
+      if(el){
+        if(!a.isLie){el.classList.add('win');el.insertAdjacentHTML('beforeend',' <span style="color:var(--g);font-weight:700">← TRUTH!</span>');}
+        else el.classList.add('lose');
+      }
+    });
+    updateScorebar(Object.values(ps));
+  },500);
+});
+
+// ══ DRAWFUL (host display) ══
+let hostDrawCanvas=null,hostDrawCtx=null;
+socket.on('drawful_drawing_started',({drawerName,round,totalRounds})=>{
+  show('game');
+  setTV(`<div class="tv-label">DRAWFUL — ROUND ${round||1} OF ${totalRounds||1}</div>
+    <div class="tv-heading">${drawerName} is drawing...</div>
+    <canvas class="tv-canvas" id="host-draw" width="680" height="420"></canvas>
+    <div class="tv-sub">Everyone else: guess what it is on your phone!</div>`);
+  const cv=document.getElementById('host-draw');
+  if(cv){hostDrawCanvas=cv;hostDrawCtx=cv.getContext('2d');hostDrawCtx.fillStyle='white';hostDrawCtx.fillRect(0,0,cv.width,cv.height);}
+});
+socket.on('draw_stroke',({stroke})=>{
+  if(!hostDrawCtx||!stroke||stroke.length<2)return;
+  const cv=hostDrawCanvas;
+  hostDrawCtx.beginPath();
+  hostDrawCtx.strokeStyle=stroke[0].color||'#000';
+  hostDrawCtx.lineWidth=(stroke[0].size||4)*1.5;
+  hostDrawCtx.lineCap='round';hostDrawCtx.lineJoin='round';
+  hostDrawCtx.moveTo(stroke[0].x*cv.width,stroke[0].y*cv.height);
+  stroke.forEach(pt=>hostDrawCtx.lineTo(pt.x*cv.width,pt.y*cv.height));
+  hostDrawCtx.stroke();
+});
+socket.on('draw_cleared',()=>{
+  if(hostDrawCtx&&hostDrawCanvas){hostDrawCtx.fillStyle='white';hostDrawCtx.fillRect(0,0,hostDrawCanvas.width,hostDrawCanvas.height);}
+});
+socket.on('drawful_guessing',({drawerName})=>{
+  const sub=document.querySelector('#tv .tv-sub');
+  if(sub)sub.textContent='Time to guess! Check your phones.';
+});
+socket.on('drawful_vote_display',({prompt,answers})=>{
+  const t=Object.keys(players).length;
+  setTV(`<div class="tv-label">WHAT WAS IT?</div>
+    <div class="tv-heading">Vote for the real prompt!</div>
+    <div class="opts-grid">
+      ${(answers||[]).map((a,i)=>`<div class="opt-tv"><div class="opt-ltr">${String.fromCharCode(65+i)}</div>${a.text}</div>`).join('')}
+    </div>${dots(0,t)}`);
+});
+socket.on('drawful_reveal',({prompt,players:ps})=>{
+  const tv=document.querySelector('#tv .tv-heading');
+  setTV(`<div class="tv-label">THE ANSWER WAS</div>
+    <div class="tv-heading" style="color:var(--g)">${prompt}</div>`);
+  if(ps)updateScorebar(Object.values(ps));
+});
+
+// ══ TRIVIA (host display) ══
+socket.on('trivia_question',({question,options,round,totalRounds,alive})=>{
+  show('game');
+  setTV(`<div class="tv-label">TRIVIA KNOCKOUT — Q${round||1}${alive?' · '+alive+' alive':''}</div>
+    <div class="tv-heading" style="font-size:clamp(22px,4vw,44px)">${question}</div>
+    <div class="opts-grid" style="margin-top:16px">
+      ${options.map((o,i)=>`<div class="opt-tv" id="tq-${i}"><div class="opt-ltr">${String.fromCharCode(65+i)}</div>${o}</div>`).join('')}
+    </div>
+    <div class="tv-sub">${dots(0,Object.keys(players).length)}</div>`);
+});
+socket.on('trivia_reveal',({correctIndex,correctAnswer,eliminated,players:ps})=>{
+  const el=document.getElementById('tq-'+correctIndex);
+  if(el)el.classList.add('win');
+  document.querySelectorAll('.opt-tv').forEach((o,i)=>{if(i!==correctIndex)o.classList.add('lose');});
+  const sub=document.querySelector('#tv .tv-sub');
+  if(sub&&eliminated&&eliminated.length)sub.innerHTML=`<span style="color:var(--r)">Eliminated: ${eliminated.join(', ')}</span>`;
+  if(ps)updateScorebar(Object.values(ps));
+});
+
+// ══ POLL MINE (host display) ══
+socket.on('pollmine_round',({round,totalRounds,question,options})=>{
+  show('game');
+  const t=Object.keys(players).length;
+  setTV(`<div class="tv-label">POLL MINE — ROUND ${round} OF ${totalRounds}</div>
+    <div class="tv-heading">${question}</div>
+    <div class="tv-sub">Everyone vote on your phones!</div>
+    ${dots(0,t)}`);
+});
+socket.on('pollmine_predict',({question})=>{
+  const t=Object.keys(players).length;
+  setTV(`<div class="tv-label">NOW PREDICT THE RANKING</div>
+    <div class="tv-heading">${question}</div>
+    <div class="tv-sub">Drag to rank how you think everyone voted!</div>
+    ${dots(0,t)}`);
+});
+socket.on('pollmine_results',({question,tally,actualRanking,players:ps})=>{
+  const total=Object.values(tally).reduce((a,b)=>a+b,0);
+  setTV(`<div class="tv-label">RESULTS</div>
+    <div class="tv-heading" style="font-size:clamp(20px,3vw,36px)">${question}</div>
+    <div class="poll-bars">
+      ${actualRanking.map((opt,i)=>{
+        const count=tally[opt]||0;
+        const pct=total>0?Math.round(count/total*100):0;
+        return `<div class="poll-row">
+          <div class="poll-lbl"><span>${i+1}. ${opt}</span><span>${count} vote${count!==1?'s':''}</span></div>
+          <div class="poll-track"><div class="poll-fill" style="width:0%" data-w="${pct}"></div></div>
+        </div>`;
+      }).join('')}
+    </div>`);
+  setTimeout(()=>{document.querySelectorAll('.poll-fill').forEach(f=>f.style.width=f.dataset.w+'%');},300);
+  updateScorebar(Object.values(ps));
+});
+
+// ══ MAFIA (host display) ══
+socket.on('mafia_start',({players:ps})=>{
+  show('game');
+  setTV(`<div class="tv-label">MAFIA</div>
+    <div class="tv-heading">Roles are being assigned...</div>
+    <div class="tv-sub">Check your phone for your secret role. Don't show anyone!</div>`);
+});
+socket.on('mafia_night',({round})=>{
+  setTV(`<div class="tv-label">NIGHT ${round||1}</div>
+    <div class="tv-heading" style="color:var(--p)">The town sleeps...</div>
+    <div class="tv-sub">Mafia, Doctor, and Detective — act on your phones now.</div>
+    <div style="font-size:80px;margin-top:16px">🌙</div>`);
+});
+socket.on('mafia_day',({round,killed,players:ps})=>{
+  setTV(`<div class="tv-label">DAY ${round||1}</div>
+    <div class="tv-heading">${killed?killed+' was eliminated!':'Nobody died last night!'}</div>
+    <div class="mafia-grid" id="mafia-grid">
+      ${(ps||[]).filter(p=>p.alive!==false).map(p=>`<div class="m-card"><div class="m-av" id="mav-${p.id}"></div>${p.nickname}</div>`).join('')}
+    </div>
+    <div class="tv-sub">Discuss, then vote on your phones!</div>`);
+  if(ps)ps.forEach(p=>renderAv(p.avatar,document.getElementById('mav-'+p.id)));
+});
+socket.on('mafia_voted_out',({name,role,players:ps})=>{
+  setTV(`<div class="tv-label">THE TOWN HAS VOTED</div>
+    <div class="tv-heading">${name} was a <span style="color:${role==='Mafia'?'var(--r)':'var(--g)'}">${role}</span>!</div>`);
+  if(ps)updateScorebar(Object.values(ps));
+});
+socket.on('mafia_game_over',({winner,players:ps})=>{
+  setTV(`<div class="tv-label">GAME OVER</div>
+    <div class="tv-heading" style="color:var(--y)">${winner} win!</div>`);
+});
+
 // ── FINAL ──
 // Track who's typing
 const typingPlayers = {};
