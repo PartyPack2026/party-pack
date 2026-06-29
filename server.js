@@ -13,7 +13,16 @@ const io = new Server(server, {
   maxHttpBufferSize: 5e6
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+
+// Landing page at root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'landing.html'));
+});
+// Host screen
+app.get('/host', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 app.use(express.json({ limit: '5mb' }));
 
 app.get('/tutorial', (req, res) => {
@@ -139,6 +148,17 @@ io.on('connection', (socket) => {
     socket.isHost = true;
     socket.emit('room_created', { code });
     emitRoomUpdate(code);
+  });
+
+  socket.on('sync_unlocks', ({ games }) => {
+    // Client tells us which games it previously unlocked on this device.
+    // We only trust games that are real premium games.
+    if (!socket.roomCode || !rooms[socket.roomCode]) return;
+    if (!Array.isArray(games)) return;
+    const room = rooms[socket.roomCode];
+    if (!room.unlockedGames) room.unlockedGames = new Set();
+    games.forEach(g => { if (PREMIUM_GAMES.has(g)) room.unlockedGames.add(g); });
+    room.premiumUnlocked = ALL_PREMIUM.every(g => room.unlockedGames.has(g));
   });
 
   socket.on('redeem_premium', ({ code }) => {
@@ -284,16 +304,52 @@ io.on('connection', (socket) => {
     io.to(code).emit('game_ended', { returnToLobby: true });
   });
 
+  // Player tries to rejoin an existing room (after a disconnect)
+  socket.on('rejoin_room', ({ code, nickname, avatar }) => {
+    const room = rooms[code];
+    if (!room) return socket.emit('join_error', { message: 'Room not found!' });
+    // Re-add the player
+    const idx = Object.keys(room.players).length;
+    room.players[socket.id] = {
+      id: socket.id, nickname: nickname || `Player ${idx + 1}`,
+      score: 0, isHost: false, avatar: avatar || '?'
+    };
+    socket.join(code);
+    socket.roomCode = code;
+    socket.emit('room_joined', { code, player: room.players[socket.id] });
+    emitRoomUpdate(code);
+  });
+
   socket.on('disconnect', () => {
     const code = socket.roomCode;
     if (!code || !rooms[code]) return;
     const room = rooms[code];
     if (room.hostId === socket.id) {
-      io.to(code).emit('host_disconnected');
-      delete rooms[code];
+      // Grace period: give the host 8 seconds to reconnect before killing the room
+      room.hostGone = true;
+      room.hostGoneTimer = setTimeout(() => {
+        if (rooms[code] && rooms[code].hostGone) {
+          io.to(code).emit('host_disconnected');
+          delete rooms[code];
+        }
+      }, 8000);
       return;
     }
     delete room.players[socket.id];
+    emitRoomUpdate(code);
+  });
+
+  // Host reconnecting reclaims the room
+  socket.on('reclaim_host', ({ code }) => {
+    const room = rooms[code];
+    if (!room) return socket.emit('reclaim_failed');
+    clearTimeout(room.hostGoneTimer);
+    room.hostGone = false;
+    room.hostId = socket.id;
+    socket.join(code);
+    socket.roomCode = code;
+    socket.isHost = true;
+    socket.emit('host_reclaimed', { code });
     emitRoomUpdate(code);
   });
 });
