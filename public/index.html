@@ -8,6 +8,55 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Bebas+Neue&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0a;--s:#141414;--b:#222;--t:#f5f5f5;--m:#555;--r:#ff2d2d;--g:#00f076;--y:#ffe62d;--o:#ff8c00;--p:#cc2dff}
+
+/* ═══ GRAPHIC OVERHAUL ═══ */
+/* Fixed join button */
+.top-join-btn{position:fixed;top:18px;right:20px;z-index:250;display:flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--y),#ffd000);color:#000;text-decoration:none;
+  font-family:'Bebas Neue',cursive;font-size:15px;letter-spacing:1.5px;padding:10px 18px;border-radius:100px;
+  box-shadow:0 4px 20px rgba(255,230,45,.3),0 0 0 1px rgba(255,230,45,.5);
+  transition:all .2s;animation:joinPulse 3s ease-in-out infinite}
+.top-join-btn:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 8px 30px rgba(255,230,45,.5)}
+.tjb-dot{width:8px;height:8px;border-radius:50%;background:#000;animation:dotBlink 1.5s ease-in-out infinite}
+@keyframes joinPulse{0%,100%{box-shadow:0 4px 20px rgba(255,230,45,.3),0 0 0 1px rgba(255,230,45,.5)}50%{box-shadow:0 4px 28px rgba(255,230,45,.5),0 0 0 1px rgba(255,230,45,.8)}}
+@keyframes dotBlink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Richer card depth */
+.p-card{background:linear-gradient(145deg,#1a1a1a,#0f0f0f)!important;box-shadow:0 4px 16px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04)}
+.g-btn{background:linear-gradient(145deg,#181818,#101010)!important;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.g-btn.on{box-shadow:0 4px 20px rgba(255,230,45,.25),inset 0 1px 0 rgba(255,255,255,.05)!important}
+.ans-card,.opt-tv,.volt-card,.meld-card,.sr,.m-card{box-shadow:0 3px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.03)}
+
+/* Glowing logo enhancement */
+.logo-main{filter:drop-shadow(0 0 30px rgba(255,230,45,.2))}
+
+/* Animated gradient accent line under logo */
+.logo::after{content:'';display:block;height:3px;width:100%;margin-top:6px;border-radius:2px;
+  background:linear-gradient(90deg,transparent,var(--y),transparent);
+  animation:lineShimmer 3s ease-in-out infinite}
+@keyframes lineShimmer{0%,100%{opacity:.3;transform:scaleX(.7)}50%{opacity:1;transform:scaleX(1)}}
+
+/* Vignette for depth */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.4) 100%)}
+
+/* QR frame glow */
+#qr-img{box-shadow:0 0 0 1px var(--b),0 4px 20px rgba(0,0,0,.4)}
+
+/* Score chips gradient */
+.s-chip{background:linear-gradient(145deg,#161616,#0d0d0d)!important}
+
+/* Smooth TV heading glow */
+.tv-heading{text-shadow:0 0 40px rgba(255,230,45,.15)}
+
+/* Player count box pop */
+.p-count-box{background:linear-gradient(145deg,#1a1a1a,#0f0f0f)!important;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+
+/* Start button shine */
+.start-btn{background:linear-gradient(135deg,var(--y),#ffd000)!important;box-shadow:0 4px 24px rgba(255,230,45,.35)}
+.start-btn:not(:disabled):hover{box-shadow:0 6px 32px rgba(255,230,45,.5)}
+
+
 body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow:hidden}
 .screen{display:none;width:100vw;height:100vh;position:relative}
 .screen.active{display:flex;flex-direction:column}
@@ -278,6 +327,12 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
 
+<!-- Fixed JOIN button top-right -->
+<a href="/join" class="top-join-btn" id="top-join-btn">
+  <span class="tjb-dot"></span>
+  JOIN AT COUCHPACK.ONE/JOIN
+</a>
+
 <!-- TUTORIAL OVERLAY -->
 <div id="tutorial-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column;align-items:center;justify-content:center">
   <div class="bg-grid"></div>
@@ -493,7 +548,12 @@ function startGame(){
   document.getElementById('ticker').style.display='none';
   fadeOutMusic();
 }
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('s-'+id).classList.add('active');}
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('active');
+  const jb=document.getElementById('top-join-btn');
+  if(jb)jb.style.display=(id==='lobby')?'flex':'none';
+}
 function setTV(html){document.getElementById('tv').innerHTML=html;}
 function dots(c,t){return `<div class="dots">${Array(t).fill(0).map((_,i)=>`<div class="dot${i<c?' on':''}"></div>`).join('')}</div>`;}
 function updateDots(c,t){const d=document.querySelector('#tv .dots');if(d)d.innerHTML=Array(t).fill(0).map((_,i)=>`<div class="dot${i<c?' on':''}"></div>`).join('');}
