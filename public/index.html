@@ -9,6 +9,23 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0a;--s:#141414;--b:#222;--t:#f5f5f5;--m:#555;--r:#ff2d2d;--g:#00f076;--y:#ffe62d;--o:#ff8c00;--p:#cc2dff}
 
+/* ═══ TERRITORY ═══ */
+.territory-stage{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.territory-canvas-wrap{position:relative;width:min(90vw,1100px);aspect-ratio:3/2;background:#0c0c0c;border-radius:16px;overflow:hidden;box-shadow:0 12px 50px rgba(0,0,0,.6),inset 0 0 0 2px rgba(255,255,255,.05)}
+#territory-canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
+.territory-hud{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center}
+.terr-chip{display:flex;align-items:center;gap:8px;background:linear-gradient(145deg,#161616,#0d0d0d);border-radius:100px;padding:6px 16px;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.terr-dot{width:14px;height:14px;border-radius:50%;box-shadow:0 0 8px currentColor}
+.terr-name{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1px}
+.terr-pct{font-family:'Bebas Neue',cursive;font-size:18px;color:var(--y);min-width:42px;text-align:right}
+.terr-chip.dead{opacity:.4}
+.terr-chip.dead .terr-name{text-decoration:line-through}
+.territory-timer{font-family:'Bebas Neue',cursive;font-size:clamp(36px,6vw,64px);color:var(--y);letter-spacing:2px;text-shadow:0 0 30px rgba(255,230,45,.4)}
+.territory-timer.low{color:var(--r);text-shadow:0 0 30px rgba(255,45,45,.5);animation:terrPulse .5s ease-in-out infinite}
+@keyframes terrPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.terr-countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:clamp(80px,16vw,200px);color:var(--y);text-shadow:0 0 50px rgba(255,230,45,.6);z-index:5;background:rgba(0,0,0,.4)}
+
+
 /* Sound toggle */
 .sound-toggle{position:fixed;bottom:12px;right:16px;z-index:80;width:44px;height:44px;border-radius:50%;
   background:linear-gradient(145deg,#1a1a1a,#0f0f0f);border:2px solid var(--b);cursor:pointer;
@@ -594,7 +611,7 @@ function applySoundState(){
   else if(a&&soundOn&&musicStarted&&!currentGameForMusic)a.play().catch(()=>{});
 }
 
-const MUSIC_MAP = {Punchline:'punchline',Bluff:'bluff',Scrawl:'scrawl',TriviaKnockout:'trivia',PollMine:'pollmine',Mafia:'mafia',MindMeld:'mindmeld',HotTake:'hottake',Voltage:'voltage',Mole:'mole',Psychic:'psychic',Copycat:'copycat',Stampede:'stampede'};
+const MUSIC_MAP = {Punchline:'punchline',Bluff:'bluff',Scrawl:'scrawl',TriviaKnockout:'trivia',PollMine:'pollmine',Mafia:'mafia',MindMeld:'mindmeld',HotTake:'hottake',Voltage:'voltage',Mole:'mole',Psychic:'psychic',Copycat:'copycat',Stampede:'stampede',Territory:'stampede'};
 let currentGameForMusic=null;
 let myCode=null, players={}, selectedGame='MindMeld';
 let tvCanvas, tvCtx, musicStarted=false;
@@ -682,6 +699,9 @@ function updateScorebar(ps){
 }
 // ═══ GAME CAROUSEL ═══
 const GAMES_DATA = [
+  {id:'Territory',name:'Territory',min:2,live:true,time:'5 min',desc:'Real-time arena battle! Steer your blob, draw loops to claim land, and cut off rivals. Biggest territory wins.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v5h-8zm0 7h8v11h-8zM3 13h8v8H3z"/></svg>',
+   c1:'#002a14',c2:'#0f0f0f',accent:'#00f076',iconBg:'rgba(0,240,118,.15)'},
   {id:'Stampede',name:'Stampede',min:2,live:true,time:'5 min',desc:'A real-time tap race! Sprint across the screen, dodge chaos events, first to the finish wins.',
    icon:'<svg viewBox="0 0 24 24"><path d="M5 11l4-7 4 7-2 1-2-3-2 3zm9 0l4-7 1 1-3 5 3 1-2 3-1-1 1-2zM3 15h18v2H3zm2 4h14v2H5z"/></svg>',
    c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
@@ -1404,6 +1424,133 @@ socket.on('stampede_winner',({winnerName,winnerAvatar,round,standings,players:ps
   updateScorebar(Object.values(ps));
 });
 
+
+// ══ TERRITORY (host display) ══
+let terrCanvas=null,terrCtx=null,terrGW=60,terrGH=40,terrColors={},terrState=null,terrAnimReq=null;
+let terrPlayerColors=[];
+socket.on('territory_init',({gridW,gridH,players:tp,grid,roundSeconds})=>{
+  show('game');
+  if(window.CouchMusic)window.CouchMusic.start('stampede');
+  terrGW=gridW;terrGH=gridH;
+  terrPlayerColors=tp.map(p=>p.color);
+  setTV(`<div class="tv-label">TERRITORY — CLAIM THE MOST LAND</div>
+    <div class="territory-stage">
+      <div class="territory-timer" id="terr-timer">${roundSeconds}</div>
+      <div class="territory-canvas-wrap">
+        <canvas id="territory-canvas"></canvas>
+        <div class="terr-countdown" id="terr-countdown">Ready</div>
+      </div>
+      <div class="territory-hud" id="terr-hud">
+        ${tp.map(p=>`<div class="terr-chip" id="terrchip-${p.id}">
+          <span class="terr-dot" style="background:${p.color};color:${p.color}"></span>
+          <span class="terr-name">${p.name}</span>
+          <span class="terr-pct" id="terrpct-${p.id}">0%</span>
+        </div>`).join('')}
+      </div>
+    </div>`);
+  terrCanvas=document.getElementById('territory-canvas');
+  terrCanvas.width=gridW*10;terrCanvas.height=gridH*10;
+  terrCtx=terrCanvas.getContext('2d');
+  terrState={grid:grid,players:tp.map(p=>({id:p.id,x:p.x,y:p.y,color:p.color,alive:true,trail:[]}))};
+  drawTerritory();
+});
+
+let terrCountdownVal=3;
+socket.on('territory_go',()=>{
+  const cd=document.getElementById('terr-countdown');
+  if(cd)cd.style.display='none';
+});
+socket.on('territory_time',({timeLeft})=>{
+  const t=document.getElementById('terr-timer');
+  if(t){t.textContent=timeLeft;t.classList.toggle('low',timeLeft<=10);}
+  if(timeLeft<=10&&window.CouchMusic)window.CouchMusic.sfx('tick');
+});
+
+socket.on('territory_state',({players:tp,grid})=>{
+  if(!terrState)return;
+  if(grid)terrState.grid=grid;
+  terrState.players=tp;
+  // update HUD percentages
+  tp.forEach(p=>{
+    const pct=document.getElementById('terrpct-'+p.id);
+    if(pct)pct.textContent=p.pct+'%';
+    const chip=document.getElementById('terrchip-'+p.id);
+    if(chip)chip.classList.toggle('dead',!p.alive);
+  });
+  drawTerritory();
+});
+
+socket.on('territory_claim',({color})=>{
+  if(window.CouchMusic)window.CouchMusic.sfx('pop');
+});
+socket.on('territory_pop',({x,y,color})=>{
+  if(window.CouchMusic)window.CouchMusic.sfx('whoosh');
+  // little burst
+  if(terrCtx){
+    terrCtx.fillStyle=color;
+    for(let i=0;i<8;i++){
+      const a=Math.PI*2*i/8;
+      terrCtx.beginPath();
+      terrCtx.arc(x*10+5+Math.cos(a)*14,y*10+5+Math.sin(a)*14,3,0,Math.PI*2);
+      terrCtx.fill();
+    }
+  }
+});
+
+function drawTerritory(){
+  if(!terrCtx||!terrState)return;
+  const cs=10; // cell size in px
+  terrCtx.fillStyle='#0c0c0c';
+  terrCtx.fillRect(0,0,terrCanvas.width,terrCanvas.height);
+  // draw owned territory
+  const g=terrState.grid;
+  if(g){
+    for(let i=0;i<g.length;i++){
+      const owner=g[i];
+      if(owner===-1)continue;
+      const x=(i%terrGW)*cs, y=Math.floor(i/terrGW)*cs;
+      terrCtx.fillStyle=hexA(terrPlayerColors[owner]||'#444',0.85);
+      terrCtx.fillRect(x,y,cs,cs);
+    }
+  }
+  // draw trails (brighter) + heads
+  terrState.players.forEach(p=>{
+    if(p.trail&&p.trail.length){
+      terrCtx.fillStyle=hexA(p.color,0.5);
+      p.trail.forEach(t=>terrCtx.fillRect(t.x*cs,t.y*cs,cs,cs));
+    }
+    if(p.alive){
+      // head
+      terrCtx.fillStyle=p.color;
+      terrCtx.fillRect(p.x*cs-1,p.y*cs-1,cs+2,cs+2);
+      terrCtx.strokeStyle='#fff';
+      terrCtx.lineWidth=2;
+      terrCtx.strokeRect(p.x*cs-1,p.y*cs-1,cs+2,cs+2);
+    }
+  });
+}
+function hexA(hex,a){
+  const h=hex.replace('#','');
+  const r=parseInt(h.substring(0,2),16),g=parseInt(h.substring(2,4),16),b=parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+socket.on('territory_results',({standings,grid})=>{
+  if(window.CouchMusic)window.CouchMusic.sfx('win');
+  if(grid&&terrState){terrState.grid=grid;drawTerritory();}
+  fireConfetti();
+  const winner=standings[0];
+  setTV(`<div class="tv-label">TERRITORY — FINAL</div>
+    <div class="tv-heading" style="color:${winner.color};font-size:clamp(30px,6vw,68px)">${winner.name} owns ${winner.pct}%! 🏆</div>
+    <div class="scores-list">
+      ${standings.map((s,i)=>`<div class="sr" style="animation-delay:${i*.1}s">
+        <div class="sr-rank ${i===0?'g':''}">${i+1}</div>
+        <div class="sr-name"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${s.color};margin-right:8px"></span>${s.name}</div>
+        <div class="sr-pts">${s.pct}%</div>
+      </div>`).join('')}
+    </div>`);
+});
+
 // ── FINAL ──
 // Track who's typing
 const typingPlayers = {};
@@ -1517,6 +1664,11 @@ const TUTORIAL_SLIDES = {
     {title:'Mafia', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><circle cx="40" cy="36" r="20" fill="#ff2d2d"/><circle cx="32" cy="33" r="4" fill="#0a0a0a"/><circle cx="48" cy="33" r="4" fill="#0a0a0a"/><line x1="32" y1="44" x2="48" y2="44" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round"/></svg>', desc:"Hidden roles. The Mafia are secretly trying to eliminate the village. The Village must find them before they're outnumbered!", tip:''},
     {title:'Special Roles', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#141414"/><text x="40" y="30" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#00f076">DOCTOR</text><text x="40" y="50" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#3b8bff">DETECTIVE</text><text x="40" y="70" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#ff2d2d">MAFIA</text></svg>', desc:"Doctor protects someone each night. Detective investigates someone and learns their role. Mafia picks who to eliminate.", tip:''},
     {title:'Day vs Night', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><circle cx="26" cy="40" r="16" fill="#ffe62d"/><path d="M54 24 Q70 40 54 56 Q62 40 54 24Z" fill="#f5f5f5"/></svg>', desc:"At night, special roles act secretly on their phones. At day, everyone discusses who they suspect — then votes someone out!", tip:'Mafia: blend in. Village: watch who avoids suspicion.'},
+  ],
+  Territory: [
+    {title:'Territory', color:'#00f076', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#00f076"/><rect x="14" y="14" width="22" height="22" rx="3" fill="#0a0a0a"/><rect x="44" y="44" width="22" height="22" rx="3" fill="#0a0a0a"/></svg>', desc:"Steer your blob around the arena in real time. The patch you start on is YOUR land. Everyone plays at once on the big screen!", tip:'Swipe or tap the arrows on your phone to steer.'},
+    {title:'Claim Land', color:'#00f076', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><path d="M20 20 L60 20 L60 60 L20 60 Z" fill="none" stroke="#00f076" stroke-width="5" stroke-dasharray="6 4"/></svg>', desc:"Leave your territory to draw a trail. Loop back to your own land and everything you circled becomes yours. Steal from rivals too!", tip:'The bigger the loop, the more land you grab.'},
+    {title:"Don't Get Cut", color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ff2d2d"/><path d="M24 24 L56 56 M56 24 L24 56" stroke="#0a0a0a" stroke-width="7" stroke-linecap="round"/></svg>', desc:"While you're out drawing, your trail is exposed. If someone touches it, you POP! Hit a wall or your own trail and you're gone too.", tip:"Make quick loops — don't stay out too long!"},
   ],
   Stampede: [
     {title:'Stampede', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><path d="M16 36 L24 16 L32 36 L24 40Z" fill="#0a0a0a"/><path d="M40 36 L48 16 L56 36 L48 40Z" fill="#0a0a0a"/><rect x="12" y="50" width="56" height="6" rx="3" fill="#0a0a0a"/><rect x="20" y="62" width="40" height="6" rx="3" fill="#0a0a0a"/></svg>', desc:"A real-time race! TAP your phone as fast as you can to sprint across the finish line. First one there wins the round!", tip:''},
