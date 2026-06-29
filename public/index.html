@@ -249,6 +249,23 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 .bounce-in{animation:bounceIn .5s cubic-bezier(.34,1.56,.64,1) both}
 .ans-card.win{animation:bounceIn .5s cubic-bezier(.34,1.56,.64,1) both!important}
 
+/* tutorial slideshow */
+.tutorial-wrap{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px}
+.tutorial-slide{display:none;flex-direction:column;align-items:center;gap:16px;text-align:center;animation:slideIn .4s ease both}
+.tutorial-slide.active{display:flex}
+@keyframes tSlideIn{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
+.tutorial-slide.active{animation:tSlideIn .35s ease both}
+.tutorial-icon{width:clamp(80px,12vw,140px);height:clamp(80px,12vw,140px);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.tutorial-title{font-family:'Bebas Neue',cursive;font-size:clamp(28px,5vw,56px);color:var(--y);letter-spacing:2px;line-height:1}
+.tutorial-desc{font-size:clamp(14px,2vw,20px);color:var(--t);max-width:700px;line-height:1.5;font-weight:500}
+.tutorial-tip{background:rgba(255,230,45,.08);border:2px solid rgba(255,230,45,.2);border-radius:14px;padding:14px 20px;font-size:clamp(13px,1.6vw,17px);color:var(--y);max-width:600px;line-height:1.4;font-weight:600}
+.tutorial-dots{display:flex;gap:8px}
+.tutorial-dot{width:8px;height:8px;border-radius:50%;background:var(--b);transition:background .3s,width .3s}
+.tutorial-dot.on{background:var(--y);width:24px;border-radius:4px}
+.tutorial-bar{position:absolute;bottom:0;left:0;height:3px;background:var(--y);transition:width .1s linear;border-radius:0}
+.tutorial-skip{position:absolute;top:16px;right:24px;background:rgba(255,255,255,.1);border:2px solid var(--b);border-radius:8px;padding:8px 16px;color:var(--m);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s}
+.tutorial-skip:hover{border-color:var(--y);color:var(--y)}
+
 /* pulse */
 .pulse{display:flex;gap:6px;justify-content:center}
 .pulse span{width:7px;height:7px;border-radius:50%;background:var(--m);animation:pa 1.2s ease-in-out infinite}
@@ -257,8 +274,19 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 </style>
 </head>
 <body>
+<canvas id="particles" style="position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.4"></canvas>
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
+
+<!-- TUTORIAL OVERLAY -->
+<div id="tutorial-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column;align-items:center;justify-content:center">
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+  <button class="tutorial-skip" onclick="skipTutorial()">Skip →</button>
+  <div class="tutorial-wrap" id="tutorial-wrap"></div>
+  <div class="tutorial-dots" id="tutorial-dots"></div>
+  <div class="tutorial-bar" id="tutorial-bar" style="width:0%"></div>
+</div>
 
 <!-- QR overlay -->
 <div class="qr-overlay" id="qr-overlay" onclick="closeQR()">
@@ -507,6 +535,26 @@ socket.on('mindmeld_round',({round,totalRounds,question})=>{
     <div class="tv-sub">Type the first thing that comes to mind. Match others to score!</div>
     ${dots(0,t)}`);
 });
+socket.on('mindmeld_reveal_one', ({answer, index, question}) => {
+  if (index === 0) {
+    setTV(`<div class="tv-label">RESULTS</div>
+      <div class="tv-heading">${question}</div>
+      <div class="meld-grid" id="meld-grid"></div>`);
+  }
+  const grid = document.getElementById('meld-grid');
+  if (!grid) return;
+  const card = document.createElement('div');
+  const isMeld = answer.count > 1;
+  card.className = `meld-card${isMeld?' meld':''} reveal-dramatic`;
+  card.style.animationDelay = '0s';
+  card.innerHTML = `
+    <div class="meld-answer">${answer.answer}</div>
+    <div class="meld-who">${answer.nickname}</div>
+    <div class="meld-count">${isMeld ? `${answer.count} matched! 🤝` : 'Unique'}</div>
+  `;
+  grid.appendChild(card);
+});
+
 socket.on('mindmeld_results',({question,answers,meldPairs,players:ps})=>{
   const tally={};
   answers.forEach(a=>{tally[a.answer]=(tally[a.answer]||0)+1;});
@@ -529,12 +577,40 @@ socket.on('mindmeld_results',({question,answers,meldPairs,players:ps})=>{
 });
 
 // ── HOT TAKE ──
+socket.on('hottake_live', ({count, total, hotSoFar, normSoFar}) => {
+  // Update live bars
+  const hBar = document.getElementById('ht-live-hot');
+  const nBar = document.getElementById('ht-live-norm');
+  if (hBar) hBar.style.width = (hotSoFar/total*100) + '%';
+  if (nBar) nBar.style.width = (normSoFar/total*100) + '%';
+  const hCount = document.getElementById('ht-count-hot');
+  const nCount = document.getElementById('ht-count-norm');
+  if (hCount) hCount.textContent = hotSoFar;
+  if (nCount) nCount.textContent = normSoFar;
+  updateDots(count, total);
+});
+
 socket.on('hottake_round',({round,totalRounds,statement})=>{
   show('game');
   const t=Object.keys(players).length;
   setTV(`<div class="tv-label">HOT TAKE — ROUND ${round} OF ${totalRounds}</div>
     <div class="tv-heading">${statement}</div>
-    <div class="tv-sub">Hot Take or Normal Take? Vote on your phone!</div>
+    <div class="hot-take-display" style="width:100%;max-width:700px">
+      <div class="ht-side hot">
+        <div class="ht-label" style="color:var(--r)">HOT TAKE</div>
+        <div class="ht-count" id="ht-count-hot">0</div>
+        <div style="height:6px;background:var(--b);border-radius:100px;overflow:hidden;width:100%;margin-top:8px">
+          <div id="ht-live-hot" style="height:100%;background:var(--r);border-radius:100px;transition:width .4s ease;width:0%"></div>
+        </div>
+      </div>
+      <div class="ht-side norm">
+        <div class="ht-label" style="color:var(--g)">NORMAL TAKE</div>
+        <div class="ht-count" id="ht-count-norm">0</div>
+        <div style="height:6px;background:var(--b);border-radius:100px;overflow:hidden;width:100%;margin-top:8px">
+          <div id="ht-live-norm" style="height:100%;background:var(--g);border-radius:100px;transition:width .4s ease;width:0%"></div>
+        </div>
+      </div>
+    </div>
     ${dots(0,t)}`);
 });
 socket.on('hottake_reveal',({statement,hotCount,normalCount,majority,players:ps})=>{
@@ -566,16 +642,25 @@ socket.on('voltage_round',({round,totalRounds,category,timeLimit})=>{
     <div class="tv-sub">Unique answers score big. Shared answers score less. You have ${timeLimit}s!</div>
     ${dots(0,t)}`);
 });
+socket.on('voltage_reveal_one', ({result, index, total, category}) => {
+  if (index === 0) {
+    setTV(`<div class="tv-label">RESULTS — ${category}</div>
+      <div class="volt-grid" id="volt-grid"></div>`);
+  }
+  const grid = document.getElementById('volt-grid');
+  if (!grid) return;
+  const card = document.createElement('div');
+  card.className = 'volt-card reveal-dramatic';
+  card.style.animationDelay = '0s';
+  card.innerHTML = `
+    <div class="volt-answer">${result.answer || '—'}</div>
+    <div class="volt-who">${result.nickname}</div>
+    <div class="volt-pts ${result.points>=300?'unique':result.points>0?'shared':'none'}">${result.reason}</div>
+  `;
+  grid.appendChild(card);
+});
+
 socket.on('voltage_results',({category,results,players:ps})=>{
-  const sorted=[...results].sort((a,b)=>b.points-a.points);
-  setTV(`<div class="tv-label">RESULTS — ${category}</div>
-    <div class="volt-grid">
-      ${sorted.map(r=>`<div class="volt-card">
-        <div class="volt-answer">${r.answer||'—'}</div>
-        <div class="volt-who">${r.nickname}</div>
-        <div class="volt-pts ${r.points>=300?'unique':r.points>0?'shared':'none'}">${r.reason}</div>
-      </div>`).join('')}
-    </div>`);
   updateScorebar(Object.values(ps));
 });
 
@@ -744,7 +829,144 @@ socket.on('game_over',()=>{
     if(tv)tv.insertAdjacentHTML('beforeend',`<button onclick="socket.emit('return_to_lobby')" style="background:var(--y);border:none;border-radius:12px;padding:14px 36px;font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;color:#000;cursor:pointer;margin-top:8px">Back to Lobby</button>`);
   },4000);
 });
-socket.on('game_ended',({returnToLobby})=>{
+
+// Tutorial data per game
+const TUTORIAL_SLIDES = {
+  MindMeld: [
+    {title:'Mind Meld', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><circle cx="40" cy="34" r="16" fill="#0a0a0a"/><circle cx="28" cy="31" r="4" fill="#ffe62d"/><circle cx="52" cy="31" r="4" fill="#ffe62d"/><path d="M28 42 Q40 50 52 42" stroke="#ffe62d" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>', desc:"A question appears. Everyone types the FIRST thing that comes to mind — at the same time.", tip:''},
+    {title:'Match = Points', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><text x="40" y="52" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="40" fill="#0a0a0a">2=2</text></svg>', desc:"Match someone's answer exactly and you BOTH score. Match the whole group and everybody gets a massive bonus!", tip:'Think like the group, not like yourself.'},
+    {title:'Be Obvious', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><circle cx="40" cy="40" r="28" fill="#ffe62d"/><text x="40" y="52" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="30" fill="#0a0a0a">!</text></svg>', desc:"The most obvious answer is usually the best. If the question is 'things in a fridge', say MILK and bet others will too.", tip:''},
+  ],
+  HotTake: [
+    {title:'Hot Take', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ff2d2d"/><text x="40" y="54" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="48" fill="#fff">🔥</text></svg>', desc:"A bold statement appears. Is it a controversial Hot Take or a totally Normal Take? You decide!", tip:''},
+    {title:'The Scoring', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ff2d2d"/><text x="40" y="34" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="20" fill="#fff">MAJORITY</text><text x="40" y="54" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="22" fill="#ffe62d">+50</text></svg>', desc:"Safe majority = +50. Bold minority = +150. Lone dissenter = -100! Perfect split = everyone gets chaos points.", tip:''},
+    {title:'Read the Room', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><circle cx="28" cy="40" r="12" fill="#ff2d2d"/><circle cx="52" cy="40" r="12" fill="#00f076"/></svg>', desc:"Sometimes being the bold rebel pays off big. Sometimes the safe play wins. Look at who's playing!", tip:''},
+  ],
+  Voltage: [
+    {title:'Voltage', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><polygon points="48,8 28,44 40,44 32,72 60,36 46,36" fill="#0a0a0a"/></svg>', desc:"A category appears. Type ONE thing that fits. Go fast — everyone answers at the same time!", tip:''},
+    {title:'Go Unique', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="34" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="18" fill="#ffe62d">UNIQUE</text><text x="40" y="56" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="28" fill="#ffe62d">+300</text></svg>', desc:"Unique answer = 300 pts. Shared with others = 150 pts. If EVERYONE says it = only 50 pts.", tip:'Go weird. The obvious answer is almost always shared.'},
+  ],
+  Mole: [
+    {title:'The Mole', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><circle cx="40" cy="36" r="18" fill="#ff2d2d"/><circle cx="32" cy="33" r="4" fill="#0a0a0a"/><circle cx="48" cy="33" r="4" fill="#0a0a0a"/><line x1="32" y1="42" x2="48" y2="42" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round"/></svg>', desc:"Everyone gets a secret word to slip into conversation naturally. But one player is THE MOLE — their job is to catch everyone!", tip:''},
+    {title:'Your Mission', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ff2d2d"/><text x="40" y="36" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#fff">GET THEM</text><text x="40" y="56" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#fff">TO SAY...</text></svg>', desc:"Check your phone for your secret word and hints. Slip it naturally into group chat. The Mole is watching!", tip:"Don't be obvious. Don't say your hints out loud."},
+    {title:'Vote!', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="52" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="48" fill="#ff2d2d">?</text></svg>', desc:"After the timer, everyone votes on who they think The Mole is. Complete your mission = 500 pts. Catch a player = 300 pts. Find the Mole = 400 pts.", tip:''},
+  ],
+  Psychic: [
+    {title:'Psychic', color:'#cc2dff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#cc2dff"/><text x="40" y="52" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="48" fill="#fff">🔮</text></svg>', desc:"One player is The Psychic. They know a secret word. Everyone else must guess it — but the Psychic can ONLY answer in nonsense words!", tip:''},
+    {title:'How it Works', color:'#cc2dff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="34" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#cc2dff">BLORBIX?</text><text x="40" y="56" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#cc2dff">WUMPLE!</text></svg>', desc:"Guessers ask yes/no questions. The Psychic picks whichever nonsense word feels most right for yes or no. First correct guess wins!", tip:'Listen to the VIBE of the nonsense, not the word itself.'},
+  ],
+  Copycat: [
+    {title:'Copycat', color:'#3b8bff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#3b8bff"/><rect x="14" y="14" width="24" height="24" rx="4" fill="#fff"/><rect x="42" y="42" width="24" height="24" rx="4" fill="#fff" opacity=".7"/><path d="M38 26 L42 26 L42 42" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>', desc:"Like Chinese Whispers but with drawings! The first player draws a prompt. Everyone after copies the PREVIOUS drawing, not the original.", tip:''},
+    {title:'The Chain', color:'#3b8bff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><rect x="8" y="28" width="20" height="24" rx="4" fill="#3b8bff"/><rect x="30" y="28" width="20" height="24" rx="4" fill="#3b8bff" opacity=".7"/><rect x="52" y="28" width="20" height="24" rx="4" fill="#3b8bff" opacity=".4"/><text x="27" y="34" font-family="Bebas Neue" font-size="14" fill="#fff">→</text><text x="49" y="34" font-family="Bebas Neue" font-size="14" fill="#fff">→</text></svg>', desc:"At the end, the whole chain is revealed side by side. Then everyone votes for their favourite drawing. Most votes = most points!", tip:'Embrace the chaos. Drawings always mutate.'},
+  ],
+  Quiplash: [
+    {title:'Quiplash', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><path d="M16 20 L64 20 Q70 20 70 26 L70 50 Q70 56 64 56 L50 56 L40 68 L30 56 L16 56 Q10 56 10 50 L10 26 Q10 20 16 20Z" fill="#0a0a0a"/><text x="40" y="44" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="22" fill="#ffe62d">HA!</text></svg>', desc:"Everyone gets a fill-in-the-blank prompt. Write the funniest answer you can! Then answers go head-to-head and everyone votes.", tip:''},
+    {title:'Everyone Votes!', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="34" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#ffe62d">A vs B</text><text x="40" y="58" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="30" fill="#ffe62d">VOTE!</text></svg>', desc:"Even the two competing players vote — just not for themselves. Your own answer will be grayed out. Make others laugh!", tip:'Specific is funnier than vague. Commit to the bit.'},
+  ],
+  Fibbage: [
+    {title:'Fibbage', color:'#ff8c00', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ff8c00"/><text x="40" y="52" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="48" fill="#fff">🤥</text></svg>', desc:"A bizarre true fact appears with a blank. Everyone writes a fake answer trying to fool others. Then everyone guesses which is real!", tip:''},
+    {title:'Fool & Find', color:'#ff8c00', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="36" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#ff8c00">FOOL = +400</text><text x="40" y="58" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#00f076">TRUTH = +500</text></svg>', desc:"Find the real answer = 500 pts. Fool someone with your lie = 400 pts per person. Your own lie is shown in red — don't click it!", tip:'The truth is always weirder than you think.'},
+  ],
+  Drawful: [
+    {title:'Drawful', color:'#3b8bff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#3b8bff"/><path d="M20 56 L36 28 L46 44 L52 36 L62 56Z" fill="#fff" opacity=".9"/><circle cx="58" cy="22" r="8" fill="#ffe62d"/></svg>', desc:"Take turns drawing a weird prompt on your phone while everyone else watches the drawing appear LIVE on their screen!", tip:''},
+    {title:'Guess & Score', color:'#3b8bff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="36" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#00f076">CORRECT +1000</text><text x="40" y="58" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#ffe62d">FOOL +500</text></svg>', desc:"Guess correctly = 1000 pts (and the drawer gets 500). Fool others with a fake guess = 500 per person you fool!", tip:"Simple drawings are easier to guess than detailed ones."},
+  ],
+  TriviaKnockout: [
+    {title:'Trivia Knockout', color:'#00f076', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#00f076"/><text x="40" y="52" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="48" fill="#0a0a0a">?</text></svg>', desc:"Multiple choice trivia. Get it right and build a streak. Get it wrong... and you're ELIMINATED. Last player standing wins!", tip:''},
+    {title:'Streaks Win', color:'#00f076', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="34" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#00f076">CORRECT +300</text><text x="40" y="54" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#ffe62d">STREAK +100</text></svg>', desc:"Each correct answer = 300 pts. Every consecutive correct answer adds a 100 pt streak bonus. Wrong = eliminated!", tip:'Accuracy beats speed. Take a breath.'},
+  ],
+  PollMine: [
+    {title:'Poll Mine', color:'#cc2dff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#cc2dff"/><rect x="16" y="48" width="10" height="20" rx="2" fill="#fff"/><rect x="30" y="36" width="10" height="32" rx="2" fill="#fff"/><rect x="44" y="28" width="10" height="40" rx="2" fill="#fff"/><rect x="58" y="44" width="6" height="24" rx="2" fill="#fff" opacity=".6"/></svg>', desc:"Vote on a question, THEN predict how the whole group voted. The closer your ranking matches reality, the more you score!", tip:''},
+    {title:'Read the Group', color:'#cc2dff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="36" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#cc2dff">EXACT = +400</text><text x="40" y="56" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#ffe62d">ONE OFF = +200</text></svg>', desc:"Exact rank match = 400 pts. One position off = 200. Two off = 75. Think about the people in the room!", tip:"Don't predict what YOU like. Predict what EVERYONE likes."},
+  ],
+  Mafia: [
+    {title:'Mafia', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><circle cx="40" cy="36" r="20" fill="#ff2d2d"/><circle cx="32" cy="33" r="4" fill="#0a0a0a"/><circle cx="48" cy="33" r="4" fill="#0a0a0a"/><line x1="32" y1="44" x2="48" y2="44" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round"/></svg>', desc:"Hidden roles. The Mafia are secretly trying to eliminate the village. The Village must find them before they're outnumbered!", tip:''},
+    {title:'Special Roles', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#141414"/><text x="40" y="30" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#00f076">DOCTOR</text><text x="40" y="50" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#3b8bff">DETECTIVE</text><text x="40" y="70" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#ff2d2d">MAFIA</text></svg>', desc:"Doctor protects someone each night. Detective investigates someone and learns their role. Mafia picks who to eliminate.", tip:''},
+    {title:'Day vs Night', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><circle cx="26" cy="40" r="16" fill="#ffe62d"/><path d="M54 24 Q70 40 54 56 Q62 40 54 24Z" fill="#f5f5f5"/></svg>', desc:"At night, special roles act secretly on their phones. At day, everyone discusses who they suspect — then votes someone out!", tip:'Mafia: blend in. Village: watch who avoids suspicion.'},
+  ],
+};
+
+let tutorialSlideIndex = 0;
+let tutorialSlides = [];
+let tutorialTimer = null;
+let tutorialBarInterval = null;
+
+socket.on('show_tutorial', ({gameName}) => {
+  const slides = TUTORIAL_SLIDES[gameName];
+  if (!slides || slides.length === 0) {
+    socket.emit('skip_tutorial');
+    return;
+  }
+  tutorialSlides = slides;
+  tutorialSlideIndex = 0;
+  showTutorialSlide(0);
+  document.getElementById('tutorial-overlay').style.display = 'flex';
+  show('game');
+  // Auto advance slides
+  startTutorialAuto();
+});
+
+socket.on('tutorial_done', () => {
+  document.getElementById('tutorial-overlay').style.display = 'none';
+  clearInterval(tutorialBarInterval);
+  clearTimeout(tutorialTimer);
+});
+
+function showTutorialSlide(index) {
+  const slides = tutorialSlides;
+  if (!slides || index >= slides.length) return;
+  const slide = slides[index];
+  const wrap = document.getElementById('tutorial-wrap');
+  const secsPerSlide = 10;
+
+  wrap.innerHTML = `
+    <div class="tutorial-slide active">
+      <div class="tutorial-icon" style="background:${slide.color}20;border:3px solid ${slide.color}40">
+        ${slide.icon}
+      </div>
+      <div class="tutorial-title" style="color:${slide.color}">${slide.title}</div>
+      <div class="tutorial-desc">${slide.desc}</div>
+      ${slide.tip ? `<div class="tutorial-tip"><strong>Pro Tip:</strong> ${slide.tip}</div>` : ''}
+    </div>
+  `;
+
+  // dots
+  const dots = document.getElementById('tutorial-dots');
+  dots.innerHTML = slides.map((_, i) => `<div class="tutorial-dot${i===index?' on':''}"></div>`).join('');
+
+  // progress bar
+  const bar = document.getElementById('tutorial-bar');
+  bar.style.transition = 'none';
+  bar.style.width = '0%';
+  setTimeout(() => {
+    bar.style.transition = `width ${secsPerSlide}s linear`;
+    bar.style.width = '100%';
+  }, 50);
+}
+
+function startTutorialAuto() {
+  clearTimeout(tutorialTimer);
+  clearInterval(tutorialBarInterval);
+  const secsPerSlide = 10;
+  function advance() {
+    tutorialSlideIndex++;
+    if (tutorialSlideIndex >= tutorialSlides.length) {
+      skipTutorial();
+      return;
+    }
+    showTutorialSlide(tutorialSlideIndex);
+    tutorialTimer = setTimeout(advance, secsPerSlide * 1000);
+  }
+  tutorialTimer = setTimeout(advance, secsPerSlide * 1000);
+}
+
+function skipTutorial() {
+  clearTimeout(tutorialTimer);
+  document.getElementById('tutorial-overlay').style.display = 'none';
+  socket.emit('skip_tutorial');
+}
+
+socket.on('game_ended', ({returnToLobby}) => {
   if(returnToLobby){show('lobby');document.getElementById('ticker').style.display='block';fadeInMusic();}
 });
 socket.on('host_disconnected',()=>{
@@ -754,6 +976,38 @@ socket.on('start_error',({message})=>{
   const btn=document.getElementById('start-btn');
   if(btn){btn.textContent=message;setTimeout(()=>btn.textContent='Start Game',3000);}
 });
+
+// Particle system for lobby
+(function(){
+  const canvas=document.getElementById('particles');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;
+  window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;});
+  const particles=Array.from({length:30},()=>({
+    x:Math.random()*W,y:Math.random()*H,
+    vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,
+    r:Math.random()*2+1,
+    color:['#ffe62d','#ff2d2d','#00f076','#3b8bff','#cc2dff'][Math.floor(Math.random()*5)],
+    alpha:Math.random()*.5+.1
+  }));
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+      if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.color;
+      ctx.globalAlpha=p.alpha;
+      ctx.fill();
+      ctx.globalAlpha=1;
+    });
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
 </script>
 </body>
 </html>
