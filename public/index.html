@@ -594,7 +594,7 @@ function applySoundState(){
   else if(a&&soundOn&&musicStarted&&!currentGameForMusic)a.play().catch(()=>{});
 }
 
-const MUSIC_MAP = {Quiplash:'quiplash',Fibbage:'fibbage',Drawful:'drawful',TriviaKnockout:'trivia',PollMine:'pollmine',Mafia:'mafia',MindMeld:'mindmeld',HotTake:'hottake',Voltage:'voltage',Mole:'mole',Psychic:'psychic',Copycat:'copycat',Stampede:'stampede'};
+const MUSIC_MAP = {Punchline:'punchline',Bluff:'bluff',Scrawl:'scrawl',TriviaKnockout:'trivia',PollMine:'pollmine',Mafia:'mafia',MindMeld:'mindmeld',HotTake:'hottake',Voltage:'voltage',Mole:'mole',Psychic:'psychic',Copycat:'copycat',Stampede:'stampede'};
 let currentGameForMusic=null;
 let myCode=null, players={}, selectedGame='MindMeld';
 let tvCanvas, tvCtx, musicStarted=false;
@@ -685,13 +685,13 @@ const GAMES_DATA = [
   {id:'Stampede',name:'Stampede',min:2,live:true,time:'5 min',desc:'A real-time tap race! Sprint across the screen, dodge chaos events, first to the finish wins.',
    icon:'<svg viewBox="0 0 24 24"><path d="M5 11l4-7 4 7-2 1-2-3-2 3zm9 0l4-7 1 1-3 5 3 1-2 3-1-1 1-2zM3 15h18v2H3zm2 4h14v2H5z"/></svg>',
    c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
-  {id:'Quiplash',name:'Quiplash',min:3,time:'10 min',desc:'Write the funniest answer to wild prompts, then everyone votes for their favourite.',
+  {id:'Punchline',name:'Punchline',min:3,time:'10 min',desc:'Write the funniest answer to wild prompts, then everyone votes for their favourite.',
    icon:'<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>',
    c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
-  {id:'Fibbage',premium:true,name:'Fibbage',min:3,time:'10 min',desc:'Invent a convincing lie to a bizarre fact, then find the real truth among the fakes.',
+  {id:'Bluff',premium:true,name:'Bluff',min:3,time:'10 min',desc:'Invent a convincing lie to a bizarre fact, then find the real truth among the fakes.',
    icon:'<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
    c1:'#2a1800',c2:'#0f0f0f',accent:'#ff8c00',iconBg:'rgba(255,140,0,.15)'},
-  {id:'Drawful',premium:true,name:'Drawful',min:3,time:'10 min',desc:'Draw a ridiculous prompt while everyone watches live and guesses what on earth it is.',
+  {id:'Scrawl',premium:true,name:'Scrawl',min:3,time:'10 min',desc:'Draw a ridiculous prompt while everyone watches live and guesses what on earth it is.',
    icon:'<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
    c1:'#001a2a',c2:'#0f0f0f',accent:'#3b8bff',iconBg:'rgba(59,139,255,.15)'},
   {id:'MindMeld',name:'Mind Meld',min:2,time:'6 min',desc:'Type the first thing that comes to mind and match your friends for points. Think alike!',
@@ -729,7 +729,7 @@ let unlockedGames = new Set();
 try {
   const saved = JSON.parse(localStorage.getItem('cp_unlocks')||'[]');
   saved.forEach(g=>unlockedGames.add(g));
-  const allPrem = ['Fibbage','Drawful','PollMine','Copycat','Psychic','Mole','Mafia'];
+  const allPrem = ['Bluff','Scrawl','PollMine','Copycat','Psychic','Mole','Mafia'];
   if(allPrem.every(g=>unlockedGames.has(g)))premiumUnlocked=true;
 } catch(e){}
 function saveUnlocks(){
@@ -1126,7 +1126,7 @@ socket.on('copycat_scores',({tally,players:ps})=>{
 
 
 // ══ QUIPLASH (host display) ══
-socket.on('quiplash_round',({round,totalRounds})=>{
+socket.on('punchline_round',({round,totalRounds})=>{
   show('game');
   const t=Object.keys(players).length;
   setTV(`<div class="tv-label">QUIPLASH — ROUND ${round} OF ${totalRounds}</div>
@@ -1135,7 +1135,7 @@ socket.on('quiplash_round',({round,totalRounds})=>{
     <div class="tv-sub" id="qp-count">Check your phones!</div>
     ${dots(0,t)}`);
 });
-socket.on('quiplash_vote',({prompt,options})=>{
+socket.on('punchline_vote',({prompt,options})=>{
   const t=Object.keys(players).length;
   setTV(`<div class="tv-label">VOTE FOR THE FUNNIEST</div>
     <div class="tv-heading" style="font-size:clamp(20px,3.5vw,40px)">${prompt}</div>
@@ -1169,7 +1169,7 @@ socket.on('vote_results',({tally,players:ps})=>{
 });
 
 // ══ FIBBAGE (host display) ══
-socket.on('fibbage_round',({round,totalRounds,category,prompt})=>{
+socket.on('bluff_round',({round,totalRounds,category,prompt})=>{
   show('game');
   const t=Object.keys(players).length;
   setTV(`<div class="tv-label">FIBBAGE — ROUND ${round} OF ${totalRounds}</div>
@@ -1179,7 +1179,7 @@ socket.on('fibbage_round',({round,totalRounds,category,prompt})=>{
     <div class="tv-sub">Write a convincing lie!</div>
     ${dots(0,t)}`);
 });
-socket.on('fibbage_vote',({prompt,answers})=>{
+socket.on('bluff_vote',({prompt,answers})=>{
   const t=Object.keys(players).length;
   setTV(`<div class="tv-label">WHICH IS THE TRUTH?</div>
     <div class="tv-heading" style="font-size:clamp(18px,3vw,34px)">${prompt}</div>
@@ -1190,7 +1190,7 @@ socket.on('fibbage_vote',({prompt,answers})=>{
     </div>
     <div class="tv-sub">${dots(0,t)}</div>`);
 });
-socket.on('fibbage_results',({truth,answers,votes,players:ps})=>{
+socket.on('bluff_results',({truth,answers,votes,players:ps})=>{
   // Highlight the truth, show who got fooled
   setTimeout(()=>{
     answers.forEach(a=>{
@@ -1206,7 +1206,7 @@ socket.on('fibbage_results',({truth,answers,votes,players:ps})=>{
 
 // ══ DRAWFUL (host display) ══
 let hostDrawCanvas=null,hostDrawCtx=null;
-socket.on('drawful_drawing_started',({drawerName,round,totalRounds})=>{
+socket.on('scrawl_drawing_started',({drawerName,round,totalRounds})=>{
   show('game');
   setTV(`<div class="tv-label">DRAWFUL — ROUND ${round||1} OF ${totalRounds||1}</div>
     <div class="tv-heading">${drawerName} is drawing...</div>
@@ -1229,11 +1229,11 @@ socket.on('draw_stroke',({stroke})=>{
 socket.on('draw_cleared',()=>{
   if(hostDrawCtx&&hostDrawCanvas){hostDrawCtx.fillStyle='white';hostDrawCtx.fillRect(0,0,hostDrawCanvas.width,hostDrawCanvas.height);}
 });
-socket.on('drawful_guessing',({drawerName})=>{
+socket.on('scrawl_guessing',({drawerName})=>{
   const sub=document.querySelector('#tv .tv-sub');
   if(sub)sub.textContent='Time to guess! Check your phones.';
 });
-socket.on('drawful_vote_display',({prompt,answers})=>{
+socket.on('scrawl_vote_display',({prompt,answers})=>{
   const t=Object.keys(players).length;
   setTV(`<div class="tv-label">WHAT WAS IT?</div>
     <div class="tv-heading">Vote for the real prompt!</div>
@@ -1241,7 +1241,7 @@ socket.on('drawful_vote_display',({prompt,answers})=>{
       ${(answers||[]).map((a,i)=>`<div class="opt-tv"><div class="opt-ltr">${String.fromCharCode(65+i)}</div>${a.text}</div>`).join('')}
     </div>${dots(0,t)}`);
 });
-socket.on('drawful_reveal',({prompt,players:ps})=>{
+socket.on('scrawl_reveal',({prompt,players:ps})=>{
   const tv=document.querySelector('#tv .tv-heading');
   setTV(`<div class="tv-label">THE ANSWER WAS</div>
     <div class="tv-heading" style="color:var(--g)">${prompt}</div>`);
@@ -1493,16 +1493,16 @@ const TUTORIAL_SLIDES = {
     {title:'Copycat', color:'#3b8bff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#3b8bff"/><rect x="14" y="14" width="24" height="24" rx="4" fill="#fff"/><rect x="42" y="42" width="24" height="24" rx="4" fill="#fff" opacity=".7"/><path d="M38 26 L42 26 L42 42" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>', desc:"Like Chinese Whispers but with drawings! The first player draws a prompt. Everyone after copies the PREVIOUS drawing, not the original.", tip:''},
     {title:'The Chain', color:'#3b8bff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><rect x="8" y="28" width="20" height="24" rx="4" fill="#3b8bff"/><rect x="30" y="28" width="20" height="24" rx="4" fill="#3b8bff" opacity=".7"/><rect x="52" y="28" width="20" height="24" rx="4" fill="#3b8bff" opacity=".4"/><text x="27" y="34" font-family="Bebas Neue" font-size="14" fill="#fff">→</text><text x="49" y="34" font-family="Bebas Neue" font-size="14" fill="#fff">→</text></svg>', desc:"At the end, the whole chain is revealed side by side. Then everyone votes for their favourite drawing. Most votes = most points!", tip:'Embrace the chaos. Drawings always mutate.'},
   ],
-  Quiplash: [
-    {title:'Quiplash', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><path d="M16 20 L64 20 Q70 20 70 26 L70 50 Q70 56 64 56 L50 56 L40 68 L30 56 L16 56 Q10 56 10 50 L10 26 Q10 20 16 20Z" fill="#0a0a0a"/><text x="40" y="44" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="22" fill="#ffe62d">HA!</text></svg>', desc:"Everyone gets a fill-in-the-blank prompt. Write the funniest answer you can! Then answers go head-to-head and everyone votes.", tip:''},
+  Punchline: [
+    {title:'Punchline', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><path d="M16 20 L64 20 Q70 20 70 26 L70 50 Q70 56 64 56 L50 56 L40 68 L30 56 L16 56 Q10 56 10 50 L10 26 Q10 20 16 20Z" fill="#0a0a0a"/><text x="40" y="44" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="22" fill="#ffe62d">HA!</text></svg>', desc:"Everyone gets a fill-in-the-blank prompt. Write the funniest answer you can! Then answers go head-to-head and everyone votes.", tip:''},
     {title:'Everyone Votes!', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="34" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#ffe62d">A vs B</text><text x="40" y="58" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="30" fill="#ffe62d">VOTE!</text></svg>', desc:"Even the two competing players vote — just not for themselves. Your own answer will be grayed out. Make others laugh!", tip:'Specific is funnier than vague. Commit to the bit.'},
   ],
-  Fibbage: [
-    {title:'Fibbage', color:'#ff8c00', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ff8c00"/><text x="40" y="52" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="48" fill="#fff">🤥</text></svg>', desc:"A bizarre true fact appears with a blank. Everyone writes a fake answer trying to fool others. Then everyone guesses which is real!", tip:''},
+  Bluff: [
+    {title:'Bluff', color:'#ff8c00', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ff8c00"/><text x="40" y="52" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="48" fill="#fff">🤥</text></svg>', desc:"A bizarre true fact appears with a blank. Everyone writes a fake answer trying to fool others. Then everyone guesses which is real!", tip:''},
     {title:'Fool & Find', color:'#ff8c00', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="36" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#ff8c00">FOOL = +400</text><text x="40" y="58" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#00f076">TRUTH = +500</text></svg>', desc:"Find the real answer = 500 pts. Fool someone with your lie = 400 pts per person. Your own lie is shown in red — don't click it!", tip:'The truth is always weirder than you think.'},
   ],
-  Drawful: [
-    {title:'Drawful', color:'#3b8bff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#3b8bff"/><path d="M20 56 L36 28 L46 44 L52 36 L62 56Z" fill="#fff" opacity=".9"/><circle cx="58" cy="22" r="8" fill="#ffe62d"/></svg>', desc:"Take turns drawing a weird prompt on your phone while everyone else watches the drawing appear LIVE on their screen!", tip:''},
+  Scrawl: [
+    {title:'Scrawl', color:'#3b8bff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#3b8bff"/><path d="M20 56 L36 28 L46 44 L52 36 L62 56Z" fill="#fff" opacity=".9"/><circle cx="58" cy="22" r="8" fill="#ffe62d"/></svg>', desc:"Take turns drawing a weird prompt on your phone while everyone else watches the drawing appear LIVE on their screen!", tip:''},
     {title:'Guess & Score', color:'#3b8bff', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><text x="40" y="36" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#00f076">CORRECT +1000</text><text x="40" y="58" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="16" fill="#ffe62d">FOOL +500</text></svg>', desc:"Guess correctly = 1000 pts (and the drawer gets 500). Fool others with a fake guess = 500 per person you fool!", tip:"Simple drawings are easier to guess than detailed ones."},
   ],
   TriviaKnockout: [
