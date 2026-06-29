@@ -63,10 +63,10 @@ class Quiplash {
     });
 
     players.forEach(p => {
-      this.io.to(p.id).emit('your_prompt', { prompt: this.assignments[p.id].prompt, timeLimit: 60 });
+      this.io.to(p.id).emit('your_prompt', { prompt: this.assignments[p.id].prompt, timeLimit: 45 });
     });
 
-    this.answerTimer = setTimeout(() => this.startVoting(), 65000);
+    this.answerTimer = setTimeout(() => this.startVoting(), 35000);
   }
 
   handleInput(playerId, data) {
@@ -81,12 +81,14 @@ class Quiplash {
     } else if (this.phase === 'voting' && data.type === 'vote') {
       const pair = this.votingPairs[this.currentVoteIndex];
       if (!pair || this.votes[playerId]) return;
-      if (playerId === pair.p1 || playerId === pair.p2) return;
+      // Competitors can't vote for themselves
+      if (playerId === pair.p1 && data.vote === pair.p1) return;
+      if (playerId === pair.p2 && data.vote === pair.p2) return;
       if (data.vote !== pair.p1 && data.vote !== pair.p2) return;
       this.votes[playerId] = data.vote;
-      const eligible = Object.keys(this.room.players).filter(id => id !== pair.p1 && id !== pair.p2).length;
-      this.io.to(this.code).emit('vote_received', { count: Object.keys(this.votes).length, total: eligible });
-      if (Object.keys(this.votes).length >= eligible) { clearTimeout(this.voteTimer); setTimeout(() => this.showVoteResults(), 800); }
+      const total = Object.keys(this.room.players).length;
+      this.io.to(this.code).emit('vote_received', { count: Object.keys(this.votes).length, total });
+      if (Object.keys(this.votes).length >= total) { clearTimeout(this.voteTimer); setTimeout(() => this.showVoteResults(), 800); }
     }
   }
 
@@ -108,31 +110,34 @@ class Quiplash {
     this.votes = {};
     const pair = this.votingPairs[this.currentVoteIndex];
     const p1 = this.room.players[pair.p1], p2 = this.room.players[pair.p2];
+    if (!p1 || !p2) { this.currentVoteIndex++; this.showNextVote(); return; }
     const a1 = this.assignments[pair.p1], a2 = this.assignments[pair.p2];
+    const allPlayers = Object.keys(this.room.players);
+    const totalVoters = allPlayers.length; // EVERYONE votes, including competitors
 
     this.io.to(this.code).emit('quiplash_vote', {
       prompt: a1.prompt,
       options: [
         { playerId: pair.p1, nickname: p1.nickname, avatar: p1.avatar, answer: a1.answer },
         { playerId: pair.p2, nickname: p2.nickname, avatar: p2.avatar, answer: a2.answer },
-      ]
+      ],
+      totalVoters
     });
 
-    Object.keys(this.room.players).forEach(id => {
-      if (id !== pair.p1 && id !== pair.p2) {
-        this.io.to(id).emit('vote_now', {
-          prompt: a1.prompt, timeLimit: 25,
-          options: [
-            { playerId: pair.p1, answer: a1.answer },
-            { playerId: pair.p2, answer: a2.answer },
-          ]
-        });
-      } else {
-        this.io.to(id).emit('wait_for_votes', { message: "Your answer is being judged right now..." });
-      }
+    // ALL players get to vote - competitors can't vote for themselves
+    allPlayers.forEach(id => {
+      const isCompetitor = id === pair.p1 || id === pair.p2;
+      this.io.to(id).emit('vote_now', {
+        prompt: a1.prompt, timeLimit: 25,
+        isCompetitor,
+        options: [
+          { playerId: pair.p1, answer: a1.answer, nickname: p1.nickname },
+          { playerId: pair.p2, answer: a2.answer, nickname: p2.nickname },
+        ]
+      });
     });
 
-    this.voteTimer = setTimeout(() => this.showVoteResults(), 28000);
+    this.voteTimer = setTimeout(() => this.showVoteResults(), 20000);
   }
 
   showVoteResults() {
