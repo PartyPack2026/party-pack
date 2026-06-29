@@ -38,7 +38,7 @@ class PollMine {
     Object.values(this.room.players).forEach(p => {
       this.io.to(p.id).emit('cast_vote', { question: this.currentPoll.q, options: this.currentPoll.o, timeLimit: 25 });
     });
-    this.voteTimer = setTimeout(() => this.startPredicting(), 28000);
+    this.voteTimer = setTimeout(() => this.startPredicting(), 20000);
   }
 
   handleInput(playerId, data) {
@@ -73,7 +73,7 @@ class PollMine {
         options: [...this.currentPoll.o].sort(() => Math.random() - 0.5)
       });
     });
-    this.predictTimer = setTimeout(() => this.showPollResults(), 38000);
+    this.predictTimer = setTimeout(() => this.showPollResults(), 25000);
   }
 
   showPollResults() {
