@@ -63,7 +63,7 @@ class Drawful {
         // Drawer gets their prompt and drawing canvas
         this.io.to(id).emit('drawful_you_draw', {
           prompt, round: this.currentRound, totalRounds: this.totalRounds,
-          timeLimit: 80
+          timeLimit: 60
         });
       } else {
         // Everyone else watches the canvas live
@@ -76,23 +76,25 @@ class Drawful {
       }
     });
 
+    // Tell the HOST screen to show the live canvas
+    this.io.to(this.code).emit('drawful_drawing_started', {
+      drawerName: drawerInfo?.nickname,
+      round: this.currentRound, totalRounds: this.totalRounds
+    });
+
     this.drawTimer = setTimeout(() => this.startGuessing(), 85000);
   }
 
   handleInput(playerId, data) {
     if (data.type === 'stroke' && playerId === this.currentDrawer) {
       this.strokes.push(data.stroke);
-      // broadcast stroke to ALL other players
-      Object.keys(this.room.players).forEach(id => {
-        if (id !== playerId) this.io.to(id).emit('draw_stroke', { stroke: data.stroke });
-      });
+      // broadcast to other players AND the host screen
+      this.io.to(this.code).except(playerId).emit('draw_stroke', { stroke: data.stroke });
     }
 
     if (data.type === 'clear' && playerId === this.currentDrawer) {
       this.strokes = [];
-      Object.keys(this.room.players).forEach(id => {
-        if (id !== playerId) this.io.to(id).emit('draw_cleared');
-      });
+      this.io.to(this.code).except(playerId).emit('draw_cleared');
     }
 
     if (data.type === 'request_strokes') {
@@ -149,6 +151,9 @@ class Drawful {
       }
     });
 
+    // Update host screen
+    this.io.to(this.code).emit('drawful_guessing', { drawerName: drawerInfo?.nickname });
+
     this.guessTimer = setTimeout(() => this.startVoting(), 33000);
   }
 
@@ -179,6 +184,9 @@ class Drawful {
         this.io.to(id).emit('drawful_drawer_wait', { message: "They're voting! 🗳️" });
       }
     });
+
+    // Show voting options on host screen
+    this.io.to(this.code).emit('drawful_vote_display', { answers: displayAnswers });
 
     this.voteTimer = setTimeout(() => this.showResults(), 23000);
   }
@@ -220,6 +228,11 @@ class Drawful {
         gotIt,
         fooledCount
       });
+    });
+
+    // Reveal answer on host screen
+    this.io.to(this.code).emit('drawful_reveal', {
+      prompt: this.currentPrompt, players: this.room.players
     });
 
     setTimeout(() => this.nextDrawer(), 8000);
