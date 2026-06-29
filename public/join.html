@@ -9,6 +9,11 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0a0a0a;--s:#141414;--b:#222;--t:#f5f5f5;--m:#555;--r:#ff2d2d;--g:#00f076;--y:#ffe62d;--o:#ff8c00;--p:#cc2dff}
 
+/* Territory D-pad */
+.terr-dir{width:84px;height:84px;border:none;border-radius:20px;background:linear-gradient(145deg,#1d1d1d,#111);color:var(--y);font-size:32px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);transition:all .08s;touch-action:none;-webkit-user-select:none;user-select:none}
+.terr-dir:active,.terr-dir.on{background:var(--y);color:#000;transform:scale(.94)}
+
+
 /* ═══ GRAPHIC POLISH ═══ */
 .big-title .l1{filter:drop-shadow(0 0 24px rgba(255,230,45,.25))}
 input,textarea{background:linear-gradient(145deg,#161616,#0e0e0e)!important;box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
@@ -530,6 +535,32 @@ textarea{resize:none;height:110px;font-size:17px;line-height:1.4}
     <div id="stampede-tap-label">TAP!</div>
     <div style="font-size:18px;color:var(--m);letter-spacing:1px" id="stampede-mypos"></div>
   </button>
+</div>
+
+<!-- TERRITORY: STEERING CONTROLLER -->
+<div id="s-territory" class="screen" style="padding:0;justify-content:stretch">
+  <div id="territory-ready" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:6;background:var(--bg)">
+    <div class="label" style="color:var(--y)">Territory</div>
+    <div style="width:60px;height:60px;border-radius:50%;border:4px solid var(--y);box-shadow:0 0 30px rgba(255,230,45,.4)" id="territory-mycolor"></div>
+    <div style="font-family:'Bebas Neue',cursive;font-size:90px;color:var(--y)" id="territory-cd">Ready</div>
+    <div class="status" style="max-width:260px">Swipe to steer your blob. Leave your land, draw a loop, and get back home to claim it!</div>
+  </div>
+  <div id="territory-pad" style="width:100%;height:100%;position:relative;background:radial-gradient(circle at center,#141414,#0a0a0a);touch-action:none;overflow:hidden;display:flex;align-items:center;justify-content:center">
+    <!-- D-pad style steering -->
+    <div style="position:relative;width:min(70vw,300px);height:min(70vw,300px)">
+      <button class="terr-dir" data-dir="up" style="position:absolute;top:0;left:50%;transform:translateX(-50%)">▲</button>
+      <button class="terr-dir" data-dir="down" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%)">▼</button>
+      <button class="terr-dir" data-dir="left" style="position:absolute;left:0;top:50%;transform:translateY(-50%)">◀</button>
+      <button class="terr-dir" data-dir="right" style="position:absolute;right:0;top:50%;transform:translateY(-50%)">▶</button>
+      <div id="territory-center" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;background:var(--y);box-shadow:0 0 24px rgba(255,230,45,.5);display:flex;align-items:center;justify-content:center;font-size:28px">●</div>
+    </div>
+    <div id="territory-swipe-hint" style="position:absolute;bottom:20px;left:0;right:0;text-align:center;color:var(--m);font-size:13px;font-weight:700">or swipe anywhere to steer</div>
+    <div id="territory-dead-overlay" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.85);z-index:7;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+      <div style="font-size:64px">💥</div>
+      <div class="section-title" style="color:var(--r)">You popped!</div>
+      <div class="status" id="territory-dead-msg">Watch the rest on the big screen.</div>
+    </div>
+  </div>
 </div>
 
 <script src="/music.js"></script>
@@ -1480,6 +1511,77 @@ socket.on('stampede_event',({label,desc,forMe})=>{
 socket.on('stampede_winner_player',({won,position,winnerName})=>{
   stampedeCanTap=false;
   showResult(won?'🏆':position<=3?'🏃':'😅',won?'YOU WON!':`${position}${position===2?'nd':position===3?'rd':'th'} place`,won?'+1000':null,won?'First across the line!':`${winnerName} won this race`);
+});
+
+
+// ══ TERRITORY (player) ══
+let terrAlive=false,terrLastDir=null;
+socket.on('territory_you',({color,name})=>{
+  const sw=document.getElementById('territory-mycolor');
+  if(sw)sw.style.background=color;
+  const ctr=document.getElementById('territory-center');
+  if(ctr)ctr.style.background=color;
+  document.getElementById('territory-ready').style.display='flex';
+  document.getElementById('territory-dead-overlay').style.display='none';
+  document.querySelectorAll('.terr-dir').forEach(b=>b.style.background='');
+  terrAlive=false;
+  // countdown
+  let cd=3;
+  const el=document.getElementById('territory-cd');
+  el.textContent='3';el.style.color='var(--y)';
+  showWithReactions('territory');
+  const t=setInterval(()=>{
+    cd--;
+    if(cd>0)el.textContent=cd;
+    else if(cd===0){el.textContent='GO!';el.style.color='var(--g)';}
+    else clearInterval(t);
+  },1000);
+});
+socket.on('territory_go',()=>{
+  document.getElementById('territory-ready').style.display='none';
+  terrAlive=true;
+  if(navigator.vibrate)navigator.vibrate(40);
+});
+function terrSteer(dir){
+  if(!terrAlive||dir===terrLastDir)return;
+  terrLastDir=dir;
+  socket.emit('game_input',{type:'steer',dir});
+  // visual
+  document.querySelectorAll('.terr-dir').forEach(b=>b.classList.toggle('on',b.dataset.dir===dir));
+  if(navigator.vibrate)navigator.vibrate(8);
+}
+// D-pad buttons
+document.querySelectorAll('.terr-dir').forEach(btn=>{
+  const fire=(e)=>{e.preventDefault();terrSteer(btn.dataset.dir);};
+  btn.addEventListener('touchstart',fire,{passive:false});
+  btn.addEventListener('mousedown',fire);
+});
+// Swipe steering on the whole pad
+(function(){
+  const pad=document.getElementById('territory-pad');
+  if(!pad)return;
+  let sx=0,sy=0,active=false;
+  pad.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;active=true;},{passive:true});
+  pad.addEventListener('touchmove',e=>{
+    if(!active)return;
+    const t=e.touches[0];
+    const dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dx)<24&&Math.abs(dy)<24)return;
+    if(Math.abs(dx)>Math.abs(dy))terrSteer(dx>0?'right':'left');
+    else terrSteer(dy>0?'down':'up');
+    sx=t.clientX;sy=t.clientY;
+  },{passive:true});
+  pad.addEventListener('touchend',()=>{active=false;});
+})();
+socket.on('territory_dead',({cause})=>{
+  terrAlive=false;
+  const msgs={wall:'You hit the wall!',self:'You crossed your own trail!',cut:'Someone cut your trail!',crash:'Head-on crash!'};
+  document.getElementById('territory-dead-msg').textContent=(msgs[cause]||'You popped!')+' Watch the big screen.';
+  document.getElementById('territory-dead-overlay').style.display='flex';
+  if(navigator.vibrate)navigator.vibrate([60,40,60]);
+});
+socket.on('territory_final',({place,total,pct,won})=>{
+  showResult(won?'🏆':place<=3?'🟦':'💥',won?`You won with ${pct}%!`:`${place}${place===2?'nd':place===3?'rd':'th'} place`,won?'+'+Math.round(pct*100):null,won?'You claimed the most land!':`You held ${pct}% of the map`);
 });
 
 socket.on('final_scores',({scores,gameName})=>{
