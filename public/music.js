@@ -81,12 +81,12 @@
   const SONGS = {
     // Lobby - chill upbeat
     lobby: { bpm: 110, bass:[N.C2,N.C2,N.G2,N.A2], lead:[N.E4,N.G4,N.C5,N.G4,N.A4,N.G4,N.E4,0], type:'triangle' },
-    // Quiplash - playful, bouncy
-    quiplash: { bpm: 124, bass:[N.F2,N.F2,N.C3,N.A2], lead:[N.C5,0,N.A4,N.F4,N.G4,0,N.C5,N.D5], type:'square' },
-    // Fibbage - sneaky, mysterious
-    fibbage: { bpm: 100, bass:[N.D2,N.D2,N.F2,N.A2], lead:[N.A4,N.F4,N.D4,N.F4,N.A4,0,N.G4,0], type:'sawtooth' },
-    // Drawful - light, creative
-    drawful: { bpm: 116, bass:[N.G2,N.G2,N.D3,N.E3], lead:[N.G4,N.B4,N.D5,N.B4,N.A4,N.G4,0,N.E4], type:'triangle' },
+    // Punchline - playful, bouncy
+    punchline: { bpm: 124, bass:[N.F2,N.F2,N.C3,N.A2], lead:[N.C5,0,N.A4,N.F4,N.G4,0,N.C5,N.D5], type:'square' },
+    // Bluff - sneaky, mysterious
+    bluff: { bpm: 100, bass:[N.D2,N.D2,N.F2,N.A2], lead:[N.A4,N.F4,N.D4,N.F4,N.A4,0,N.G4,0], type:'sawtooth' },
+    // Scrawl - light, creative
+    scrawl: { bpm: 116, bass:[N.G2,N.G2,N.D3,N.E3], lead:[N.G4,N.B4,N.D5,N.B4,N.A4,N.G4,0,N.E4], type:'triangle' },
     // Trivia - tense quiz show
     trivia: { bpm: 130, bass:[N.E2,N.E2,N.E2,N.B2], lead:[N.E5,N.E5,0,N.B4,N.E5,0,N.G5,0], type:'square' },
     // PollMine - groovy
