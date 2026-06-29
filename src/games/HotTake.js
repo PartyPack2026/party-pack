@@ -69,11 +69,13 @@ class HotTake {
   handleInput(playerId, data) {
     if (this.phase === 'voting' && data.type === 'vote') {
       if (!this.votes[playerId]) {
-        this.votes[playerId] = data.vote; // 'hot' or 'normal'
+        this.votes[playerId] = data.vote;
         const count = Object.keys(this.votes).length;
         const total = Object.keys(this.room.players).length;
-        this.io.to(this.code).emit('player_answered', { count, total });
-        if (count >= total) { clearTimeout(this.timer); setTimeout(() => this.revealResults(), 600); }
+        const hotSoFar = Object.values(this.votes).filter(v=>v==='hot').length;
+        const normSoFar = count - hotSoFar;
+        this.io.to(this.code).emit('hottake_live', { count, total, hotSoFar, normSoFar });
+        if (count >= total) { clearTimeout(this.timer); setTimeout(() => this.revealResults(), 800); }
       }
     }
   }
