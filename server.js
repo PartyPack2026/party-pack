@@ -113,13 +113,14 @@ const GAMES = {
   Psychic:        tryRequire("Psychic"),
   Copycat:        tryRequire("Copycat"),
   Stampede:       tryRequire("Stampede"),
+  Territory:      tryRequire("Territory"),
 };
 
 const MIN_PLAYERS = {
   Punchline: 3, Bluff: 3, Scrawl: 3,
   TriviaKnockout: 2, PollMine: 2, Mafia: 4,
   MindMeld: 2, HotTake: 2, Voltage: 2,
-  Mole: 4, Psychic: 3, Copycat: 3, Stampede: 2,
+  Mole: 4, Psychic: 3, Copycat: 3, Stampede: 2, Territory: 2,
 };
 
 app.get('/qr/:code', async (req, res) => {
