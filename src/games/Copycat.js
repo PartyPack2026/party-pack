@@ -77,7 +77,7 @@ class Copycat {
       instruction: isFirst
         ? `Draw: "${this.originalPrompt}"`
         : `Copy this drawing as best you can!`,
-      timeLimit: 60,
+      timeLimit: 50,
       position, total
     });
 
