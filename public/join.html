@@ -717,10 +717,19 @@ function renderAv(av,el){
 
 socket.on('room_joined',({code,player})=>{
   myCode=code;myPlayer=player;myId=socket.id;
+  // Save session so we can rejoin after a disconnect
+  try{sessionStorage.setItem('cp_session',JSON.stringify({code,nickname:player.nickname,avatar:player.avatar}));}catch(e){}
   renderAv(player.avatar,document.getElementById('lobby-av'));
   document.getElementById('lobby-name').textContent=player.nickname;
   document.getElementById('lobby-room').textContent=code;
   show('lobby');
+});
+// Reconnect: if the socket drops and comes back, rejoin automatically
+socket.on('connect',()=>{
+  try{
+    const s=JSON.parse(sessionStorage.getItem('cp_session')||'null');
+    if(s&&myCode){socket.emit('rejoin_room',s);}
+  }catch(e){}
 });
 socket.on('join_error',({message})=>{document.getElementById('join-err').textContent=message;show('join');});
 socket.on('room_update',({phase})=>{if(phase==='lobby')show('lobby');});
@@ -1118,14 +1127,14 @@ function doneDraw(){socket.emit('game_input',{type:'done_drawing'});showWait('�
 
 function drawStrokeOn(ctx,stroke,w,h){if(!stroke||stroke.length<2)return;ctx.beginPath();ctx.strokeStyle=stroke[0].color||'#000';ctx.lineWidth=stroke[0].size||4;ctx.lineCap='round';ctx.lineJoin='round';ctx.moveTo(stroke[0].x*w,stroke[0].y*h);stroke.forEach(pt=>ctx.lineTo(pt.x*w,pt.y*h));ctx.stroke();}
 
-socket.on('drawful_you_draw',({prompt,timeLimit})=>{document.getElementById('draw-prompt').textContent=prompt;initDraw();startTimer('draw-timer',timeLimit);showWithReactions('draw');});
-socket.on('drawful_watch',({drawerName,drawerAvatar})=>{document.getElementById('watch-label').textContent='Live Drawing';document.getElementById('watch-name').textContent=`${drawerName} is drawing...`;document.getElementById('watch-status').textContent='Guess when asked!';initWatch();socket.emit('game_input',{type:'request_strokes'});showWithReactions('watch');});
+socket.on('scrawl_you_draw',({prompt,timeLimit})=>{document.getElementById('draw-prompt').textContent=prompt;initDraw();startTimer('draw-timer',timeLimit);showWithReactions('draw');});
+socket.on('scrawl_watch',({drawerName,drawerAvatar})=>{document.getElementById('watch-label').textContent='Live Drawing';document.getElementById('watch-name').textContent=`${drawerName} is drawing...`;document.getElementById('watch-status').textContent='Guess when asked!';initWatch();socket.emit('game_input',{type:'request_strokes'});showWithReactions('watch');});
 socket.on('draw_full_state',({strokes})=>{if(!watchCtx)return;const wc=document.getElementById('watch-cv');watchCtx.fillStyle='white';watchCtx.fillRect(0,0,wc.width,wc.height);strokes.forEach(s=>drawStrokeOn(watchCtx,s,wc.width,wc.height));});
 socket.on('draw_stroke',({stroke})=>{if(watchCtx){const wc=document.getElementById('watch-cv');drawStrokeOn(watchCtx,stroke,wc.width,wc.height);}});
 socket.on('draw_cleared',()=>{if(watchCtx){const wc=document.getElementById('watch-cv');watchCtx.fillStyle='white';watchCtx.fillRect(0,0,wc.width,wc.height);}});
-socket.on('drawful_guess',({timeLimit,drawerName,strokes})=>{resetAnswer('DRAWFUL',`What is ${drawerName} drawing?!`,null,timeLimit);if(strokes&&strokes.length){initWatch();const wc=document.getElementById('watch-cv');strokes.forEach(s=>drawStrokeOn(watchCtx,s,wc.width,wc.height));}showWithReactions('answer');});
-socket.on('drawful_drawer_wait',({message})=>showWait('🎨','Nice!',message));
-socket.on('drawful_vote',({answers,strokes,timeLimit,drawerName})=>{
+socket.on('scrawl_guess',({timeLimit,drawerName,strokes})=>{resetAnswer('DRAWFUL',`What is ${drawerName} drawing?!`,null,timeLimit);if(strokes&&strokes.length){initWatch();const wc=document.getElementById('watch-cv');strokes.forEach(s=>drawStrokeOn(watchCtx,s,wc.width,wc.height));}showWithReactions('answer');});
+socket.on('scrawl_drawer_wait',({message})=>showWait('🎨','Nice!',message));
+socket.on('scrawl_vote',({answers,strokes,timeLimit,drawerName})=>{
   resetVote();
   document.getElementById('vote-label').textContent='WHAT IS THIS?';
   const vp=document.getElementById('vote-prompt');vp.style.display='none';
@@ -1135,7 +1144,7 @@ socket.on('drawful_vote',({answers,strokes,timeLimit,drawerName})=>{
   startTimer('vote-timer',timeLimit||20);
   showWithReactions('vote');
 });
-socket.on('drawful_results',({correctAnswer,answers,votes,myId:mid,players})=>{
+socket.on('scrawl_results',({correctAnswer,answers,votes,myId:mid,players})=>{
   const myVote=votes?votes[myId]:null;
   const myAnswer=answers?answers.find(a=>a.id===myVote):null;
   const gotIt=myAnswer&&myAnswer.isCorrect;
@@ -1252,7 +1261,7 @@ socket.on('vote_results_player',({tally,players,myId:mid})=>{
   const forMe=Object.values(tally)[myId]||0;
   showWait('📊','Results!','Check the big screen!');
 });
-socket.on('fibbage_results_player',({truth,answers,votes,myId:mid,players})=>{
+socket.on('bluff_results_player',({truth,answers,votes,myId:mid,players})=>{
   const myVote=votes?votes[myId]:null;
   const myAnswer=answers?answers.find(a=>a.id===myVote):null;
   const gotIt=myAnswer&&!myAnswer.isLie;
