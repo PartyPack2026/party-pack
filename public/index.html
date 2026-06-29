@@ -121,7 +121,41 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 @keyframes blink{0%,100%{opacity:.3}50%{opacity:.8}}
 
 /* bottom strip */
-.lobby-bottom{padding:clamp(12px,2vh,20px) clamp(16px,3vw,40px);position:relative;z-index:1;display:flex;flex-direction:column;gap:10px}
+.lobby-bottom{padding:clamp(12px,2vh,20px) clamp(16px,3vw,40px);position:relative;z-index:1;display:flex;flex-direction:column;gap:14px}
+
+/* ═══ GAME CAROUSEL SLIDER ═══ */
+.game-carousel{display:flex;align-items:center;gap:clamp(8px,2vw,20px);justify-content:center;width:100%}
+.carousel-arrow{flex-shrink:0;width:clamp(44px,5vw,60px);height:clamp(44px,5vw,60px);border-radius:50%;
+  background:linear-gradient(145deg,#1a1a1a,#0f0f0f);border:2px solid var(--b);color:var(--y);
+  font-size:clamp(28px,4vw,40px);font-family:'Bebas Neue',cursive;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;line-height:0;padding-bottom:4px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.carousel-arrow:hover{border-color:var(--y);transform:scale(1.1);box-shadow:0 0 24px rgba(255,230,45,.3)}
+.carousel-arrow:active{transform:scale(.95)}
+.carousel-stage{flex:1;max-width:560px;height:clamp(140px,20vh,200px);position:relative;overflow:hidden;perspective:1000px}
+.featured-card{position:absolute;inset:0;display:flex;align-items:center;gap:clamp(16px,3vw,32px);
+  background:linear-gradient(135deg,var(--card-c1,#1c1c1c),var(--card-c2,#0f0f0f));
+  border:2px solid var(--card-border,rgba(255,230,45,.3));border-radius:24px;padding:clamp(16px,3vw,32px);
+  box-shadow:0 12px 50px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
+  animation:cardSlideIn .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes cardSlideIn{from{opacity:0;transform:translateX(var(--slide-from,40px)) scale(.9)}to{opacity:1;transform:translateX(0) scale(1)}}
+.featured-icon{flex-shrink:0;width:clamp(80px,12vw,130px);height:clamp(80px,12vw,130px);border-radius:20px;
+  display:flex;align-items:center;justify-content:center;background:var(--icon-bg,rgba(255,230,45,.12));
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.2)}
+.featured-icon svg{width:60%;height:60%;fill:var(--icon-fill,var(--y))}
+.featured-info{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.featured-name{font-family:'Bebas Neue',cursive;font-size:clamp(28px,4.5vw,52px);letter-spacing:2px;color:var(--card-accent,var(--y));line-height:1;text-shadow:0 0 30px var(--card-glow,rgba(255,230,45,.3))}
+.featured-desc{font-size:clamp(12px,1.6vw,16px);color:var(--t);line-height:1.4;opacity:.85;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.featured-meta{display:flex;gap:10px;margin-top:4px;flex-wrap:wrap}
+.featured-tag{font-family:'Bebas Neue',cursive;font-size:clamp(11px,1.4vw,14px);letter-spacing:1px;
+  background:rgba(255,255,255,.08);padding:3px 12px;border-radius:100px;color:var(--t)}
+.featured-tag.live{background:var(--r);color:#fff;animation:liveBlink 1.5s ease-in-out infinite}
+@keyframes liveBlink{0%,100%{opacity:1}50%{opacity:.6}}
+.featured-num{font-family:'Bebas Neue',cursive;position:absolute;top:10px;right:18px;font-size:13px;color:var(--m);letter-spacing:1px}
+.carousel-dots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;max-width:400px;margin:0 auto}
+.cdot{width:8px;height:8px;border-radius:50%;background:var(--b);cursor:pointer;transition:all .2s}
+.cdot.on{background:var(--y);width:22px;border-radius:4px}
+.cdot:hover{background:var(--m)}
+
 .game-strip{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
 .game-strip::-webkit-scrollbar{display:none}
 .g-btn{flex-shrink:0;background:var(--s);border:2px solid var(--b);border-radius:12px;
@@ -388,73 +422,14 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
   </div>
 
   <div class="lobby-bottom">
-    <div class="game-strip">
-      <button class="g-btn on" onclick="sel('MindMeld','gMM')" id="gMM">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M12 2a9 9 0 0 1 9 9c0 4.17-2.84 7.67-6.7 8.68L12 21l-2.3-1.32A9 9 0 0 1 3 11a9 9 0 0 1 9-9m0 2a7 7 0 0 0-7 7 7 7 0 0 0 4.08 6.32L12 18.6l2.92-1.28A7 7 0 0 0 19 11a7 7 0 0 0-7-7m0 1a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2m-4 7h8v2H8v-2z"/></svg></div>
-        <div class="g-name">Mind Meld</div>
-        <div class="g-min">2+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('HotTake','gHT')" id="gHT">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>
-        <div class="g-name">Hot Take</div>
-        <div class="g-min">2+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('Voltage','gV')" id="gV">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg></div>
-        <div class="g-name">Voltage</div>
-        <div class="g-min">2+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('Mole','gMo')" id="gMo">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M12 1C5.93 1 1 5.93 1 12s4.93 11 11 11 11-4.93 11-11S18.07 1 12 1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div>
-        <div class="g-name">The Mole</div>
-        <div class="g-min">4+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('Psychic','gPs')" id="gPs">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
-        <div class="g-name">Psychic</div>
-        <div class="g-min">3+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('Copycat','gCc')" id="gCc">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></div>
-        <div class="g-name">Copycat</div>
-        <div class="g-min">3+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('Quiplash','gQ')" id="gQ">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg></div>
-        <div class="g-name">Quiplash</div>
-        <div class="g-min">2+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('Fibbage','gF')" id="gF">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
-        <div class="g-name">Fibbage</div>
-        <div class="g-min">2+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('Drawful','gDr')" id="gDr">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></div>
-        <div class="g-name">Drawful</div>
-        <div class="g-min">2+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('TriviaKnockout','gTr')" id="gTr">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg></div>
-        <div class="g-name">Trivia</div>
-        <div class="g-min">2+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('PollMine','gPm')" id="gPm">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg></div>
-        <div class="g-name">Poll Mine</div>
-        <div class="g-min">2+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('Mafia','gMa')" id="gMa">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
-        <div class="g-name">Mafia</div>
-        <div class="g-min">4+ players</div>
-      </button>
-      <button class="g-btn" onclick="sel('Stampede','gSt')" id="gSt">
-        <div class="g-icon"><svg viewBox="0 0 24 24"><path d="M5 11l4-7 4 7-2 1-2-3-2 3zm9 0l4-7 1 1-3 5 3 1-2 3-1-1 1-2zM3 15h18v2H3zm2 4h14v2H5z"/></svg></div>
-        <div class="g-name">Stampede</div>
-        <div class="g-min">2+ players · LIVE</div>
-      </button>
+    <div class="game-carousel">
+      <button class="carousel-arrow left" onclick="slideGame(-1)" aria-label="Previous">‹</button>
+      <div class="carousel-stage" id="carousel-stage">
+        <!-- featured game card injected by JS -->
+      </div>
+      <button class="carousel-arrow right" onclick="slideGame(1)" aria-label="Next">›</button>
     </div>
+    <div class="carousel-dots" id="carousel-dots"></div>
 
     <div class="lobby-actions">
       <div class="p-count-box">
@@ -485,6 +460,7 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 
 
 <div class="reaction-overlay" id="reaction-overlay"></div>
+<audio id="aud-theme" src="/audio/main-theme.mp3" loop preload="auto"></audio>
 <script src="/music.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -496,10 +472,23 @@ let tvCanvas, tvCtx, musicStarted=false;
 
 document.addEventListener('click',()=>{
   if(!musicStarted){
-    if(window.CouchMusic){window.CouchMusic.init();window.CouchMusic.start('lobby');}
+    if(window.CouchMusic)window.CouchMusic.init();
+    playLobbyMusic();
     musicStarted=true;
   }
 },{once:true});
+
+function playLobbyMusic(){
+  // Stop any synth game music
+  if(window.CouchMusic)window.CouchMusic.stop();
+  currentGameForMusic=null;
+  const a=document.getElementById('aud-theme');
+  if(a){a.volume=0;a.play().catch(()=>{});let v=0;const f=setInterval(()=>{v=Math.min(0.4,v+0.04);a.volume=v;if(v>=0.4)clearInterval(f);},80);}
+}
+function stopLobbyMusic(){
+  const a=document.getElementById('aud-theme');
+  if(a){let v=a.volume;const f=setInterval(()=>{v=Math.max(0,v-0.06);a.volume=v;if(v<=0){clearInterval(f);a.pause();}},60);}
+}
 
 socket.emit('create_room');
 
@@ -508,6 +497,7 @@ socket.on('room_created',({code})=>{
   document.getElementById('room-code').textContent=code;
   fetchQR(code);
   startTicker();
+  renderCarousel();
 });
 
 socket.on('room_update',({players:ps,phase})=>{
@@ -516,8 +506,8 @@ socket.on('room_update',({players:ps,phase})=>{
   renderPlayers(ps);
   updateScorebar(ps);
   document.getElementById('p-count').textContent=ps.length;
-  const mins={MindMeld:2,HotTake:2,Voltage:2,Mole:4,Psychic:3,Copycat:3,Quiplash:2,Fibbage:2,Drawful:2,TriviaKnockout:2,PollMine:2,Mafia:4,Stampede:2};
-  document.getElementById('start-btn').disabled=ps.length<(mins[selectedGame]||2);
+  const g=GAMES_DATA.find(x=>x.id===selectedGame);
+  document.getElementById('start-btn').disabled=ps.length<((g&&g.min)||2);
   if(phase==='lobby'){show('lobby');fadeInMusic();}
 });
 
@@ -554,17 +544,101 @@ function updateScorebar(ps){
   document.getElementById('scorebar').innerHTML=sorted.map(p=>`<div class="s-chip"><div class="s-chip-av" id="sbav-${p.id}"></div>${p.nickname}<span class="s-pts">${p.score}</span></div>`).join('');
   sorted.forEach(p=>renderAv(p.avatar,document.getElementById('sbav-'+p.id)));
 }
-function sel(name,btnId){
-  selectedGame=name;
-  document.querySelectorAll('.g-btn').forEach(b=>b.classList.remove('on'));
-  document.getElementById(btnId).classList.add('on');
-  const mins={MindMeld:2,HotTake:2,Voltage:2,Mole:4,Psychic:3,Copycat:3,Quiplash:2,Fibbage:2,Drawful:2,TriviaKnockout:2,PollMine:2,Mafia:4,Stampede:2};
-  document.getElementById('start-btn').disabled=Object.keys(players).length<(mins[name]||2);
+// ═══ GAME CAROUSEL ═══
+const GAMES_DATA = [
+  {id:'Stampede',name:'Stampede',min:2,live:true,time:'5 min',desc:'A real-time tap race! Sprint across the screen, dodge chaos events, first to the finish wins.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M5 11l4-7 4 7-2 1-2-3-2 3zm9 0l4-7 1 1-3 5 3 1-2 3-1-1 1-2zM3 15h18v2H3zm2 4h14v2H5z"/></svg>',
+   c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
+  {id:'Quiplash',name:'Quiplash',min:2,time:'10 min',desc:'Write the funniest answer to wild prompts, then everyone votes for their favourite.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>',
+   c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
+  {id:'Fibbage',name:'Fibbage',min:2,time:'10 min',desc:'Invent a convincing lie to a bizarre fact, then find the real truth among the fakes.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
+   c1:'#2a1800',c2:'#0f0f0f',accent:'#ff8c00',iconBg:'rgba(255,140,0,.15)'},
+  {id:'Drawful',name:'Drawful',min:2,time:'10 min',desc:'Draw a ridiculous prompt while everyone watches live and guesses what on earth it is.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
+   c1:'#001a2a',c2:'#0f0f0f',accent:'#3b8bff',iconBg:'rgba(59,139,255,.15)'},
+  {id:'MindMeld',name:'Mind Meld',min:2,time:'6 min',desc:'Type the first thing that comes to mind and match your friends for points. Think alike!',
+   icon:'<svg viewBox="0 0 24 24"><path d="M12 2a9 9 0 0 1 9 9c0 4.17-2.84 7.67-6.7 8.68L12 21l-2.3-1.32A9 9 0 0 1 3 11a9 9 0 0 1 9-9m0 2a7 7 0 0 0-7 7 7 7 0 0 0 4.08 6.32L12 18.6l2.92-1.28A7 7 0 0 0 19 11a7 7 0 0 0-7-7m-4 9h8v2H8v-2z"/></svg>',
+   c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
+  {id:'HotTake',name:'Hot Take',min:2,time:'6 min',desc:'Vote if a bold statement is a hot take or normal. Be the brave minority for big points!',
+   icon:'<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>',
+   c1:'#2a0000',c2:'#0f0f0f',accent:'#ff2d2d',iconBg:'rgba(255,45,45,.15)'},
+  {id:'Voltage',name:'Voltage',min:2,time:'7 min',desc:'Fire off answers to a category fast. Unique answers score big, shared ones score less.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>',
+   c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
+  {id:'PollMine',name:'Poll Mine',min:2,time:'7 min',desc:'Vote on a question, then predict how the whole group answered. Read the room to win.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>',
+   c1:'#1a002a',c2:'#0f0f0f',accent:'#cc2dff',iconBg:'rgba(204,45,255,.15)'},
+  {id:'Copycat',name:'Copycat',min:3,time:'10 min',desc:'A drawing telephone game. Copy the previous player\\'s art and watch it mutate hilariously.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
+   c1:'#001a2a',c2:'#0f0f0f',accent:'#3b8bff',iconBg:'rgba(59,139,255,.15)'},
+  {id:'Psychic',name:'Psychic',min:3,time:'10 min',desc:'One player answers yes/no questions in pure nonsense words. Everyone else guesses the secret word.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
+   c1:'#1a002a',c2:'#0f0f0f',accent:'#cc2dff',iconBg:'rgba(204,45,255,.15)'},
+  {id:'TriviaKnockout',name:'Trivia Knockout',min:2,time:'8 min',desc:'Answer trivia and build a streak. Get one wrong and you\\'re eliminated. Last one standing wins!',
+   icon:'<svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>',
+   c1:'#002a14',c2:'#0f0f0f',accent:'#00f076',iconBg:'rgba(0,240,118,.15)'},
+  {id:'Mole',name:'The Mole',min:4,time:'12 min',desc:'Slip your secret word into conversation while one hidden Mole tries to catch everyone out.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M12 1C5.93 1 1 5.93 1 12s4.93 11 11 11 11-4.93 11-11S18.07 1 12 1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>',
+   c1:'#2a0000',c2:'#0f0f0f',accent:'#ff2d2d',iconBg:'rgba(255,45,45,.15)'},
+  {id:'Mafia',name:'Mafia',min:4,time:'15 min',desc:'Classic social deduction. Hidden Mafia, a Doctor, a Detective. Find the killers before it\\'s too late.',
+   icon:'<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>',
+   c1:'#2a0000',c2:'#0f0f0f',accent:'#ff2d2d',iconBg:'rgba(255,45,45,.15)'},
+];
+let carouselIndex = 0;
+
+function renderCarousel(){
+  const g = GAMES_DATA[carouselIndex];
+  selectedGame = g.id;
+  const stage = document.getElementById('carousel-stage');
+  if(!stage) return;
+  stage.innerHTML = `
+    <div class="featured-card" style="--card-c1:${g.c1};--card-c2:${g.c2};--card-border:${g.accent}40;--card-accent:${g.accent};--card-glow:${g.accent}40;--icon-bg:${g.iconBg};--icon-fill:${g.accent}">
+      <div class="featured-num">${carouselIndex+1} / ${GAMES_DATA.length}</div>
+      <div class="featured-icon">${g.icon}</div>
+      <div class="featured-info">
+        <div class="featured-name">${g.name}</div>
+        <div class="featured-desc">${g.desc}</div>
+        <div class="featured-meta">
+          <span class="featured-tag">${g.min}+ players</span>
+          <span class="featured-tag">${g.time}</span>
+          ${g.live?'<span class="featured-tag live">● LIVE</span>':''}
+        </div>
+      </div>
+    </div>`;
+  // dots
+  const dots = document.getElementById('carousel-dots');
+  if(dots) dots.innerHTML = GAMES_DATA.map((_,i)=>`<div class="cdot${i===carouselIndex?' on':''}" onclick="jumpGame(${i})"></div>`).join('');
+  // update start button
+  const mins=Object.fromEntries(GAMES_DATA.map(x=>[x.id,x.min]));
+  const sb=document.getElementById('start-btn');
+  if(sb)sb.disabled=Object.keys(players).length<(mins[g.id]||2);
+  if(window.CouchMusic)window.CouchMusic.sfx('pop');
 }
+
+function slideGame(dir){
+  carouselIndex = (carouselIndex + dir + GAMES_DATA.length) % GAMES_DATA.length;
+  renderCarousel();
+}
+function jumpGame(i){
+  carouselIndex = i;
+  renderCarousel();
+}
+
+// keyboard arrows
+document.addEventListener('keydown',(e)=>{
+  if(document.getElementById('s-lobby').classList.contains('active')){
+    if(e.key==='ArrowLeft')slideGame(-1);
+    else if(e.key==='ArrowRight')slideGame(1);
+    else if(e.key==='Enter'){const sb=document.getElementById('start-btn');if(sb&&!sb.disabled)startGame();}
+  }
+});
+
 function startGame(){
   socket.emit('start_game',{gameName:selectedGame});
-  const labels={MindMeld:'MIND MELD',HotTake:'HOT TAKE',Voltage:'VOLTAGE',Mole:'THE MOLE',Psychic:'PSYCHIC',Copycat:'COPYCAT',Quiplash:'QUIPLASH',Fibbage:'FIBBAGE',Drawful:'DRAWFUL',TriviaKnockout:'TRIVIA KNOCKOUT',PollMine:'POLL MINE',Mafia:'MAFIA',Stampede:'STAMPEDE'};
-  document.getElementById('game-label').textContent=labels[selectedGame]||selectedGame;
+  const g=GAMES_DATA.find(x=>x.id===selectedGame);
+  document.getElementById('game-label').textContent=(g?g.name:selectedGame).toUpperCase();
   show('game');
   document.getElementById('ticker').style.display='none';
   fadeOutMusic();
@@ -579,7 +653,7 @@ function setTV(html){document.getElementById('tv').innerHTML=html;}
 function dots(c,t){return `<div class="dots">${Array(t).fill(0).map((_,i)=>`<div class="dot${i<c?' on':''}"></div>`).join('')}</div>`;}
 function updateDots(c,t){const d=document.querySelector('#tv .dots');if(d)d.innerHTML=Array(t).fill(0).map((_,i)=>`<div class="dot${i<c?' on':''}"></div>`).join('');}
 function fadeOutMusic(){/* handled by CouchMusic per-game */}
-function fadeInMusic(){if(musicStarted&&window.CouchMusic&&!currentGameForMusic){window.CouchMusic.start('lobby');}}
+function fadeInMusic(){if(musicStarted&&!currentGameForMusic){playLobbyMusic();}}
 function startTicker(){
   const msgs=['JOIN AT COUCHPACK.ONE/JOIN','NO APP NEEDED','SCAN THE QR CODE','COUCH PACK','THE PARTY GAME','GRAB YOUR PHONE'];
   const doubled=[...msgs,...msgs];
@@ -1066,7 +1140,7 @@ let racePlayers=[];
 socket.on('stampede_round',({round,totalRounds,raceLength,players:rp})=>{
   show('game');
   racePlayers=rp;
-  if(window.CouchMusic)window.CouchMusic.start('stampede');
+  stopLobbyMusic();if(window.CouchMusic)window.CouchMusic.start('stampede');
   setTV(`<div class="tv-label">STAMPEDE — RACE ${round} OF ${totalRounds}</div>
     <div class="tv-heading" id="race-status">Get Ready...</div>
     <div class="race-track" id="race-track">
@@ -1259,6 +1333,7 @@ let tutorialBarInterval = null;
 
 socket.on('show_tutorial', ({gameName}) => {
   currentGameForMusic=gameName;
+  stopLobbyMusic();
   if(window.CouchMusic){window.CouchMusic.start(MUSIC_MAP[gameName]||'lobby');}
   const slides = TUTORIAL_SLIDES[gameName];
   if (!slides || slides.length === 0) {
@@ -1335,7 +1410,7 @@ function skipTutorial() {
 }
 
 socket.on('game_ended', ({returnToLobby}) => {
-  if(returnToLobby&&window.CouchMusic){window.CouchMusic.start('lobby');}
+  if(returnToLobby){if(window.CouchMusic)window.CouchMusic.stop();playLobbyMusic();}
   if(returnToLobby){show('lobby');document.getElementById('ticker').style.display='block';fadeInMusic();}
 });
 socket.on('host_disconnected',()=>{
