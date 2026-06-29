@@ -83,6 +83,24 @@ function emitRoomUpdate(code) {
   });
 }
 
+// Extract the avatar character id from an avatar string "av:id|<svg>".
+// Custom photo avatars (data URLs) return null so they never conflict.
+function avatarId(av) {
+  if (typeof av !== 'string') return null;
+  if (!av.startsWith('av:')) return null;
+  const rest = av.slice(3);
+  const bar = rest.indexOf('|');
+  return bar === -1 ? rest : rest.slice(0, bar);
+}
+
+function broadcastTakenAvatars(code) {
+  const room = rooms[code];
+  if (!room) return;
+  const taken = Object.values(room.players).map(p => avatarId(p.avatar)).filter(Boolean);
+  io.to(code).emit('avatars_taken', { taken });
+}
+
+
 function endGame(code, scores) {
   const room = rooms[code];
   if (!room) return;
@@ -178,7 +196,24 @@ io.on('connection', (socket) => {
 
   socket.on('check_room', ({ code }) => {
     const room = rooms[code];
-    socket.emit('room_check_result', { exists: !!room && room.phase === 'lobby' });
+    const exists = !!room && room.phase === 'lobby';
+    // Return which avatar IDs are already taken so the picker can grey them out
+    let takenAvatars = [];
+    if (exists) {
+      takenAvatars = Object.values(room.players)
+        .map(p => avatarId(p.avatar))
+        .filter(Boolean);
+    }
+    socket.emit('room_check_result', { exists, takenAvatars });
+  });
+
+  // A player on the avatar screen claims/changes their pick (before joining)
+  socket.on('claim_avatar', ({ code, avatarId: aid }) => {
+    const room = rooms[code];
+    if (!room) return;
+    const taken = Object.values(room.players).map(p => avatarId(p.avatar)).filter(Boolean);
+    const available = !taken.includes(aid);
+    socket.emit('avatar_claim_result', { avatarId: aid, available });
   });
 
   socket.on('join_room', ({ code, nickname, avatar }) => {
@@ -186,6 +221,14 @@ io.on('connection', (socket) => {
     if (!room) return socket.emit('join_error', { message: 'Room not found!' });
     if (Object.keys(room.players).length >= 10) return socket.emit('join_error', { message: 'Room is full!' });
     if (room.phase !== 'lobby') return socket.emit('join_error', { message: 'Game already started!' });
+    // Prevent duplicate avatars (custom photo avatars always allowed)
+    const myAid = avatarId(avatar);
+    if (myAid) {
+      const taken = Object.values(room.players).map(p => avatarId(p.avatar)).filter(Boolean);
+      if (taken.includes(myAid)) {
+        return socket.emit('join_error', { message: 'Someone just took that character! Pick another.', avatarTaken: true });
+      }
+    }
     const idx = Object.keys(room.players).length;
     room.players[socket.id] = {
       id: socket.id, nickname: nickname || `Player ${idx + 1}`,
@@ -195,6 +238,8 @@ io.on('connection', (socket) => {
     socket.roomCode = code;
     socket.emit('room_joined', { code, player: room.players[socket.id] });
     emitRoomUpdate(code);
+    // Tell everyone which avatars are now taken
+    broadcastTakenAvatars(code);
   });
 
   socket.on('update_avatar', ({ avatar }) => {
@@ -203,6 +248,7 @@ io.on('connection', (socket) => {
     if (!room || !room.players[socket.id]) return;
     room.players[socket.id].avatar = avatar;
     emitRoomUpdate(code);
+    broadcastTakenAvatars(code);
   });
 
   socket.on('start_game', ({ gameName }) => {
@@ -335,6 +381,7 @@ io.on('connection', (socket) => {
     }
     delete room.players[socket.id];
     emitRoomUpdate(code);
+    broadcastTakenAvatars(code);
   });
 
   // Host reconnecting reclaims the room
