@@ -134,13 +134,28 @@ const GAMES = {
   Blast:          tryRequire("Blast"),
   MostLikely:     tryRequire("MostLikely"),
   Acronyms:       tryRequire("Acronyms"),
+  TwoTruths:      tryRequire("TwoTruths"),
+  WordChain:      tryRequire("WordChain"),
+  CaptionThis:    tryRequire("CaptionThis"),
+  Wavelength:     tryRequire("Wavelength"),
+  Categories:     tryRequire("Categories"),
+  WouldYouRather: tryRequire("WouldYouRather"),
+  EmojiDecode:    tryRequire("EmojiDecode"),
+  HotSeat:        tryRequire("HotSeat"),
+  RankIt:         tryRequire("RankIt"),
+  Guesstimate:    tryRequire("Guesstimate"),
+  WhoSaidIt:      tryRequire("WhoSaidIt"),
+  TrueOrFalse:    tryRequire("TrueOrFalse"),
+  OddOneOut:      tryRequire("OddOneOut"),
+  FinishSentence: tryRequire("FinishSentence"),
+  MajorityRules:  tryRequire("MajorityRules"),
 };
 
 const MIN_PLAYERS = {
   Punchline: 3, Bluff: 3, Scrawl: 3,
   TriviaKnockout: 2, PollMine: 2, Mafia: 4,
   MindMeld: 2, HotTake: 2, Voltage: 2,
-  Mole: 4, Psychic: 3, Copycat: 3, Territory: 2, Blast: 2, MostLikely: 3, Acronyms: 3,
+  Mole: 4, Psychic: 3, Copycat: 3, Territory: 2, Blast: 2, MostLikely: 3, Acronyms: 3, TwoTruths: 3, WordChain: 3, CaptionThis: 3, Wavelength: 3, Categories: 2, WouldYouRather: 2, EmojiDecode: 2, HotSeat: 3, RankIt: 2, Guesstimate: 2, WhoSaidIt: 3, TrueOrFalse: 2, OddOneOut: 2, FinishSentence: 3, MajorityRules: 3,
 };
 
 app.get('/qr/:code', async (req, res) => {
