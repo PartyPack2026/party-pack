@@ -130,16 +130,17 @@ const GAMES = {
   Mole:           tryRequire("Mole"),
   Psychic:        tryRequire("Psychic"),
   Copycat:        tryRequire("Copycat"),
-  Stampede:       tryRequire("Stampede"),
   Territory:      tryRequire("Territory"),
   Blast:          tryRequire("Blast"),
+  MostLikely:     tryRequire("MostLikely"),
+  Acronyms:       tryRequire("Acronyms"),
 };
 
 const MIN_PLAYERS = {
   Punchline: 3, Bluff: 3, Scrawl: 3,
   TriviaKnockout: 2, PollMine: 2, Mafia: 4,
   MindMeld: 2, HotTake: 2, Voltage: 2,
-  Mole: 4, Psychic: 3, Copycat: 3, Stampede: 2, Territory: 2, Blast: 2,
+  Mole: 4, Psychic: 3, Copycat: 3, Territory: 2, Blast: 2, MostLikely: 3, Acronyms: 3,
 };
 
 app.get('/qr/:code', async (req, res) => {
@@ -283,7 +284,7 @@ io.on('connection', (socket) => {
       rooms[code].gameInstance.start();
     };
     // Auto-start after 14 seconds if host doesn't skip
-    room.tutorialTimer = setTimeout(() => { if (room.beginGame) room.beginGame(); }, 14000);
+    room.tutorialTimer = setTimeout(() => { if (room.beginGame) room.beginGame(); }, 7000);
   });
 
   socket.on('game_input', (data) => {
