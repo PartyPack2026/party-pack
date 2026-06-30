@@ -611,6 +611,34 @@ textarea{resize:none;height:110px;font-size:17px;line-height:1.4}
   </div>
 </div>
 
+<!-- MOST LIKELY TO: VOTE -->
+<div id="s-ml" class="screen">
+  <div class="label">Most Likely To</div>
+  <div class="prompt-card" id="ml-prompt" style="font-size:17px"></div>
+  <div class="section-title" style="font-size:22px">Who fits best?</div>
+  <div class="opts" id="ml-opts"></div>
+  <div class="status" id="ml-vstatus"></div>
+</div>
+
+<!-- ACRONYMS: WRITE -->
+<div id="s-acro-write" class="screen">
+  <div class="label">Acronyms</div>
+  <div style="font-family:'Bebas Neue',cursive;font-size:64px;letter-spacing:10px;color:var(--y);text-align:center" id="acro-letters"></div>
+  <div class="status">What does it stand for? Make it funny!</div>
+  <textarea id="acro-input" placeholder="Type your acronym..." maxlength="80"></textarea>
+  <div class="timer-wrap"><div class="timer-bar" id="acro-timer"></div></div>
+  <button class="btn" onclick="submitAcro()">Submit</button>
+  <div class="status" id="acro-wstatus"></div>
+</div>
+
+<!-- ACRONYMS: VOTE -->
+<div id="s-acro-vote" class="screen">
+  <div class="label">Vote for the Best</div>
+  <div style="font-family:'Bebas Neue',cursive;font-size:44px;letter-spacing:6px;color:var(--y);text-align:center" id="acro-vote-letters"></div>
+  <div class="opts" id="acro-vote-opts"></div>
+  <div class="status" id="acro-vstatus"></div>
+</div>
+
 <script src="/music.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 
@@ -1757,6 +1785,72 @@ socket.on('blast_dead',()=>{
 });
 socket.on('blast_final',({won,survived})=>{
   showResult(won?'🏆':survived?'😅':'💀',won?'YOU WON!':survived?'Survived!':'Blasted',won?'+1000':survived?'+400':null,won?'Last one standing!':survived?'You made it to the end':'Better luck next round');
+});
+
+
+// ══ MOST LIKELY TO (player) ══
+let mlVoted=false;
+socket.on('ml_vote',({prompt,options})=>{
+  mlVoted=false;
+  document.getElementById('ml-prompt').textContent=prompt+'?';
+  document.getElementById('ml-vstatus').textContent='';
+  document.getElementById('ml-opts').innerHTML=options.map(o=>
+    `<button class="opt-btn" onclick="voteML('${o.id}',this)">${o.nickname}</button>`).join('');
+  showWithReactions('ml');
+});
+function voteML(id,btn){
+  if(mlVoted)return;mlVoted=true;
+  if(window.CouchMusic)window.CouchMusic.sfx('pop');
+  btn.classList.add('on');
+  document.querySelectorAll('#ml-opts .opt-btn').forEach(b=>{if(b!==btn)b.classList.add('dim');});
+  socket.emit('game_input',{type:'vote',target:id});
+}
+socket.on('ml_voted',()=>{document.getElementById('ml-vstatus').textContent='Vote locked in!';});
+socket.on('ml_result_player',({wasVotedMost,votesGot,prompt})=>{
+  if(wasVotedMost)showResult('👑','That\'s you!','+500',`The room thinks you're most likely to ${prompt.replace(/^Most likely to /i,'')}`);
+  else showResult('😏','Results in',votesGot>0?'+'+votesGot*0:null,`You got ${votesGot} vote${votesGot!==1?'s':''}`);
+});
+
+// ══ ACRONYMS (player) ══
+let acroSubmitted=false;
+socket.on('acro_write',({acronym,timeLimit})=>{
+  acroSubmitted=false;
+  document.getElementById('acro-letters').textContent=acronym;
+  document.getElementById('acro-input').value='';
+  document.getElementById('acro-input').placeholder=acronym.split('').join('. ')+'...';
+  document.getElementById('acro-wstatus').textContent='';
+  startTimer('acro-timer',timeLimit||45);
+  showWithReactions('acro-write');
+});
+function submitAcro(){
+  if(acroSubmitted)return;
+  const v=document.getElementById('acro-input').value.trim();
+  if(!v){document.getElementById('acro-wstatus').textContent='Type something first!';return;}
+  acroSubmitted=true;
+  socket.emit('game_input',{type:'answer',answer:v});
+  if(window.CouchMusic)window.CouchMusic.sfx('pop');
+}
+socket.on('acro_submitted',()=>{document.getElementById('acro-wstatus').textContent='Submitted! Waiting for others...';});
+let acroVoted=false;
+socket.on('acro_vote',({acronym,options,youAnswered})=>{
+  acroVoted=false;
+  document.getElementById('acro-vote-letters').textContent=acronym;
+  document.getElementById('acro-vstatus').textContent=youAnswered?'':'You didn\'t submit — but you can still vote!';
+  document.getElementById('acro-vote-opts').innerHTML=options.map(o=>
+    `<button class="opt-btn" style="text-align:left" onclick="voteAcro('${o.id}',this)">${o.text}</button>`).join('');
+  showWithReactions('acro-vote');
+});
+function voteAcro(id,btn){
+  if(acroVoted)return;acroVoted=true;
+  if(window.CouchMusic)window.CouchMusic.sfx('pop');
+  btn.classList.add('on');
+  document.querySelectorAll('#acro-vote-opts .opt-btn').forEach(b=>{if(b!==btn)b.classList.add('dim');});
+  socket.emit('game_input',{type:'vote',target:id});
+}
+socket.on('acro_voted',()=>{document.getElementById('acro-vstatus').textContent='Vote locked in!';});
+socket.on('acro_result_player',({won,votes})=>{
+  if(won)showResult('🏆','Best Acronym!','+'+(votes*100+300),`You got ${votes} vote${votes!==1?'s':''}!`);
+  else showResult('😄','Round over',votes>0?'+'+votes*100:null,`You got ${votes} vote${votes!==1?'s':''}`);
 });
 
 socket.on('final_scores',({scores,gameName})=>{
