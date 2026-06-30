@@ -4,11 +4,11 @@
 
 const COLS = 15;          // odd numbers make the classic pillar layout work
 const ROWS = 11;
-const TICK_MS = 60;       // movement/physics tick (~16fps, snappy)
-const BOMB_FUSE = 2000;   // ms before a bomb explodes
+const TICK_MS = 50;       // ~20fps, smoother
+const BOMB_FUSE = 1800;   // shorter fuse = more tension
 const FLAME_TIME = 500;   // ms the explosion flames linger
-const ROUND_TIME = 90;    // seconds
-const MOVE_COOLDOWN = 130; // ms between tile steps (feels responsive, not twitchy)
+const ROUND_TIME = 75;    // punchy rounds
+const MOVE_COOLDOWN = 110; // snappier movement
 
 // tile types
 const EMPTY = 0, HARD = 1, SOFT = 2;
