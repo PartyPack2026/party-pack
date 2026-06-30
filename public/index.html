@@ -9,6 +9,25 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0a;--s:#141414;--b:#222;--t:#f5f5f5;--m:#555;--r:#ff2d2d;--g:#00f076;--y:#ffe62d;--o:#ff8c00;--p:#cc2dff}
 
+/* ═══ MOST LIKELY TO ═══ */
+.ml-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;max-width:800px;margin:16px auto 0}
+.ml-card{background:linear-gradient(145deg,#1a1a1a,#0f0f0f);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(0,0,0,.4);transition:all .3s;position:relative;border:2px solid transparent}
+.ml-card .ml-av{width:60px;height:60px;border-radius:50%;overflow:hidden}
+.ml-card .ml-name{font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:1px}
+.ml-card .ml-votes{font-family:'Bebas Neue',cursive;font-size:28px;color:var(--y);opacity:0;transition:opacity .3s}
+.ml-card.show-votes .ml-votes{opacity:1}
+.ml-card.winner{border-color:var(--y);box-shadow:0 0 30px rgba(255,230,45,.4);transform:scale(1.06)}
+.ml-card.winner::before{content:'👑';position:absolute;top:-14px;font-size:28px}
+/* ═══ ACRONYMS ═══ */
+.acro-big{font-family:'Bebas Neue',cursive;font-size:clamp(60px,14vw,140px);letter-spacing:clamp(8px,2vw,20px);color:var(--y);text-shadow:0 0 40px rgba(255,230,45,.4)}
+.acro-answers{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:14px auto 0}
+.acro-ans{background:linear-gradient(145deg,#1a1a1a,#0f0f0f);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 14px rgba(0,0,0,.4);border:2px solid transparent;transition:all .3s}
+.acro-ans .acro-txt{flex:1;font-size:clamp(15px,2vw,20px);font-weight:600;text-align:left}
+.acro-ans .acro-v{font-family:'Bebas Neue',cursive;font-size:24px;color:var(--y);opacity:0;transition:opacity .3s}
+.acro-ans.show .acro-v{opacity:1}
+.acro-ans.winner{border-color:var(--y);box-shadow:0 0 24px rgba(255,230,45,.3)}
+
+
 /* ═══ BLAST ═══ */
 .blast-stage{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
 .blast-canvas-wrap{position:relative;background:#1a1208;border-radius:14px;overflow:hidden;box-shadow:0 12px 50px rgba(0,0,0,.6),inset 0 0 0 3px rgba(0,0,0,.4)}
@@ -593,6 +612,8 @@ body{background:var(--bg);color:var(--t);font-family:'Space Grotesk',sans-serif;
 <canvas id="confetti" style="position:fixed;inset:0;pointer-events:none;z-index:150;display:none"></canvas>
 <div class="reaction-overlay" id="reaction-overlay"></div>
 <audio id="aud-theme" src="/audio/main-theme.mp3" loop preload="auto"></audio>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="/arena3d.js"></script>
 <script src="/music.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -626,7 +647,7 @@ function applySoundState(){
   else if(a&&soundOn&&musicStarted&&!currentGameForMusic)a.play().catch(()=>{});
 }
 
-const MUSIC_MAP = {Punchline:'punchline',Bluff:'bluff',Scrawl:'scrawl',TriviaKnockout:'trivia',PollMine:'pollmine',Mafia:'mafia',MindMeld:'mindmeld',HotTake:'hottake',Voltage:'voltage',Mole:'mole',Psychic:'psychic',Copycat:'copycat',Stampede:'stampede',Territory:'stampede',Blast:'stampede'};
+const MUSIC_MAP = {Punchline:'punchline',Bluff:'bluff',Scrawl:'scrawl',TriviaKnockout:'trivia',PollMine:'pollmine',Mafia:'mafia',MindMeld:'mindmeld',HotTake:'hottake',Voltage:'voltage',Mole:'mole',Psychic:'psychic',Copycat:'copycat',Territory:'stampede',Blast:'stampede',MostLikely:'hottake',Acronyms:'voltage'};
 let currentGameForMusic=null;
 let myCode=null, players={}, selectedGame='MindMeld';
 let tvCanvas, tvCtx, musicStarted=false;
@@ -714,16 +735,19 @@ function updateScorebar(ps){
 }
 // ═══ GAME CAROUSEL ═══
 const GAMES_DATA = [
+  {id:'MostLikely',name:'Most Likely To',min:3,time:'8 min',desc:'Vote on who in the room is most likely to do something ridiculous. Get the most votes and own it!',
+   icon:'<svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>',
+   c1:'#2a1800',c2:'#0f0f0f',accent:'#ff8c00',iconBg:'rgba(255,140,0,.15)'},
+  {id:'Acronyms',name:'Acronyms',min:3,time:'10 min',desc:'Get random letters and invent what they stand for. Funniest acronym wins. Wits and wordplay!',
+   icon:'<svg viewBox="0 0 24 24"><path d="M5 4v3h5.5v12h3V7H19V4z"/></svg>',
+   c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
   {id:'Blast',name:'Blast',min:2,live:true,time:'5 min',desc:'Bomberman-style mayhem! Drop bombs in a maze, blow up walls and trap your friends. Last one standing wins.',
    icon:'<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="7"/><rect x="11" y="3" width="2" height="5" rx="1"/><path d="M13 4 l3 -2 M13 4 l3 1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>',
    c1:'#2a1200',c2:'#0f0f0f',accent:'#ff8c00',iconBg:'rgba(255,140,0,.15)'},
   {id:'Territory',name:'Territory',min:2,live:true,time:'5 min',desc:'Real-time arena battle! Steer your blob, draw loops to claim land, and cut off rivals. Biggest territory wins.',
    icon:'<svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v5h-8zm0 7h8v11h-8zM3 13h8v8H3z"/></svg>',
    c1:'#002a14',c2:'#0f0f0f',accent:'#00f076',iconBg:'rgba(0,240,118,.15)'},
-  {id:'Stampede',name:'Stampede',min:2,live:true,time:'5 min',desc:'A real-time tap race! Sprint across the screen, dodge chaos events, first to the finish wins.',
-   icon:'<svg viewBox="0 0 24 24"><path d="M5 11l4-7 4 7-2 1-2-3-2 3zm9 0l4-7 1 1-3 5 3 1-2 3-1-1 1-2zM3 15h18v2H3zm2 4h14v2H5z"/></svg>',
-   c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
-  {id:'Punchline',name:'Punchline',min:3,time:'10 min',desc:'Write the funniest answer to wild prompts, then everyone votes for their favourite.',
+    {id:'Punchline',name:'Punchline',min:3,time:'10 min',desc:'Write the funniest answer to wild prompts, then everyone votes for their favourite.',
    icon:'<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>',
    c1:'#2a2200',c2:'#0f0f0f',accent:'#ffe62d',iconBg:'rgba(255,230,45,.15)'},
   {id:'Bluff',premium:true,name:'Bluff',min:3,time:'10 min',desc:'Invent a convincing lie to a bizarre fact, then find the real truth among the fakes.',
@@ -1467,11 +1491,26 @@ socket.on('territory_init',({gridW,gridH,players:tp,grid,roundSeconds})=>{
       </div>
     </div>`);
   terrCanvas=document.getElementById('territory-canvas');
-  terrCanvas.width=gridW*10;terrCanvas.height=gridH*10;
-  terrCtx=terrCanvas.getContext('2d');
   terrState={grid:grid,players:tp.map(p=>({id:p.id,x:p.x,y:p.y,color:p.color,alive:true,trail:[]}))};
-  drawTerritory();
+  terrUse3d = !!(window.Arena3D && window.Arena3D.available && window.WebGLRenderingContext);
+  if(terrUse3d){
+    try{
+      const wrapW=Math.min(window.innerWidth*0.9,1100);
+      const wrapH=Math.round(wrapW*2/3);
+      terrCanvas.width=wrapW;terrCanvas.height=wrapH;
+      if(terr3d&&terr3d.dispose)terr3d.dispose();
+      terr3d=window.Arena3D.createTerritory(terrCanvas,gridW,gridH,wrapW,wrapH,terrPlayerColors);
+      terr3d.updateGrid(grid);
+      terr3d.updatePlayers(terrState.players);
+    }catch(e){console.warn('Territory 3D failed',e);terrUse3d=false;}
+  }
+  if(!terrUse3d){
+    terrCanvas.width=gridW*10;terrCanvas.height=gridH*10;
+    terrCtx=terrCanvas.getContext('2d');
+    drawTerritory();
+  }
 });
+let terr3d=null,terrUse3d=false;
 
 let terrCountdownVal=3;
 socket.on('territory_go',()=>{
@@ -1495,10 +1534,11 @@ socket.on('territory_state',({players:tp,grid})=>{
     const chip=document.getElementById('terrchip-'+p.id);
     if(chip)chip.classList.toggle('dead',!p.alive);
   });
-  drawTerritory();
-});
-
-socket.on('territory_claim',({color})=>{
+  if(terrUse3d&&terr3d){
+    if(grid)terr3d.updateGrid(grid);
+    terr3d.updatePlayers(tp);
+  } else drawTerritory();
+});socket.on('territory_claim',({color})=>{
   if(window.CouchMusic)window.CouchMusic.sfx('pop');
 });
 socket.on('territory_pop',({x,y,color})=>{
@@ -1573,6 +1613,7 @@ socket.on('territory_results',({standings,grid})=>{
 // ══ BLAST (host display) ══
 let blastCanvas=null,blastCtx=null,blastCols=15,blastRows=11,blastCell=44;
 let blastGrid=null,blastState=null,blastPlayers={},blastBreaking={};
+let blast3d=null, blastUse3d=false;
 const BLAST_HARD=1,BLAST_SOFT=2;
 socket.on('blast_init',({cols,rows,grid,players:bp,roundTime})=>{
   show('game');
@@ -1580,14 +1621,16 @@ socket.on('blast_init',({cols,rows,grid,players:bp,roundTime})=>{
   blastCols=cols;blastRows=rows;blastGrid=grid;blastBreaking={};
   blastPlayers={};bp.forEach(p=>blastPlayers[p.id]={...p});
   blastState={players:bp,bombs:[],flames:[],powerups:{}};
-  // size cells to fit ~min(86vw,900px)
-  const maxW=Math.min(window.innerWidth*0.86,940);
-  blastCell=Math.floor(maxW/cols);
+  // Decide 3D vs 2D
+  blastUse3d = !!(window.Arena3D && window.Arena3D.available && window.WebGLRenderingContext);
+  const wrapW=Math.min(window.innerWidth*0.86,940);
+  const aspect=cols/rows;
+  const wrapH=Math.round(wrapW/aspect);
   setTV(`<div class="tv-label">BLAST — LAST ONE STANDING WINS</div>
     <div class="blast-stage">
       <div class="blast-timer" id="blast-timer">${roundTime}</div>
-      <div class="blast-canvas-wrap">
-        <canvas id="blast-canvas" width="${cols*blastCell}" height="${rows*blastCell}"></canvas>
+      <div class="blast-canvas-wrap" style="width:${wrapW}px;height:${wrapH}px">
+        <canvas id="blast-canvas" width="${wrapW}" height="${wrapH}" style="width:100%;height:100%"></canvas>
         <div class="blast-countdown" id="blast-cd">Ready</div>
       </div>
       <div class="blast-hud" id="blast-hud">
@@ -1598,24 +1641,33 @@ socket.on('blast_init',({cols,rows,grid,players:bp,roundTime})=>{
       </div>
     </div>`);
   blastCanvas=document.getElementById('blast-canvas');
-  blastCtx=blastCanvas.getContext('2d');
-  drawBlast();
+  if(blastUse3d){
+    try{
+      if(blast3d&&blast3d.dispose)blast3d.dispose();
+      blast3d=window.Arena3D.createBlast(blastCanvas,cols,rows,wrapW,wrapH);
+      blast3d.initGrid(grid);
+      blast3d.updatePlayers(bp);
+    }catch(e){console.warn('3D failed, using 2D',e);blastUse3d=false;}
+  }
+  if(!blastUse3d){
+    blastCell=Math.floor(wrapW/cols);
+    blastCanvas.width=cols*blastCell;blastCanvas.height=rows*blastCell;
+    blastCtx=blastCanvas.getContext('2d');
+    drawBlast();
+  }
+  // countdown overlay
+  blastCdVal=3;
+  const el=document.getElementById('blast-cd');
+  if(el){el.textContent='3';
+    const t=setInterval(()=>{blastCdVal--;
+      if(window.CouchMusic)window.CouchMusic.sfx('tick');
+      if(blastCdVal>0)el.textContent=blastCdVal;
+      else if(blastCdVal===0){el.textContent='GO!';el.style.color='var(--g)';}
+      else clearInterval(t);},1000);
+  }
 });
 socket.on('blast_go',()=>{const cd=document.getElementById('blast-cd');if(cd)cd.style.display='none';});
 let blastCdVal=3;
-socket.on('blast_init',()=>{ // run countdown overlay
-  blastCdVal=3;
-  const el=document.getElementById('blast-cd');
-  if(!el)return;
-  el.textContent='3';
-  const t=setInterval(()=>{
-    blastCdVal--;
-    if(window.CouchMusic)window.CouchMusic.sfx('tick');
-    if(blastCdVal>0)el.textContent=blastCdVal;
-    else if(blastCdVal===0){el.textContent='GO!';el.style.color='var(--g)';}
-    else clearInterval(t);
-  },1000);
-});
 socket.on('blast_time',({timeLeft})=>{
   const t=document.getElementById('blast-timer');
   if(t){t.textContent=timeLeft;t.classList.toggle('low',timeLeft<=10);}
@@ -1624,19 +1676,31 @@ socket.on('blast_state',({players:bp,bombs,flames,powerups})=>{
   if(!blastState)return;
   blastState.players=bp;blastState.bombs=bombs;blastState.flames=flames;blastState.powerups=powerups;
   bp.forEach(p=>{const chip=document.getElementById('bchip-'+p.id);if(chip)chip.classList.toggle('dead',!p.alive);});
-  drawBlast();
+  if(blastUse3d&&blast3d){
+    blast3d.updatePlayers(bp);
+    blast3d.updateBombs(bombs);
+    blast3d.updatePowerups(powerups);
+    blast3d.updateFlames(flames);
+  } else drawBlast();
 });
 socket.on('blast_bomb',()=>{if(window.CouchMusic)window.CouchMusic.sfx('tick');});
-socket.on('blast_break',({x,y})=>{blastBreaking[x+','+y]=Date.now()+300;if(blastGrid)blastGrid[y][x]=0;});
+socket.on('blast_break',({x,y})=>{
+  blastBreaking[x+','+y]=Date.now()+300;
+  if(blastGrid)blastGrid[y][x]=0;
+  if(blastUse3d&&blast3d)blast3d.breakBlock(x,y);
+});
 socket.on('blast_explode',({cells})=>{
   if(window.CouchMusic)window.CouchMusic.sfx('whoosh');
-  // mark broken tiles empty (server already did, but keep grid synced)
-  drawBlast();
+  if(blastUse3d&&blast3d)blast3d.explodeBurst(cells);
+  else drawBlast();
 });
 socket.on('blast_pop',({x,y,color})=>{
   if(window.CouchMusic)window.CouchMusic.sfx('wrong');
-  // little burst
-  if(blastCtx){blastCtx.fillStyle=color;for(let i=0;i<10;i++){const a=Math.PI*2*i/10;blastCtx.beginPath();blastCtx.arc(x*blastCell+blastCell/2+Math.cos(a)*18,y*blastCell+blastCell/2+Math.sin(a)*18,4,0,Math.PI*2);blastCtx.fill();}}
+  // little burst (2D only; 3D handles via flames)
+  if(!blastUse3d&&blastCtx){
+    blastCtx.fillStyle=color;
+    for(let i=0;i<10;i++){const a=Math.PI*2*i/10;blastCtx.beginPath();blastCtx.arc(x*blastCell+blastCell/2+Math.cos(a)*18,y*blastCell+blastCell/2+Math.sin(a)*18,4,0,Math.PI*2);blastCtx.fill();}
+  }
 });
 socket.on('blast_powerup_taken',()=>{if(window.CouchMusic)window.CouchMusic.sfx('pop');});
 
@@ -1720,6 +1784,87 @@ socket.on('blast_results',({winnerName,winnerColor,reason,players:ps})=>{
   const title=winnerName?`${winnerName} WINS! 🏆`:reason==='draw'?'Everyone blew up! 💥':"Time's up!";
   setTV(`<div class="tv-label">BLAST — ROUND OVER</div>
     <div class="tv-heading" style="color:${winnerColor||'var(--y)'};font-size:clamp(34px,7vw,76px)">${title}</div>`);
+  if(ps)updateScorebar(Object.values(ps));
+});
+
+
+// ══ MOST LIKELY TO (host) ══
+socket.on('ml_round',({round,totalRounds,prompt,players:mp})=>{
+  show('game');
+  if(window.CouchMusic)window.CouchMusic.start('hottake');
+  setTV(`<div class="tv-label">MOST LIKELY TO — ROUND ${round}/${totalRounds}</div>
+    <div class="tv-heading" style="font-size:clamp(26px,5vw,52px)">${prompt}?</div>
+    <div class="ml-grid" id="ml-grid">
+      ${mp.map(p=>`<div class="ml-card" id="mlc-${p.id}">
+        <div class="ml-av" id="mlav-${p.id}"></div>
+        <div class="ml-name">${p.nickname}</div>
+        <div class="ml-votes" id="mlv-${p.id}">0</div>
+      </div>`).join('')}
+    </div>
+    <div class="tv-sub" id="ml-status">Vote on your phones!</div>`);
+  mp.forEach(p=>renderAv(p.avatar,document.getElementById('mlav-'+p.id)));
+});
+socket.on('ml_vote_count',({count,total})=>{
+  const s=document.getElementById('ml-status');
+  if(s)s.textContent=`${count} / ${total} voted`;
+});
+socket.on('ml_results',({prompt,results,winnerNames,players:ps})=>{
+  if(window.CouchMusic)window.CouchMusic.sfx('reveal');
+  results.forEach(r=>{
+    const v=document.getElementById('mlv-'+r.id);
+    const card=document.getElementById('mlc-'+r.id);
+    if(v)v.textContent=r.votes;
+    if(card){card.classList.add('show-votes');if(r.isWinner)card.classList.add('winner');}
+  });
+  setTimeout(()=>{
+    if(window.CouchMusic)window.CouchMusic.sfx('win');
+    fireConfetti();
+    const s=document.getElementById('ml-status');
+    if(s&&winnerNames.length)s.innerHTML=`<span style="color:var(--y);font-family:Bebas Neue,cursive;font-size:28px">${winnerNames.join(' & ')}!</span>`;
+  },800);
+  if(ps)updateScorebar(Object.values(ps));
+});
+
+// ══ ACRONYMS (host) ══
+socket.on('acro_round',({round,totalRounds,acronym})=>{
+  show('game');
+  if(window.CouchMusic)window.CouchMusic.start('voltage');
+  setTV(`<div class="tv-label">ACRONYMS — ROUND ${round}/${totalRounds}</div>
+    <div class="tv-heading" style="font-size:clamp(18px,3vw,28px);color:var(--m)">What does this stand for?</div>
+    <div class="acro-big">${acronym}</div>
+    <div class="typing-bar" id="typing-bar"></div>
+    <div class="tv-sub" id="acro-status">Writing on phones...</div>`);
+});
+socket.on('acro_answered',({count,total})=>{
+  const s=document.getElementById('acro-status');
+  if(s)s.textContent=`${count} / ${total} submitted`;
+});
+socket.on('acro_vote_display',({acronym,answers})=>{
+  setTV(`<div class="tv-label">VOTE FOR THE BEST</div>
+    <div class="acro-big" style="font-size:clamp(40px,8vw,80px)">${acronym}</div>
+    <div class="acro-answers" id="acro-answers">
+      ${answers.map(a=>`<div class="acro-ans" id="acroa-${a.id}">
+        <div class="acro-txt">${a.text}</div>
+        <div class="acro-v" id="acrov-${a.id}">0</div>
+      </div>`).join('')}
+    </div>
+    <div class="tv-sub" id="acro-status">Vote on your phones!</div>`);
+});
+socket.on('acro_vote_count',({count})=>{
+  const s=document.getElementById('acro-status');
+  if(s)s.textContent=`${count} voted`;
+});
+socket.on('acro_results',({acronym,results,players:ps})=>{
+  if(window.CouchMusic)window.CouchMusic.sfx('reveal');
+  results.forEach((r,i)=>{
+    setTimeout(()=>{
+      const el=document.getElementById('acroa-'+r.id);
+      const v=document.getElementById('acrov-'+r.id);
+      if(v)v.textContent=r.votes;
+      if(el){el.classList.add('show');if(r.isWinner)el.classList.add('winner');}
+    },i*200);
+  });
+  setTimeout(()=>{if(window.CouchMusic)window.CouchMusic.sfx('win');fireConfetti();},results.length*200+400);
   if(ps)updateScorebar(Object.values(ps));
 });
 
@@ -1836,6 +1981,14 @@ const TUTORIAL_SLIDES = {
     {title:'Mafia', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><circle cx="40" cy="36" r="20" fill="#ff2d2d"/><circle cx="32" cy="33" r="4" fill="#0a0a0a"/><circle cx="48" cy="33" r="4" fill="#0a0a0a"/><line x1="32" y1="44" x2="48" y2="44" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round"/></svg>', desc:"Hidden roles. The Mafia are secretly trying to eliminate the village. The Village must find them before they're outnumbered!", tip:''},
     {title:'Special Roles', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#141414"/><text x="40" y="30" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#00f076">DOCTOR</text><text x="40" y="50" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#3b8bff">DETECTIVE</text><text x="40" y="70" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="14" fill="#ff2d2d">MAFIA</text></svg>', desc:"Doctor protects someone each night. Detective investigates someone and learns their role. Mafia picks who to eliminate.", tip:''},
     {title:'Day vs Night', color:'#ff2d2d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><circle cx="26" cy="40" r="16" fill="#ffe62d"/><path d="M54 24 Q70 40 54 56 Q62 40 54 24Z" fill="#f5f5f5"/></svg>', desc:"At night, special roles act secretly on their phones. At day, everyone discusses who they suspect — then votes someone out!", tip:'Mafia: blend in. Village: watch who avoids suspicion.'},
+  ],
+  MostLikely: [
+    {title:'Most Likely To', color:'#ff8c00', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ff8c00"/><circle cx="30" cy="32" r="10" fill="#0a0a0a"/><circle cx="50" cy="32" r="10" fill="#0a0a0a"/><path d="M16 60 Q40 44 64 60" stroke="#0a0a0a" stroke-width="6" fill="none"/></svg>', desc:"Read the prompt, then vote for the person in the room who fits it best. You can even vote for yourself!", tip:'The most-voted person wins the round and earns the bragging rights.'},
+    {title:'Own It', color:'#ff8c00', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><text x="40" y="56" text-anchor="middle" font-size="44">👑</text></svg>', desc:"Getting voted for the most isn't an insult here — it's a crown! Score points for being the obvious choice, and for guessing who the room will pick.", tip:'Vote with the crowd to read the room and score bonus points.'},
+  ],
+  Acronyms: [
+    {title:'Acronyms', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ffe62d"/><text x="40" y="52" text-anchor="middle" font-family="Bebas Neue,cursive" font-size="36" fill="#0a0a0a">ABC</text></svg>', desc:"You get a set of random letters like 'FBI'. Invent what they stand for — the funnier the better. Fast Bouncing Iguanas? Go wild!", tip:'There are no wrong answers — only funny ones.'},
+    {title:'Vote the Funniest', color:'#ffe62d', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#0a0a0a"/><path d="M40 16 L48 34 L68 34 L52 46 L58 66 L40 54 L22 66 L28 46 L12 34 L32 34 Z" fill="#ffe62d"/></svg>', desc:"Everyone's acronyms appear anonymously. Vote for your favourite (not your own!). The letters get longer each round — more letters, more chaos.", tip:'Most votes wins the round. Play to the crowd!'},
   ],
   Blast: [
     {title:'Blast', color:'#ff8c00', icon:'<svg viewBox="0 0 80 80"><rect width="80" height="80" rx="16" fill="#ff8c00"/><circle cx="40" cy="46" r="20" fill="#1a1a1a"/><rect x="37" y="16" width="6" height="14" rx="3" fill="#1a1a1a"/><circle cx="40" cy="14" r="4" fill="#fff44d"/></svg>', desc:"Move through the maze and drop bombs! Bombs explode in a + shape after a short fuse. Blow up brick walls to open paths and find power-ups.", tip:'Use the arrows to move, the big red button to drop a bomb.'},
