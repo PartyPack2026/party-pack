@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Couch Pack Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0820; --bg2:#140d2e;
+    --glass:rgba(255,255,255,.045); --glass-hi:rgba(255,255,255,.08); --line:rgba(255,255,255,.09);
+    --ink:#f4f2ff; --muted:#a99fd0;
+    --magenta:#ff2e97; --cyan:#22e0ff; --violet:#8b5cf6; --lime:#b6ff3d; --amber:#ffc23d; --coral:#ff5d73;
+    --logo:'Press Start 2P',monospace; --ui:'Space Grotesk',system-ui,-apple-system,sans-serif;
+    --r:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--ui); color:var(--ink); background:var(--bg); min-height:100%;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  /* ambient aurora */
+  body::before{
+    content:''; position:fixed; inset:-30% -10% auto -10%; height:80%; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(50% 60% at 20% 20%, rgba(139,92,246,.35), transparent 70%),
+      radial-gradient(45% 55% at 85% 10%, rgba(34,224,255,.22), transparent 70%),
+      radial-gradient(55% 60% at 60% 90%, rgba(255,46,151,.22), transparent 70%);
+    filter:blur(30px); animation:drift 22s ease-in-out infinite alternate;
+  }
+  @keyframes drift{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(0,3%,0) scale(1.12)}}
+
+  /* ── Header ── */
+  header{
+    position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    padding:15px clamp(16px,4vw,44px);
+    background:rgba(13,8,32,.72); backdrop-filter:blur(16px); border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:13px; text-decoration:none; color:var(--ink)}
+  .brand .mark{
+    width:40px; height:40px; border-radius:12px; display:grid; place-items:center; font-size:19px;
+    background:conic-gradient(from 200deg,var(--magenta),var(--amber),var(--lime),var(--cyan),var(--violet),var(--magenta));
+    box-shadow:0 6px 22px rgba(255,46,151,.4);
+  }
+  .brand .name{display:flex; flex-direction:column; gap:3px; line-height:1}
+  .brand .name .pix{font-family:var(--logo); font-size:11px; letter-spacing:.5px}
+  .brand .name .sub{font-size:12px; font-weight:600; color:var(--muted); letter-spacing:3px; text-transform:uppercase}
+  .search{
+    margin-left:auto; flex:1 1 220px; max-width:440px; display:flex; align-items:center; gap:9px;
+    background:var(--glass); border:1px solid var(--line); border-radius:13px; padding:11px 15px; transition:.15s;
+  }
+  .search:focus-within{border-color:var(--violet); background:var(--glass-hi); box-shadow:0 0 0 3px rgba(139,92,246,.22)}
+  .search svg{width:18px; height:18px; flex:none; color:var(--muted)}
+  .search input{background:none; border:none; outline:none; color:var(--ink); font-family:var(--ui); font-size:16px; width:100%; font-weight:500}
+  .search input::placeholder{color:var(--muted)}
+
+  /* ── Hero ── */
+  .hero{padding:clamp(40px,7vw,84px) clamp(16px,4vw,44px) clamp(18px,3vw,30px); max-width:1000px}
+  .hero h1{
+    font-size:clamp(38px,8vw,76px); font-weight:700; line-height:.98; letter-spacing:-1.5px;
+    background:linear-gradient(105deg,var(--magenta),var(--amber) 30%,var(--lime) 52%,var(--cyan) 74%,var(--violet));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero p{margin-top:18px; font-size:clamp(16px,2.4vw,20px); color:var(--muted); font-weight:500; max-width:560px}
+  .hero p b{color:var(--ink); font-weight:600}
+
+  /* ── Category rail ── */
+  .rail-wrap{position:sticky; top:70px; z-index:30; background:linear-gradient(var(--bg),rgba(13,8,32,.6) 70%,transparent); padding:12px 0 14px}
+  .rail{
+    display:flex; gap:10px; overflow-x:auto; padding:2px clamp(16px,4vw,44px); scrollbar-width:none;
+  }
+  .rail::-webkit-scrollbar{display:none}
+  .cat{
+    flex:none; font-family:var(--ui); font-weight:600; font-size:14.5px; cursor:pointer; white-space:nowrap;
+    padding:10px 18px; border-radius:999px; color:var(--muted);
+    background:var(--glass); border:1px solid var(--line); transition:.16s;
+  }
+  .cat:hover{color:var(--ink); transform:translateY(-1px); border-color:var(--glass-hi)}
+  .cat.active{color:#0d0820; background:var(--ink); border-color:transparent; font-weight:700}
+  .cat[data-cat="Hot"].active{background:var(--magenta); color:#fff}
+  .cat[data-cat="New"].active{background:var(--cyan); color:#052330}
+
+  /* ── Grid ── */
+  main{padding:16px clamp(16px,4vw,44px) 70px}
+  .section-label{
+    max-width:1280px; margin:0 auto 16px; display:flex; align-items:center; gap:12px;
+    font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted);
+  }
+  .section-label::after{content:''; flex:1; height:1px; background:var(--line)}
+  .grid{
+    display:grid; gap:clamp(14px,1.6vw,20px);
+    grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+    max-width:1280px; margin:0 auto;
+  }
+  .card{
+    --accent:var(--violet);
+    position:relative; cursor:pointer; text-align:left; padding:0; border:1px solid var(--line);
+    background:var(--glass); border-radius:var(--r); overflow:hidden; font-family:var(--ui); color:var(--ink);
+    transition:transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s, border-color .18s;
+  }
+  .card:hover, .card:focus-visible{
+    transform:translateY(-7px); outline:none; border-color:transparent;
+    box-shadow:0 18px 44px rgba(0,0,0,.5), 0 0 0 1.5px var(--accent), 0 0 34px -6px var(--accent);
+  }
+  .thumb{
+    height:130px; display:grid; place-items:center; font-size:56px; position:relative;
+    background:
+      radial-gradient(90px 70px at 30% 25%, color-mix(in srgb,var(--accent) 70%, transparent), transparent 72%),
+      linear-gradient(140deg, color-mix(in srgb,var(--accent) 45%, #17102f), #120b28);
+  }
+  .thumb::after{content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.28))}
+  .card:hover .thumb{transform:scale(1.04)}
+  .thumb{transition:transform .3s ease}
+  .meta{padding:13px 15px 16px}
+  .meta h3{font-size:18px; font-weight:600; letter-spacing:-.3px; line-height:1.15}
+  .tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:9px}
+  .tag{
+    font-size:10.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase;
+    padding:3px 8px; border-radius:999px; color:var(--accent);
+    background:color-mix(in srgb,var(--accent) 15%, transparent);
+  }
+  .play{
+    position:absolute; top:12px; right:12px; width:36px; height:36px; border-radius:50%;
+    display:grid; place-items:center; background:rgba(13,8,32,.5); backdrop-filter:blur(4px);
+    border:1px solid rgba(255,255,255,.14); opacity:0; transform:scale(.8); transition:.16s; z-index:2;
+  }
+  .card:hover .play{opacity:1; transform:scale(1)}
+  .play svg{width:15px; height:15px; color:#fff; margin-left:2px}
+
+  /* ── Empty state ── */
+  .empty{
+    grid-column:1/-1; text-align:center; padding:56px 24px;
+    border:1.5px dashed var(--line); border-radius:22px; background:var(--glass);
+  }
+  .empty .big{font-size:46px; margin-bottom:14px}
+  .empty h2{font-size:22px; font-weight:700; margin-bottom:8px}
+  .empty p{color:var(--muted); font-size:15.5px; max-width:440px; margin:0 auto; line-height:1.6}
+  .empty code{background:rgba(255,255,255,.08); padding:2px 7px; border-radius:6px; font-family:var(--logo); font-size:10px; color:var(--amber)}
+
+  /* ── Footer ── */
+  footer{border-top:1px solid var(--line); padding:26px clamp(16px,4vw,44px); color:var(--muted); font-size:13.5px; text-align:center; line-height:1.6}
+  footer a{color:var(--cyan); text-decoration:none}
+
+  /* ── Cabinet ── */
+  .cabinet{position:fixed; inset:0; z-index:60; display:none; padding:clamp(8px,2vw,26px); background:rgba(6,3,16,.9); backdrop-filter:blur(8px); flex-direction:column; gap:12px}
+  .cabinet.open{display:flex; animation:fade .18s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .cab-bar{display:flex; align-items:center; gap:12px}
+  .cab-title{font-family:var(--logo); font-size:12px; color:var(--amber); letter-spacing:.5px}
+  .cab-actions{margin-left:auto; display:flex; gap:8px}
+  .cab-btn{font-family:var(--ui); font-weight:600; font-size:14px; cursor:pointer; color:var(--ink); background:var(--glass-hi); border:1px solid var(--line); padding:9px 15px; border-radius:11px; display:flex; align-items:center; gap:6px; text-decoration:none}
+  .cab-btn:hover{background:var(--violet); border-color:transparent}
+  .cab-btn svg{width:15px; height:15px}
+  .cab-frame{flex:1; border-radius:16px; overflow:hidden; border:1px solid var(--glass-hi); background:#000; box-shadow:0 0 70px rgba(139,92,246,.28)}
+  .cab-frame iframe{width:100%; height:100%; border:none; display:block}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="./index.html" aria-label="Couch Pack Arcade home">
+    <span class="mark">🕹️</span>
+    <span class="name"><span class="pix">ARCADE</span><span class="sub">couch&nbsp;pack</span></span>
+  </a>
+  <label class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+    <input id="search" type="search" placeholder="Search games…" autocomplete="off" aria-label="Search games">
+  </label>
+</header>
+
+<section class="hero">
+  <h1>Play anything.<br>Right now.</h1>
+  <p>Fast, colorful browser games. <b>No downloads, no login, no waiting</b> — just pick one and go.</p>
+</section>
+
+<div class="rail-wrap"><nav class="rail" id="rail" aria-label="Categories"></nav></div>
+
+<main>
+  <div class="section-label" id="sectionLabel">All games</div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>
+  Only add games whose licence allows hosting or embedding — that's what keeps the site online. <br>
+  Edit this page to add games · <a href="#" id="howto">how to add a game</a>
+</footer>
+
+<div class="cabinet" id="cabinet" role="dialog" aria-modal="true" aria-label="Game player">
+  <div class="cab-bar">
+    <span class="cab-title" id="cabTitle">GAME</span>
+    <div class="cab-actions">
+      <a class="cab-btn" id="cabNewTab" href="#" target="_blank" rel="noopener" title="Open full page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-9 9M9 5H5v14h14v-4" stroke-linecap="round" stroke-linejoin="round"/></svg>Full page
+      </a>
+      <button class="cab-btn" id="cabClose" title="Close (Esc)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg>Close
+      </button>
+    </div>
+  </div>
+  <div class="cab-frame"><iframe id="cabFrame" title="Game" allow="autoplay; fullscreen; gamepad"></iframe></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADD A GAME  —  this block is the only thing you edit.
+
+   STEP 1 (optional): the category buttons across the top.
+       Add or remove names in CATEGORIES below. That's the whole menu.
+
+   STEP 2: add your game to the GAMES list. One game = one line:
+
+       { title:"Game Name", tags:["Action","Hot"], icon:"🎮", color:"var(--magenta)", src:"https://the-game-url/" }
+
+       • title = the name on the card
+       • tags  = one or more categories in [ ] with quotes. A game shows under
+                 every tag it has (so ["Action","Hot"] appears in BOTH).
+                 Use names from CATEGORIES so the buttons filter it.
+       • icon  = any emoji
+       • color = a neon: var(--magenta) var(--cyan) var(--violet)
+                 var(--lime) var(--amber) var(--coral)   (or a hex like "#ff2e97")
+       • src   = where the game lives:
+                   – a full web address of a game you're allowed to embed, OR
+                   – a file you host next to this page, e.g. "games/mygame.html"
+
+   RULE: only add games whose licence permits hosting/embedding (CC0, MIT, or a
+   page that plainly says embedding is OK). That's what keeps the site alive.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const CATEGORIES = ["Hot", "New", "Action", "Adventure", "Puzzle", "Racing", "Shooting", "Sports", "Strategy", "Casual"];
+
+const GAMES = [
+  // No games yet — add your first one right here, for example:
+  // { title:"Neon Racer", tags:["Racing","Hot"], icon:"🏎️", color:"var(--cyan)", src:"https://example.com/neon-racer/" },
+];
+
+// ── engine (no need to edit below) ─────────────────────────────────────────
+const grid = document.getElementById('grid');
+const rail = document.getElementById('rail');
+const searchEl = document.getElementById('search');
+const sectionLabel = document.getElementById('sectionLabel');
+let activeCat = 'All';
+let query = '';
+
+function renderRail(){
+  const cats = ['All', ...CATEGORIES];
+  rail.innerHTML = cats.map(c =>
+    `<button class="cat${c===activeCat?' active':''}" data-cat="${c}">${c}</button>`
+  ).join('');
+}
+function renderGrid(){
+  const list = GAMES.filter(g =>
+    (activeCat === 'All' || (g.tags || []).includes(activeCat)) &&
+    g.title.toLowerCase().includes(query)
+  );
+  sectionLabel.textContent = query ? `Results for “${searchEl.value.trim()}”`
+                                   : (activeCat === 'All' ? 'All games' : activeCat + ' games');
+
+  if(!GAMES.length){
+    grid.innerHTML = `<div class="empty"><div class="big">🎮</div>
+      <h2>Your arcade is empty</h2>
+      <p>Open this page's file and add your first game in the <code>GAMES</code> list. One line and it shows up here.</p></div>`;
+    return;
+  }
+  if(!list.length){
+    grid.innerHTML = `<div class="empty"><div class="big">🕹️</div>
+      <h2>Nothing here yet</h2>
+      <p>No games match that. Try another category or clear the search.</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(g => `
+    <button class="card" style="--accent:${g.color}" data-i="${GAMES.indexOf(g)}" aria-label="Play ${g.title}">
+      <div class="thumb">${g.icon || '🎮'}</div>
+      <div class="meta">
+        <h3>${g.title}</h3>
+        <div class="tags">${(g.tags||[]).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      </div>
+      <span class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+    </button>`).join('');
+}
+
+rail.addEventListener('click', e => {
+  const c = e.target.closest('.cat'); if(!c) return;
+  activeCat = c.dataset.cat; renderRail(); renderGrid();
+});
+searchEl.addEventListener('input', () => { query = searchEl.value.trim().toLowerCase(); renderGrid(); });
+grid.addEventListener('click', e => {
+  const card = e.target.closest('.card'); if(!card) return;
+  openGame(GAMES[+card.dataset.i]);
+});
+document.getElementById('howto').addEventListener('click', e => {
+  e.preventDefault();
+  alert('To add a game, open this page\'s file (index.html) and add one line to the GAMES list near the bottom:\n\n{ title:"Game Name", tags:["Action","Hot"], icon:"🎮", color:"var(--magenta)", src:"https://the-game-url/" }\n\nUse a game you are allowed to host or embed.');
+});
+
+// ── cabinet ──
+const cabinet = document.getElementById('cabinet');
+const cabFrame = document.getElementById('cabFrame');
+const cabTitle = document.getElementById('cabTitle');
+const cabNewTab = document.getElementById('cabNewTab');
+function openGame(g){
+  cabTitle.textContent = g.title.toUpperCase();
+  cabFrame.src = g.src; cabNewTab.href = g.src;
+  cabinet.classList.add('open'); document.body.style.overflow = 'hidden';
+}
+function closeGame(){
+  cabinet.classList.remove('open'); cabFrame.src = 'about:blank'; document.body.style.overflow = '';
+}
+document.getElementById('cabClose').addEventListener('click', closeGame);
+cabinet.addEventListener('click', e => { if(e.target === cabinet) closeGame(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape' && cabinet.classList.contains('open')) closeGame(); });
+
+renderRail();
+renderGrid();
+</script>
+</body>
+</html>
