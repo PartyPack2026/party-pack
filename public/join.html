@@ -853,6 +853,153 @@ textarea{resize:none;height:110px;font-size:17px;line-height:1.4}
   <div class="status" id="maj-pstatus"></div>
 </div>
 
+
+<!-- CONNECTIONS -->
+<div id="s-conn" class="screen">
+  <div class="label">Connections</div>
+  <div class="status" id="conn-lives">❤️❤️❤️❤️</div>
+  <div class="status" style="font-size:12px">Select 4 that share a group, then Submit</div>
+  <div id="conn-board" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;max-width:340px"></div>
+  <button class="btn" id="conn-submit" onclick="submitConn()" style="display:none;margin-top:12px">Submit Group</button>
+  <div class="status" id="conn-status"></div>
+</div>
+
+<!-- SCRAMBLE -->
+<div id="s-scr" class="screen">
+  <div class="label">Scramble</div>
+  <div id="scr-letters" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-family:'Bebas Neue',cursive;font-size:30px;color:var(--y)"></div>
+  <div class="status">Unscramble it — fast!</div>
+  <input id="scr-input" placeholder="Your answer..." autocomplete="off" autocapitalize="off">
+  <button class="btn" onclick="submitScr()">Guess</button>
+  <div class="status" id="scr-pstatus"></div>
+</div>
+
+<!-- WAGER -->
+<div id="s-wag-bet" class="screen">
+  <div class="label">Wager</div>
+  <div class="prompt-card" id="wag-q" style="font-size:15px"></div>
+  <div class="status">Bank: <span id="wag-bank" style="color:var(--y);font-weight:700"></span> — how sure are you?</div>
+  <div id="wag-bet-opts" style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px"></div>
+  <div class="status" id="wag-bet-status"></div>
+</div>
+<div id="s-wag-answer" class="screen">
+  <div class="label">Now Answer</div>
+  <div class="prompt-card" id="wag-aq" style="font-size:15px"></div>
+  <div class="status">You bet <span id="wag-mybet" style="color:var(--y);font-weight:700"></span></div>
+  <div class="opts" id="wag-answer-opts"></div>
+  <div class="status" id="wag-answer-status"></div>
+</div>
+
+<!-- CHAMELEON -->
+<div id="s-cham-role" class="screen">
+  <div class="label">Chameleon</div>
+  <div id="cham-role-box" class="prompt-card" style="font-size:18px;text-align:center"></div>
+  <div class="status">Type ONE word as your clue</div>
+  <input id="cham-clue-input" placeholder="Your clue word..." maxlength="24" autocomplete="off">
+  <button class="btn" onclick="submitChamClue()">Lock Clue</button>
+  <div class="status" id="cham-clue-status"></div>
+</div>
+<div id="s-cham-vote" class="screen">
+  <div class="label">Who's the Faker?</div>
+  <div class="status">Vote for the Chameleon</div>
+  <div class="opts" id="cham-vote-opts"></div>
+  <div class="status" id="cham-vote-status"></div>
+</div>
+<div id="s-cham-guess" class="screen">
+  <div class="label" style="color:var(--y)">🦎 You're caught!</div>
+  <div class="status">Guess the secret word to steal points</div>
+  <div class="opts" id="cham-guess-opts"></div>
+  <div class="status" id="cham-guess-status"></div>
+</div>
+
+<!-- STORYTELLER -->
+<div id="s-story-fill" class="screen">
+  <div class="label">Storyteller</div>
+  <div class="status">Fill these in — you can't see the story!</div>
+  <div id="story-slots" style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px"></div>
+  <button class="btn" onclick="submitStory()">Submit Words</button>
+  <div class="status" id="story-fill-status"></div>
+</div>
+<div id="s-story-vote" class="screen">
+  <div class="label">Funniest Word?</div>
+  <div class="status">Vote for your favourite</div>
+  <div class="opts" id="story-vote-opts"></div>
+  <div class="status" id="story-vote-status"></div>
+</div>
+
+<!-- AUCTION -->
+<div id="s-auc" class="screen">
+  <div class="label">Auction</div>
+  <div class="prompt-card" id="auc-lot" style="font-size:16px"></div>
+  <div class="status">Coins: <span id="auc-coins" style="color:var(--y);font-weight:700"></span></div>
+  <input id="auc-bid-input" type="number" placeholder="Your bid..." style="font-size:22px;text-align:center">
+  <button class="btn" onclick="submitAuc()">Place Bid</button>
+  <div class="status" id="auc-status"></div>
+</div>
+
+<!-- NUMBER CRUNCH -->
+<div id="s-num" class="screen">
+  <div class="label">Number Crunch</div>
+  <div class="status">Target: <span id="num-target" style="color:var(--y);font-family:'Bebas Neue',cursive;font-size:28px"></span></div>
+  <div class="status">Your total: <span id="num-sum" style="color:var(--g);font-weight:700">0</span></div>
+  <div id="num-tiles" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:320px"></div>
+  <button class="btn" onclick="submitNum()">Submit</button>
+  <div class="status" id="num-pstatus"></div>
+</div>
+
+<!-- DESCRIBE IT -->
+<div id="s-desc-word" class="screen">
+  <div class="label" style="color:var(--y)">🗣️ You're describing!</div>
+  <div class="status">Say it out loud — DON'T say the word itself</div>
+  <div class="prompt-card" id="desc-word-box" style="font-size:28px;text-align:center;color:var(--y)"></div>
+  <button class="btn" onclick="skipDesc()" style="background:#333">Skip this word</button>
+  <div class="status" id="desc-word-status"></div>
+</div>
+<div id="s-desc-guess" class="screen">
+  <div class="label">Describe It</div>
+  <div class="status" id="desc-guess-sub">Listen and type your guess!</div>
+  <input id="desc-guess-input" placeholder="Your guess..." autocomplete="off">
+  <button class="btn" onclick="submitDesc()">Guess</button>
+  <div class="status" id="desc-guess-status"></div>
+</div>
+
+<!-- PITCH BATTLE -->
+<div id="s-pitch-write" class="screen">
+  <div class="label">Pitch Battle</div>
+  <div class="prompt-card" id="pitch-product" style="font-size:16px"></div>
+  <div class="status">Write your best sales pitch!</div>
+  <textarea id="pitch-input" placeholder="Introducing the amazing..." maxlength="200"></textarea>
+  <button class="btn" onclick="submitPitch()">Submit Pitch</button>
+  <div class="status" id="pitch-wstatus"></div>
+</div>
+<div id="s-pitch-vote" class="screen">
+  <div class="label">Best Pitch?</div>
+  <div class="prompt-card" id="pitch-vote-product" style="font-size:13px"></div>
+  <div class="opts" id="pitch-vote-opts"></div>
+  <div class="status" id="pitch-vstatus"></div>
+</div>
+
+<!-- LAST ONE STANDING -->
+<div id="s-los-write" class="screen">
+  <div class="label">Last One Standing</div>
+  <div class="prompt-card" id="los-prompt" style="font-size:16px"></div>
+  <div class="status">Answer to survive!</div>
+  <textarea id="los-input" placeholder="Your answer..." maxlength="150"></textarea>
+  <button class="btn" onclick="submitLos()">Submit</button>
+  <div class="status" id="los-wstatus"></div>
+</div>
+<div id="s-los-spectate" class="screen">
+  <div class="label" style="color:var(--m)">Eliminated</div>
+  <div class="prompt-card" id="los-spec-prompt" style="font-size:15px"></div>
+  <div class="status">You're out — but you still vote! Play kingmaker 👑</div>
+</div>
+<div id="s-los-vote" class="screen">
+  <div class="label">Vote Favourite</div>
+  <div class="status" style="font-size:12px">Fewest votes is eliminated!</div>
+  <div class="opts" id="los-vote-opts"></div>
+  <div class="status" id="los-vstatus"></div>
+</div>
+
 <script src="/music.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 
@@ -2269,6 +2416,98 @@ socket.on('maj_answer',({question})=>{document.getElementById('maj-q').textConte
 function submitMaj(){const v=document.getElementById('maj-input').value.trim();if(!v){document.getElementById('maj-pstatus').textContent='Type an answer!';return;}socket.emit('game_input',{type:'answer',answer:v});if(window.CouchMusic)window.CouchMusic.sfx('pop');}
 socket.on('maj_submitted',()=>{document.getElementById('maj-pstatus').textContent='Submitted!';});
 socket.on('maj_result_player',({matched,yourAnswer,groupSize})=>showResult(matched?'👑':'🤷',matched?'You matched!':'Out of sync',matched?'+'+(100+groupSize*50):null,matched?groupSize+' of you said "'+yourAnswer+'"':'You said "'+(yourAnswer||'nothing')+'"'));
+
+
+// ══ CONNECTIONS (player) ══
+let connSelected=[],connLocked=[],connDead=false;
+socket.on('conn_board',({board,lives,groups})=>{connSelected=[];connLocked=[];connDead=false;document.getElementById('conn-lives').textContent="❤️".repeat(lives);document.getElementById('conn-status').textContent="";document.getElementById('conn-submit').style.display="none";const el=document.getElementById('conn-board');el.innerHTML=board.map(w=>`<button class="opt-btn conn-word" data-w="${w}" onclick="tapConn(this)" style="padding:14px 4px;font-size:13px">${w}</button>`).join('');show('conn');});
+function tapConn(btn){if(connDead)return;const w=btn.dataset.w;if(connLocked.includes(w))return;if(connSelected.includes(w)){connSelected=connSelected.filter(x=>x!==w);btn.classList.remove('on');}else{if(connSelected.length>=4)return;connSelected.push(w);btn.classList.add('on');if(window.CouchMusic)window.CouchMusic.sfx('pop');}document.getElementById('conn-submit').style.display=connSelected.length===4?"block":"none";}
+function submitConn(){if(connSelected.length!==4||connDead)return;socket.emit('game_input',{type:'submit_group',words:connSelected});}
+socket.on('conn_correct',({cat,words,points,foundCount,totalGroups})=>{if(window.CouchMusic)window.CouchMusic.sfx('correct');if(navigator.vibrate)navigator.vibrate(40);words.forEach(w=>{connLocked.push(w);const b=document.querySelector(`.conn-word[data-w="${w}"]`);if(b){b.classList.remove('on');b.classList.add('dim');b.disabled=true;b.style.background="#00402088";}});connSelected=[];document.getElementById('conn-submit').style.display="none";document.getElementById('conn-status').innerHTML=`<span style="color:var(--g)">✓ ${cat} +${points}</span> (${foundCount}/${totalGroups})`;});
+socket.on('conn_wrong',({lives,oneAway})=>{if(window.CouchMusic)window.CouchMusic.sfx('wrong');if(navigator.vibrate)navigator.vibrate(120);document.getElementById('conn-lives').textContent="❤️".repeat(Math.max(0,lives));document.getElementById('conn-status').innerHTML=oneAway?`<span style="color:var(--y)">So close — one away!</span>`:`<span style="color:var(--r)">Nope! ${lives} lives left</span>`;connSelected.forEach(w=>{const b=document.querySelector(`.conn-word[data-w="${w}"]`);if(b)b.classList.remove('on');});connSelected=[];document.getElementById('conn-submit').style.display="none";});
+socket.on('conn_out',()=>{connDead=true;document.getElementById('conn-status').innerHTML=`<span style="color:var(--r)">Out of lives! Watch the results.</span>`;});
+socket.on('conn_solved',({bonus})=>{connDead=true;document.getElementById('conn-status').innerHTML=`<span style="color:var(--g)">Solved it all! +${bonus} bonus 🏆</span>`;});
+socket.on('conn_result_player',({found,total,solved})=>showResult(solved?'🏆':found>0?'🧩':'😬',solved?'Full board!':found>0?`${found}/${total} groups`:'Tough board',null,solved?'You cracked every group':`You found ${found} of ${total}`));
+
+// ══ SCRAMBLE (player) ══
+socket.on('scr_solve',({scrambled,length})=>{document.getElementById('scr-letters').innerHTML=scrambled.split('').map(ch=>`<span style="background:#2a2200;border-radius:6px;padding:4px 10px">${ch}</span>`).join('');document.getElementById('scr-input').value='';document.getElementById('scr-input').disabled=false;document.getElementById('scr-pstatus').textContent='';show('scr');});
+function submitScr(){const v=document.getElementById('scr-input').value.trim();if(!v)return;socket.emit('game_input',{type:'guess',guess:v});}
+socket.on('scr_correct',({points,order,answer})=>{if(window.CouchMusic)window.CouchMusic.sfx('correct');if(navigator.vibrate)navigator.vibrate(50);document.getElementById('scr-input').disabled=true;document.getElementById('scr-pstatus').innerHTML=`<span style="color:var(--g)">✓ ${answer.toUpperCase()}! +${points} (#${order})</span>`;});
+socket.on('scr_wrong',()=>{if(navigator.vibrate)navigator.vibrate(20);document.getElementById('scr-input').value='';document.getElementById('scr-pstatus').innerHTML=`<span style="color:var(--r)">Not it — keep trying!</span>`;});
+socket.on('scr_reveal_player',({solved,answer})=>showResult(solved?'⚡':'😬',solved?'Solved it!':'Missed it',null,`Word: ${answer.toUpperCase()}`));
+
+// ══ WAGER (player) ══
+let wagBet=0;
+socket.on('wag_bet',({question,bank})=>{document.getElementById('wag-q').textContent=question;document.getElementById('wag-bank').textContent=bank;document.getElementById('wag-bet-status').textContent='';const tiers=[['Safe',Math.max(50,Math.round(bank*0.1))],['Medium',Math.round(bank*0.25)],['Risky',Math.round(bank*0.5)],['All In',bank]];document.getElementById('wag-bet-opts').innerHTML=tiers.map(t=>`<button class="opt-btn" onclick="betWag(${t[1]},this)" style="display:flex;justify-content:space-between;padding:16px"><span>${t[0]}</span><span style="color:var(--y);font-weight:700">${t[1]}</span></button>`).join('');show('wag-bet');});
+function betWag(amount,btn){if(window.CouchMusic)window.CouchMusic.sfx('pop');document.querySelectorAll('#wag-bet-opts .opt-btn').forEach(b=>{b.classList.add('dim');b.disabled=true;});btn.classList.remove('dim');btn.classList.add('on');socket.emit('game_input',{type:'bet',amount});}
+socket.on('wag_bet_locked',({amount})=>{wagBet=amount;document.getElementById('wag-bet-status').textContent="Bet locked: "+amount;});
+socket.on('wag_choose',({question,opts,bet})=>{document.getElementById('wag-aq').textContent=question;document.getElementById('wag-mybet').textContent=bet;document.getElementById('wag-answer-status').textContent='';document.getElementById('wag-answer-opts').innerHTML=opts.map((o,i)=>`<button class="opt-btn" onclick="answerWag(${i},this)">${String.fromCharCode(65+i)}. ${o}</button>`).join('');show('wag-answer');});
+function answerWag(choice,btn){if(window.CouchMusic)window.CouchMusic.sfx('pop');document.querySelectorAll('#wag-answer-opts .opt-btn').forEach(b=>{b.classList.add('dim');b.disabled=true;});btn.classList.remove('dim');btn.classList.add('on');socket.emit('game_input',{type:'answer',choice});}
+socket.on('wag_answered',()=>{document.getElementById('wag-answer-status').textContent="Answer locked!";});
+socket.on('wag_reveal_player',({correct,delta,bank,correctText})=>showResult(correct?'💰':'💸',correct?'Correct!':'Wrong!',(delta>=0?'+':'')+delta,`Answer: ${correctText} • Bank: ${bank}`,delta<0));
+
+// ══ CHAMELEON (player) ══
+socket.on('cham_role',({isChameleon,category,wordList,secret})=>{const box=document.getElementById('cham-role-box');if(isChameleon){box.innerHTML=`<div style="color:var(--y);font-size:22px">🦎 You are the CHAMELEON</div><div style="font-size:13px;color:var(--m);margin-top:8px">You do NOT know the word. Category: <b>${category}</b>. Bluff a clue that fits in!</div>`;}else{box.innerHTML=`<div style="font-size:13px;color:var(--m)">Category: ${category}</div><div style="color:var(--g);font-size:26px;margin-top:6px">${secret}</div><div style="font-size:12px;color:var(--m);margin-top:6px">Give a clue — but don't make it too obvious!</div>`;}document.getElementById('cham-clue-input').value='';document.getElementById('cham-clue-input').disabled=false;document.getElementById('cham-clue-status').textContent='';show('cham-role');});
+function submitChamClue(){const v=document.getElementById('cham-clue-input').value.trim();if(!v)return;socket.emit('game_input',{type:'clue',word:v});document.getElementById('cham-clue-input').disabled=true;if(window.CouchMusic)window.CouchMusic.sfx('pop');}
+socket.on('cham_clue_locked',()=>{document.getElementById('cham-clue-status').textContent="Clue locked! Waiting for others...";});
+socket.on('cham_vote',({clues})=>{document.getElementById('cham-vote-status').textContent='';document.getElementById('cham-vote-opts').innerHTML=clues.map(cl=>`<button class="opt-btn" style="display:flex;justify-content:space-between" onclick="voteCham('${cl.id}',this)"><span>${cl.name}</span><span style="color:var(--y)">"${cl.clue}"</span></button>`).join('');show('cham-vote');});
+function voteCham(id,btn){if(window.CouchMusic)window.CouchMusic.sfx('pop');document.querySelectorAll('#cham-vote-opts .opt-btn').forEach(b=>{b.classList.add('dim');b.disabled=true;});btn.classList.remove('dim');btn.classList.add('on');socket.emit('game_input',{type:'vote',target:id});}
+socket.on('cham_voted',()=>{document.getElementById('cham-vote-status').textContent="Vote locked!";});
+socket.on('cham_guess_chance',({category,wordList})=>{document.getElementById('cham-guess-status').textContent='';document.getElementById('cham-guess-opts').innerHTML=wordList.map(w=>`<button class="opt-btn" onclick="guessChamWord('${w}',this)">${w}</button>`).join('');show('cham-guess');});
+function guessChamWord(w,btn){if(window.CouchMusic)window.CouchMusic.sfx('pop');document.querySelectorAll('#cham-guess-opts .opt-btn').forEach(b=>{b.classList.add('dim');b.disabled=true;});btn.classList.add('on');socket.emit('game_input',{type:'word_guess',guess:w});document.getElementById('cham-guess-status').textContent="Guess locked!";}
+socket.on('cham_wait_guess',({chameleonName})=>showWait('🦎','Caught!',chameleonName+" is trying to guess the word..."));
+socket.on('cham_reveal_player',({isChameleon,caught,votedRight,guessedRight,secret})=>{if(isChameleon){if(!caught)showResult('🦎','You escaped!','+400','They never caught you');else if(guessedRight)showResult('🦎','Caught — but you stole it!','+300',`You guessed ${secret}`);else showResult('💀','Caught!',null,`The word was ${secret}`);}else{showResult(votedRight?'🎯':'🙈',votedRight?'You caught them!':'Fooled you',votedRight?'+200':null,`The word was ${secret}`);}});
+
+// ══ STORYTELLER (player) ══
+socket.on('story_prompts',({prompts})=>{document.getElementById('story-fill-status').textContent='';document.getElementById('story-slots').innerHTML=prompts.map(p=>`<div style="text-align:left"><label style="font-size:12px;color:var(--m)">${p.hint}</label><input class="story-slot" data-idx="${p.index}" placeholder="${p.hint}..." maxlength="40" autocomplete="off" style="margin-top:4px"></div>`).join('');show('story-fill');});
+function submitStory(){const fills={};let ok=true;document.querySelectorAll('.story-slot').forEach(inp=>{const v=inp.value.trim();if(!v)ok=false;fills[inp.dataset.idx]=v;});if(!ok){document.getElementById('story-fill-status').textContent="Fill in all the words!";return;}socket.emit('game_input',{type:'fills',fills});if(window.CouchMusic)window.CouchMusic.sfx('pop');document.querySelectorAll('.story-slot').forEach(i=>i.disabled=true);}
+socket.on('story_fills_locked',()=>{document.getElementById('story-fill-status').textContent="Locked in! Waiting for the big reveal...";});
+socket.on('story_vote',({options})=>{document.getElementById('story-vote-status').textContent='';document.getElementById('story-vote-opts').innerHTML=options.map(o=>`<button class="opt-btn" onclick="voteStory(${o.index},this)">${o.word}</button>`).join('');show('story-vote');});
+function voteStory(idx,btn){if(window.CouchMusic)window.CouchMusic.sfx('pop');document.querySelectorAll('#story-vote-opts .opt-btn').forEach(b=>{b.classList.add('dim');b.disabled=true;});btn.classList.remove('dim');btn.classList.add('on');socket.emit('game_input',{type:'vote',slotIndex:idx});}
+socket.on('story_voted',()=>{document.getElementById('story-vote-status').textContent="Voted!";});
+socket.on('story_result_player',({won,winnerWord})=>showResult(won?'😂':'📖',won?'Your word won!':'Round over',won?'+':'',won?`"${winnerWord}" was the funniest`:`Funniest: "${winnerWord}"`));
+
+// ══ AUCTION (player) ══
+socket.on('auc_bid',({lotName,hint,coins})=>{document.getElementById('auc-lot').innerHTML=`<b>${lotName}</b><div style="font-size:12px;color:var(--m);font-style:italic;margin-top:4px">"${hint}"</div>`;document.getElementById('auc-coins').textContent=coins;document.getElementById('auc-bid-input').value='';document.getElementById('auc-bid-input').disabled=false;document.getElementById('auc-bid-input').max=coins;document.getElementById('auc-status').textContent='';show('auc');});
+function submitAuc(){const v=document.getElementById('auc-bid-input').value;if(v===''){document.getElementById('auc-status').textContent="Enter a bid (0 to pass)";return;}socket.emit('game_input',{type:'bid',amount:v});if(window.CouchMusic)window.CouchMusic.sfx('pop');document.getElementById('auc-bid-input').disabled=true;}
+socket.on('auc_bid_locked',({amount})=>{document.getElementById('auc-status').textContent="Bid placed: "+amount+" coins";});
+socket.on('auc_resolve_player',({won,value,paid,profit,coins})=>showResult(won?(profit>=0?'🤑':'😅'):'📦',won?'You won the lot!':'Didn\'t win it',won?(profit>=0?'+'+profit:''+profit):null,won?`Worth ${value}, paid ${paid} • ${coins} coins`:`You have ${coins} coins`,won&&profit<0));
+
+// ══ NUMBER CRUNCH (player) ══
+let numSelected=[],numTileVals={};
+socket.on('num_solve',({target,tiles,timeLimit})=>{numSelected=[];numTileVals={};tiles.forEach(t=>numTileVals[t.id]=t.value);document.getElementById('num-target').textContent=target;document.getElementById('num-sum').textContent='0';document.getElementById('num-pstatus').textContent='';document.getElementById('num-tiles').innerHTML=tiles.map(t=>`<button class="opt-btn num-tile" data-id="${t.id}" onclick="tapNum(this)" style="width:60px;height:60px;font-family:'Bebas Neue',cursive;font-size:26px">${t.value}</button>`).join('');show('num');});
+function tapNum(btn){const id=parseInt(btn.dataset.id);if(numSelected.includes(id)){numSelected=numSelected.filter(x=>x!==id);btn.classList.remove('on');}else{numSelected.push(id);btn.classList.add('on');if(window.CouchMusic)window.CouchMusic.sfx('pop');}const sum=numSelected.reduce((s,i)=>s+numTileVals[i],0);document.getElementById('num-sum').textContent=sum;}
+function submitNum(){socket.emit('game_input',{type:'submit',tileIds:numSelected});if(window.CouchMusic)window.CouchMusic.sfx('pop');document.getElementById('num-pstatus').textContent="Submitted!";}
+socket.on('num_submitted',({sum})=>{document.getElementById('num-pstatus').textContent="Locked in at "+sum;});
+socket.on('num_result_player',({yourSum,target,exact,points,closest})=>showResult(exact?'🎯':closest?'🥇':points>0?'🔢':'😬',exact?'Exact!':closest?'Closest!':'Results in',points>0?'+'+points:null,`You made ${yourSum!==null?yourSum:'—'} • target ${target}`));
+
+// ══ DESCRIBE IT (player) ══
+socket.on('desc_word',({word})=>{document.getElementById('desc-word-box').textContent=word;document.getElementById('desc-word-status').textContent='';show('desc-word');});
+socket.on('desc_guess',({describerName})=>{document.getElementById('desc-guess-sub').textContent=describerName+" is describing — type your guess!";document.getElementById('desc-guess-input').value='';document.getElementById('desc-guess-input').disabled=false;document.getElementById('desc-guess-status').textContent='';show('desc-guess');});
+function submitDesc(){const v=document.getElementById('desc-guess-input').value.trim();if(!v)return;socket.emit('game_input',{type:'guess',guess:v});}
+function skipDesc(){socket.emit('game_input',{type:'skip'});document.getElementById('desc-word-status').textContent="Skipped!";}
+socket.on('desc_correct',({points,word})=>{if(window.CouchMusic)window.CouchMusic.sfx('correct');if(navigator.vibrate)navigator.vibrate(50);document.getElementById('desc-guess-input').disabled=true;document.getElementById('desc-guess-status').innerHTML=`<span style="color:var(--g)">✓ ${word}! +${points}</span>`;});
+socket.on('desc_wrong',()=>{if(navigator.vibrate)navigator.vibrate(20);document.getElementById('desc-guess-input').value='';document.getElementById('desc-guess-status').innerHTML=`<span style="color:var(--r)">Nope — keep going!</span>`;});
+socket.on('desc_turnend_player',({role,solved,word,youWon})=>{if(role==='describer')showResult(solved?'🗣️':'😬',solved?'They got it!':'Time up',solved?'+200':null,`The word was ${word}`);else showResult(youWon?'🎯':'🔎',youWon?'You got it!':'Round over',youWon?'+':'',`The word was ${word}`);});
+
+// ══ PITCH BATTLE (player) ══
+socket.on('pitch_write',({product})=>{document.getElementById('pitch-product').textContent=product;document.getElementById('pitch-input').value='';document.getElementById('pitch-input').disabled=false;document.getElementById('pitch-wstatus').textContent='';show('pitch-write');});
+function submitPitch(){const v=document.getElementById('pitch-input').value.trim();if(!v){document.getElementById('pitch-wstatus').textContent="Write a pitch!";return;}socket.emit('game_input',{type:'pitch',pitch:v});if(window.CouchMusic)window.CouchMusic.sfx('pop');document.getElementById('pitch-input').disabled=true;}
+socket.on('pitch_submitted',()=>{document.getElementById('pitch-wstatus').textContent="Pitch submitted!";});
+socket.on('pitch_vote',({product,options})=>{document.getElementById('pitch-vote-product').textContent=product;document.getElementById('pitch-vstatus').textContent='';document.getElementById('pitch-vote-opts').innerHTML=options.map(o=>`<button class="opt-btn" style="text-align:left" onclick="votePitch('${o.id}',this)">${o.text}</button>`).join('');show('pitch-vote');});
+function votePitch(id,btn){if(window.CouchMusic)window.CouchMusic.sfx('pop');document.querySelectorAll('#pitch-vote-opts .opt-btn').forEach(b=>{b.classList.add('dim');b.disabled=true;});btn.classList.remove('dim');btn.classList.add('on');socket.emit('game_input',{type:'vote',target:id});}
+socket.on('pitch_voted',()=>{document.getElementById('pitch-vstatus').textContent="Voted!";});
+socket.on('pitch_result_player',({won,votes})=>showResult(won?'🏆':'📣',won?'Best pitch!':'Round over',won?'+':votes>0?'+':'',`${votes} vote${votes!==1?'s':''}`));
+
+// ══ LAST ONE STANDING (player) ══
+socket.on('los_write',({prompt})=>{document.getElementById('los-prompt').textContent=prompt;document.getElementById('los-input').value='';document.getElementById('los-input').disabled=false;document.getElementById('los-wstatus').textContent='';show('los-write');});
+socket.on('los_spectate',({prompt})=>{document.getElementById('los-spec-prompt').textContent=prompt;show('los-spectate');});
+function submitLos(){const v=document.getElementById('los-input').value.trim();if(!v){document.getElementById('los-wstatus').textContent="Answer to survive!";return;}socket.emit('game_input',{type:'answer',answer:v});if(window.CouchMusic)window.CouchMusic.sfx('pop');document.getElementById('los-input').disabled=true;}
+socket.on('los_submitted',()=>{document.getElementById('los-wstatus').textContent="Submitted! Now everyone votes...";});
+socket.on('los_vote',({prompt,options})=>{document.getElementById('los-vstatus').textContent='';document.getElementById('los-vote-opts').innerHTML=options.map(o=>`<button class="opt-btn" style="text-align:left" onclick="voteLos('${o.id}',this)">${o.text}</button>`).join('');show('los-vote');});
+function voteLos(id,btn){if(window.CouchMusic)window.CouchMusic.sfx('pop');document.querySelectorAll('#los-vote-opts .opt-btn').forEach(b=>{b.classList.add('dim');b.disabled=true;});btn.classList.remove('dim');btn.classList.add('on');socket.emit('game_input',{type:'vote',target:id});}
+socket.on('los_voted',()=>{document.getElementById('los-vstatus').textContent="Vote locked!";});
+socket.on('los_resolve_player',({eliminated,stillAlive,votesReceived})=>{if(eliminated)showResult('💀','Eliminated!',null,"You're out — but you can still vote!",true);else showResult('🛡️','You survived!','+',`${votesReceived} vote${votesReceived!==1?'s':''} this round`);});
 
 socket.on('final_scores',({scores,gameName})=>{
   const medals=['1ST','2ND','3RD'];
